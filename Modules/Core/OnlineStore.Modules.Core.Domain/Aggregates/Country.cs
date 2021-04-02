@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using SimplCommerce.Infrastructure.Models;
 
 namespace SimplCommerce.Module.Core.Models
 {
@@ -15,8 +14,7 @@ namespace SimplCommerce.Module.Core.Models
         [StringLength(450)]
         public string Name { get; set; }
 
-        [StringLength(450)]
-        public string Code3 { get; set; }
+        [StringLength(450)] public string Code3 { get; set; }
 
         public bool IsBillingEnabled { get; set; }
 
@@ -29,6 +27,5 @@ namespace SimplCommerce.Module.Core.Models
         public bool IsDistrictEnabled { get; set; } = true;
 
         public IList<StateOrProvince> StatesOrProvinces { get; set; } = new List<StateOrProvince>();
-
     }
 }

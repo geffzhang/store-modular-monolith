@@ -1,4 +1,3 @@
-using IInfrastructure.Contexts;
 using Microsoft.AspNetCore.Http;
 
 namespace Common.Contexts
@@ -15,7 +14,7 @@ namespace Common.Contexts
         public IContext Create()
         {
             var context = _httpContextAccessor.HttpContext;
-            
+
             return context is null ? Context.Empty : new Context(context);
         }
     }

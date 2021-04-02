@@ -1,22 +1,22 @@
 using System;
+using Common.Extensions.DependencyInjection;
+using Common.Mongo.Factories;
+using Common.Mongo.Repositories;
+using Common.Mongo.Seeders;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using Common.Mongo.Factories;
-using Common.Mongo.Repositories;
-using Common.Mongo.Seeders;
-using Common.Extensions.DependencyInjection;
 
 namespace Common.Mongo
 {
     public static class Extensions
     {
-        private static bool _conventionsRegistered;
         private const string SectionName = "mongo";
-        
+        private static bool _conventionsRegistered;
+
         public static IServiceCollection AddMongoRepository<TEntity, TIdentifiable>(this IServiceCollection services,
             string collectionName)
             where TEntity : IIdentifiable<TIdentifiable>
@@ -33,10 +33,7 @@ namespace Common.Mongo
         internal static IServiceCollection AddMongo(this IServiceCollection services, string sectionName = SectionName,
             Type seederType = null)
         {
-            if (string.IsNullOrWhiteSpace(sectionName))
-            {
-                sectionName = SectionName;
-            }
+            if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
 
             var mongoOptions = services.GetOptions<MongoOptions>(sectionName);
             services.AddSingleton(mongoOptions);
@@ -54,18 +51,11 @@ namespace Common.Mongo
             services.AddTransient<IMongoSessionFactory, MongoSessionFactory>();
 
             if (seederType is null)
-            {
                 services.AddTransient<IMongoDbSeeder, MongoDbSeeder>();
-            }
             else
-            {
                 services.AddTransient(typeof(IMongoDbSeeder), seederType);
-            }
 
-            if (!_conventionsRegistered)
-            {
-                RegisterConventions();
-            }
+            if (!_conventionsRegistered) RegisterConventions();
 
             return services;
         }
@@ -80,7 +70,7 @@ namespace Common.Mongo
             {
                 new CamelCaseElementNameConvention(),
                 new IgnoreExtraElementsConvention(true),
-                new EnumRepresentationConvention(BsonType.String),
+                new EnumRepresentationConvention(BsonType.String)
             }, _ => true);
         }
     }

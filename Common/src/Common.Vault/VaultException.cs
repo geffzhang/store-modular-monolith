@@ -4,8 +4,6 @@ namespace Common.Vault
 {
     internal sealed class VaultException : Exception
     {
-        public string Key { get; }
-        
         public VaultException(string key) : this(null, key)
         {
         }
@@ -18,5 +16,7 @@ namespace Common.Vault
         {
             Key = key;
         }
+
+        public string Key { get; }
     }
 }

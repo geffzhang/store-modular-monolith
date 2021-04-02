@@ -1,6 +1,6 @@
 ﻿using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Users.Domain.Users.Events
+namespace OnlineStore.Modules.Users.Domain.Users.DomainEvents
 {
     public class UserCreatedDomainEvent : DomainEventBase
     {

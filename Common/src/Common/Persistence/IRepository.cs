@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Common.Domain.Types;
 
-namespace Moduliths.Domain
+namespace Common.Persistence
 {
     public interface IRepository<T> where T : IAggregateRoot
     {

@@ -1,8 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 
-namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.RegisterNewUser
+namespace OnlineStore.Modules.Users.Application.UserRegistrations.RegisterNewUser
 {
     public class NewUserRegisteredNotificationHandler : INotificationHandler<NewUserRegisteredNotification>
     {

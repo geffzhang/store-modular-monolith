@@ -1,22 +1,20 @@
 using System;
 using System.Threading.Tasks;
+using Common.Mongo;
+using Common.Utils;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-using Common.Mongo;
-using Common.Utils;
 
 namespace Common.Messaging.Inbox.Mongo
 {
     internal sealed class MongoInbox : IInbox
     {
-        private readonly IMongoSessionFactory _sessionFactory;
+        private readonly string _collectionName;
         private readonly IMongoDatabase _database;
         private readonly ILogger<MongoInbox> _logger;
+        private readonly IMongoSessionFactory _sessionFactory;
         private readonly bool _transactionsEnabled;
-        private readonly string _collectionName;
-
-        public bool Enabled { get; }
 
         public MongoInbox(IMongoSessionFactory sessionFactory, InboxOptions inboxOptions, MongoOptions mongoOptions,
             IMongoDatabase database, ILogger<MongoInbox> logger)
@@ -30,6 +28,8 @@ namespace Common.Messaging.Inbox.Mongo
                 ? "inbox"
                 : inboxOptions.CollectionName;
         }
+
+        public bool Enabled { get; }
 
         public async Task HandleAsync(IMessage message, Func<Task> handler, string module)
         {
@@ -73,20 +73,14 @@ namespace Common.Messaging.Inbox.Mongo
                     Module = message.GetModuleName(),
                     Timestamp = DateTime.UtcNow.ToUnixTimeMilliseconds()
                 });
-                if (session is {})
-                {
-                    await session.CommitTransactionAsync();
-                }
+                if (session is { }) await session.CommitTransactionAsync();
 
                 _logger.LogTrace($"Handled a message with ID: '{message.Id}'.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"There was an error when handling a message with ID: '{message.Id}'.");
-                if (session is {})
-                {
-                    await session.AbortTransactionAsync();
-                }
+                if (session is { }) await session.AbortTransactionAsync();
 
                 throw;
             }

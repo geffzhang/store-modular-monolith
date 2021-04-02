@@ -1,6 +1,6 @@
 using Common.Exceptions;
 
-namespace OnlineStore.Modules.Users.Domain.Exceptions
+namespace OnlineStore.Modules.Users.Domain.Users.DomainExceptions
 {
     internal class InvalidPasswordException : DomainException
     {

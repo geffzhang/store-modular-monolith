@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
-namespace CompanyName.MyMeetings.Modules.UserAccess.Application.Authentication
+namespace OnlineStore.Modules.Users.Application.Authentication
 {
     public class PasswordManager
     {

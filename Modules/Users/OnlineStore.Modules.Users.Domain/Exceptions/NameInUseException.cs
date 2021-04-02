@@ -1,14 +1,14 @@
-using Trill.Shared.Kernel.Exceptions;
+using Common.Exceptions;
 
-namespace Trill.Modules.Users.Core.Domain.Exceptions
+namespace OnlineStore.Modules.Users.Domain.Exceptions
 {
     internal class NameInUseException : DomainException
     {
-        public string Name { get; }
-
         public NameInUseException(string name) : base($"Name {name} is already in use.")
         {
             Name = name;
         }
+
+        public string Name { get; }
     }
 }

@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Common.Utils;
 using Common.Messaging.Queries;
+using Common.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace Common.Logging
 {

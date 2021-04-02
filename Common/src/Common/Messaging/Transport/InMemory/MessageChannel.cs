@@ -1,6 +1,6 @@
 using System.Threading.Channels;
 
-namespace Common.Messaging
+namespace Common.Messaging.Transport.InMemory
 {
     internal class MessageChannel : IMessageChannel
     {

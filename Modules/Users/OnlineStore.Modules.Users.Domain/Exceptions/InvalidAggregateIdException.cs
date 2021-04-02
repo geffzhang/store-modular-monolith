@@ -1,6 +1,6 @@
-using Trill.Shared.Kernel.Exceptions;
+using Common.Exceptions;
 
-namespace Trill.Modules.Users.Core.Domain.Exceptions
+namespace OnlineStore.Modules.Users.Domain.Exceptions
 {
     internal class InvalidAggregateIdException : DomainException
     {

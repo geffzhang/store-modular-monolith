@@ -6,10 +6,6 @@ namespace Common.Messaging.Queries
 {
     public class Paged<T> : PagedBase
     {
-        public IEnumerable<T> Items { get; set; } = Enumerable.Empty<T>();
-
-        public bool IsEmpty => Items is null || !Items.Any();
-
         public Paged()
         {
         }
@@ -22,18 +18,28 @@ namespace Common.Messaging.Queries
             Items = items;
         }
 
+        public IEnumerable<T> Items { get; set; } = Enumerable.Empty<T>();
+
+        public bool IsEmpty => Items is null || !Items.Any();
+
+        public static Paged<T> Empty => new();
+
         public static Paged<T> Create(IEnumerable<T> items,
             int currentPage, int resultsPerPage,
             int totalPages, long totalResults)
-            => new Paged<T>(items, currentPage, resultsPerPage, totalPages, totalResults);
+        {
+            return new(items, currentPage, resultsPerPage, totalPages, totalResults);
+        }
 
         public static Paged<T> From(PagedBase result, IEnumerable<T> items)
-            => new Paged<T>(items, result.CurrentPage, result.ResultsPerPage,
+        {
+            return new(items, result.CurrentPage, result.ResultsPerPage,
                 result.TotalPages, result.TotalResults);
-
-        public static Paged<T> Empty => new Paged<T>();
+        }
 
         public Paged<TResult> Map<TResult>(Func<T, TResult> map)
-            => Paged<TResult>.From(this, Items.Select(map));
+        {
+            return Paged<TResult>.From(this, Items.Select(map));
+        }
     }
 }

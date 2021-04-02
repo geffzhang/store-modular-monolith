@@ -1,6 +1,6 @@
 using Common.Exceptions;
 
-namespace OnlineStore.Modules.Users.Domain.Exceptions
+namespace OnlineStore.Modules.Users.Domain.RefreshTokens.DomainExceptions
 {
     internal class EmptyRefreshTokenException : DomainException
     {

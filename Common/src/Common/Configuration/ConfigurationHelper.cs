@@ -2,7 +2,7 @@
 using System.IO;
 using Microsoft.Extensions.Configuration;
 
-namespace Moduliths.Infra.Helpers
+namespace Common.Configuration
 {
     public static class ConfigurationHelper
     {
@@ -12,7 +12,7 @@ namespace Moduliths.Infra.Helpers
             var builder = new ConfigurationBuilder()
                 .SetBasePath(basePath)
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{ Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", true)
+                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", true)
                 .AddEnvironmentVariables();
 
             return builder.Build();

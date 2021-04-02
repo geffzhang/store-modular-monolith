@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text.Json;
 
-namespace Moduliths.Infra.Extensions
+namespace Common.Utils
 {
     public static class FileContentReaderExtensions
     {
@@ -16,7 +16,7 @@ namespace Moduliths.Infra.Extensions
                 readData,
                 new JsonSerializerOptions
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
             return models;
         }

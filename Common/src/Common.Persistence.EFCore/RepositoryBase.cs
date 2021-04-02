@@ -1,13 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Moduliths.Domain;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Common.Domain.Types;
+using Common.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
-namespace Moduliths.Infra.Data
+namespace Common.Persistence.EFCore
 {
     public abstract class RepositoryBase<T, TDbContext> : IRepository<T>
-       where T : class, IAggregateRoot
+        where T : class, IAggregateRoot
         where TDbContext : DbContext
     {
         protected RepositoryBase(TDbContext dbContext)
@@ -36,16 +37,14 @@ namespace Moduliths.Infra.Data
                     .AsNoTracking()
                     .AsAsyncEnumerable();
             }
-            else
-            {
-                var queryableWithInclude = specification.Includes
-                    .Aggregate(queryable, (current, include) => current.Include(include));
 
-                return queryableWithInclude
-                    .Where(specification.Expression)
-                    .AsNoTracking()
-                    .AsAsyncEnumerable();
-            }
+            var queryableWithInclude = specification.Includes
+                .Aggregate(queryable, (current, include) => current.Include(include));
+
+            return queryableWithInclude
+                .Where(specification.Expression)
+                .AsNoTracking()
+                .AsAsyncEnumerable();
         }
 
         public Task<T> FindOneAsync(ISpecification<T> specification)

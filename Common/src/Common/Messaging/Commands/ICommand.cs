@@ -1,4 +1,3 @@
-
 namespace Common.Messaging.Commands
 {
     //Marker

@@ -4,8 +4,6 @@ namespace Common.Vault
 {
     internal sealed class VaultAuthTypeNotSupportedException : Exception
     {
-        public string AuthType { get; set; }
-
         public VaultAuthTypeNotSupportedException(string authType) : this(string.Empty, authType)
         {
         }
@@ -14,5 +12,7 @@ namespace Common.Vault
         {
             AuthType = authType;
         }
+
+        public string AuthType { get; set; }
     }
 }

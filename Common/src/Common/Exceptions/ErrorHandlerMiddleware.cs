@@ -12,7 +12,7 @@ namespace Common.Exceptions
 {
     internal sealed class ErrorHandlerMiddleware : IMiddleware
     {
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings SerializerSettings = new()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             Converters = new List<JsonConverter>

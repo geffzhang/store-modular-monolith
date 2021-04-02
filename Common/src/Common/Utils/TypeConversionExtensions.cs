@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 
-namespace Moduliths.Infra.Extensions
+namespace Common.Utils
 {
     public static class TypeConversionExtensions
     {
@@ -12,7 +12,7 @@ namespace Moduliths.Infra.Extensions
             try
             {
                 var converter = TypeDescriptor.GetConverter(typeof(T));
-                return (T)converter.ConvertFromString(input);
+                return (T) converter.ConvertFromString(input);
             }
             catch (NotSupportedException)
             {

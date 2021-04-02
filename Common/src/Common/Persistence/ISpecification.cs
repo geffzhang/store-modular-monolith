@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace Moduliths.Domain
+namespace Common.Persistence
 {
     public interface ISpecification<T>
     {

@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Common.Messaging.Events;
+using Common.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.Exceptions
 {
     internal class ExceptionToMessageMapperResolver : IExceptionToMessageMapperResolver
     {
-        private readonly IServiceProvider _serviceProvider;
         private readonly IExceptionToMessageMapper _defaultMapper = new ExceptionToMessageMapper();
         private readonly IDictionary<Type, Type> _mappers = new Dictionary<Type, Type>();
+        private readonly IServiceProvider _serviceProvider;
 
         public ExceptionToMessageMapperResolver(IServiceProvider serviceProvider)
         {
@@ -18,20 +18,13 @@ namespace Common.Exceptions
             using var scope = _serviceProvider.CreateScope();
             var mappers = scope.ServiceProvider.GetServices<IExceptionToMessageMapper>();
             foreach (var mapper in mappers)
-            {
-                foreach (var exceptionType in mapper.ExceptionTypes ?? Enumerable.Empty<Type>())
-                {
-                    _mappers.TryAdd(exceptionType, mapper.GetType());
-                }
-            }
+            foreach (var exceptionType in mapper.ExceptionTypes ?? Enumerable.Empty<Type>())
+                _mappers.TryAdd(exceptionType, mapper.GetType());
         }
 
         public IActionRejected Map<T>(T exception) where T : Exception
         {
-            if (!_mappers.TryGetValue(exception.GetType(), out var mapperType))
-            {
-                return _defaultMapper.Map(exception);
-            }
+            if (!_mappers.TryGetValue(exception.GetType(), out var mapperType)) return _defaultMapper.Map(exception);
 
             IActionRejected result;
             using var scope = _serviceProvider.CreateScope();

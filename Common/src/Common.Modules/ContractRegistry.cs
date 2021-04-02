@@ -6,14 +6,15 @@ using System.Runtime.Serialization;
 using Common.Messaging;
 using Common.Utils;
 using Microsoft.Extensions.Logging;
+
 namespace Common.Modules
 {
     internal class ContractRegistry : IContractRegistry
     {
         private readonly ISet<Type> _contracts = new HashSet<Type>();
-        private readonly IDictionary<string, (Type, Type)> _paths = new Dictionary<string, (Type, Type)>();
-        private readonly IModuleRegistry _moduleRegistry;
         private readonly ILogger<ContractRegistry> _logger;
+        private readonly IModuleRegistry _moduleRegistry;
+        private readonly IDictionary<string, (Type, Type)> _paths = new Dictionary<string, (Type, Type)>();
         private List<Assembly> _assemblies;
         private List<Type> _types;
 
@@ -32,57 +33,51 @@ namespace Common.Modules
         }
 
         public IContractRegistry RegisterPath(string path)
-            => RegisterPath<Empty, Empty>(path);
+        {
+            return RegisterPath<Empty, Empty>(path);
+        }
 
         public IContractRegistry RegisterPathWithRequest<TRequest>(string path) where TRequest : class
-            => RegisterPath<TRequest, Empty>(path);
+        {
+            return RegisterPath<TRequest, Empty>(path);
+        }
 
         public IContractRegistry RegisterPathWithResponse<TResponse>(string path) where TResponse : class
-            => RegisterPath<Empty, TResponse>(path);
-        
+        {
+            return RegisterPath<Empty, TResponse>(path);
+        }
+
         public IContractRegistry RegisterPath<TRequest, TResponse>(string path)
             where TRequest : class where TResponse : class
         {
-            if (path == null)
-            {
-                throw new ContractException("Path cannot be null.");
-            }
+            if (path == null) throw new ContractException("Path cannot be null.");
 
-            if (_paths.ContainsKey(path))
-            {
-                throw new ContractException($"Path: '{path}' is already registered.");
-            }
-            
+            if (_paths.ContainsKey(path)) throw new ContractException($"Path: '{path}' is already registered.");
+
             var requestContract = GetContractType<TRequest>();
             var responseContract = GetContractType<TResponse>();
             _paths.Add(path, (requestContract, responseContract));
             return this;
         }
 
+        public void Validate()
+        {
+            if (_assemblies.Count == 0 || _types.Count == 0) LoadTypes();
+
+            ValidateContracts();
+            ValidatePaths();
+            ClearTypes();
+        }
+
         private Type GetContractType<T>() where T : class
         {
             var contractType = typeof(Contract<T>);
             var requestContract = _types.SingleOrDefault(x => x.BaseType == contractType && !x.IsAbstract);
-            if (requestContract is {})
-            {
-                return requestContract;
-            }
-            
+            if (requestContract is { }) return requestContract;
+
             var type = typeof(T);
             var module = type.GetModuleName();
             throw new ContractException($"Contract was not found for: '{type.Name}' in module: '{module}'.");
-        }
-
-        public void Validate()
-        {
-            if (_assemblies.Count == 0 || _types.Count == 0)
-            {
-                LoadTypes();
-            }
-            
-            ValidateContracts();
-            ValidatePaths();
-            ClearTypes();
         }
 
         private void ValidatePaths()
@@ -91,20 +86,12 @@ namespace Common.Modules
             {
                 var registration = _moduleRegistry.GetRequestRegistration(path);
                 if (registration is null)
-                {
                     throw new ContractException($"Request registration was not found for path: '{path}'.");
-                }
 
                 _logger.LogTrace($"Validating the contracts for path: '{path}'...");
-                if (requestType != typeof(Empty))
-                {
-                    ValidateContract(requestType, path);
-                }
+                if (requestType != typeof(Empty)) ValidateContract(requestType, path);
 
-                if (responseType != typeof(Empty))
-                {
-                    ValidateContract(responseType, path);
-                }
+                if (responseType != typeof(Empty)) ValidateContract(responseType, path);
 
                 _logger.LogTrace($"Validated the contracts for path: '{path}'.");
             }
@@ -112,10 +99,7 @@ namespace Common.Modules
 
         private void ValidateContracts()
         {
-            foreach (var contractType in _contracts)
-            {
-                ValidateContract(contractType);
-            }
+            foreach (var contractType in _contracts) ValidateContract(contractType);
         }
 
         private void ValidateContract(Type contractType, string path = null)
@@ -123,22 +107,17 @@ namespace Common.Modules
             var contract = Activator.CreateInstance(contractType) as IContract;
             var contractModule = contract.GetModuleName();
             var messageAttribute = contract?.Type.GetCustomAttribute<MessageAttribute>();
-            if (messageAttribute is null || !messageAttribute.Enabled)
-            {
-                return;
-            }
+            if (messageAttribute is null || !messageAttribute.Enabled) return;
 
             var contractName = contract.Type.Name;
             var module = messageAttribute.Module;
             var originalType = _types
-                .Where(x => x.FullName is {} &&
+                .Where(x => x.FullName is { } &&
                             x.FullName.Contains($"Trill.Modules.{module}", StringComparison.InvariantCultureIgnoreCase))
                 .SingleOrDefault(x => x.Name == contractName);
 
             if (originalType is null)
-            {
                 throw new ContractException($"Contract: '{contractName}' was not found in module: '{module}'.");
-            }
 
             _logger.LogTrace($"Validating the contract for: '{contractName}', " +
                              $"from module: '{contractModule}', original module: '{module}'...");
@@ -162,27 +141,20 @@ namespace Common.Modules
         private static void ValidateProperty(PropertyInfo localProperty, PropertyInfo originalProperty,
             string propertyName, string contractName, string module, string localModule, string path = null)
         {
-            if (localProperty.PropertyType == typeof(string) && originalProperty.PropertyType == typeof(string))
-            {
-                return;
-            }
+            if (localProperty.PropertyType == typeof(string) && originalProperty.PropertyType == typeof(string)) return;
 
             if (localProperty.PropertyType.IsClass && localProperty.PropertyType != typeof(string) &&
                 originalProperty.PropertyType.IsClass &&
                 originalProperty.PropertyType != typeof(string))
-            {
                 return;
-            }
 
-            if (localProperty.PropertyType == originalProperty.PropertyType)
-            {
-                return;
-            }
+            if (localProperty.PropertyType == originalProperty.PropertyType) return;
 
-            throw new ContractException($"Property: '{propertyName}' in contract: '{contractName}' (module: '{localModule}') " +
-                                        $"from module: '{module}'{(path is null ? "" : $", path: '{path}'")}, has a different type " +
-                                        $"(actual: '{originalProperty.PropertyType}', " +
-                                        $"expected: '{localProperty.PropertyType}').");
+            throw new ContractException(
+                $"Property: '{propertyName}' in contract: '{contractName}' (module: '{localModule}') " +
+                $"from module: '{module}'{(path is null ? "" : $", path: '{path}'")}, has a different type " +
+                $"(actual: '{originalProperty.PropertyType}', " +
+                $"expected: '{localProperty.PropertyType}').");
         }
 
         private static PropertyInfo GetProperty(Type type, string name, string contractName, string module,
@@ -194,21 +166,13 @@ namespace Common.Modules
                 var nameParts = name.Split(".");
                 var property = type.GetProperty(nameParts[0]);
                 if (property is null)
-                {
                     throw new ContractException($"Property: '{originalName}' was not found in " +
                                                 $"contract: '{contractName}' (module: '{localModule}') from module: '{module}'" +
                                                 $"{(path is null ? "." : $", path: '{path}'.")}");
-                }
 
-                if (property.PropertyType == typeof(string))
-                {
-                    return property;
-                }
+                if (property.PropertyType == typeof(string)) return property;
 
-                if (nameParts.Length == 1)
-                {
-                    return property;
-                }
+                if (nameParts.Length == 1) return property;
 
                 if (property.PropertyType.IsClass)
                 {
@@ -216,7 +180,7 @@ namespace Common.Modules
                     name = string.Join(".", nameParts.Skip(1));
                     continue;
                 }
-                
+
                 type = property.PropertyType;
                 name = string.Join(".", nameParts.Skip(1));
             }
@@ -227,17 +191,18 @@ namespace Common.Modules
             _assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
             _types = _assemblies.SelectMany(x => x.GetTypes()).ToList();
         }
-        
+
         private void ClearTypes()
         {
             _assemblies.Clear();
             _types.Clear();
-;        }
-        
+            ;
+        }
+
         private class Empty
         {
         }
-        
+
         private class EmptyContract : Contract<Empty>
         {
         }

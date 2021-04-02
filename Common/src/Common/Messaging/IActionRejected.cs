@@ -1,6 +1,8 @@
-namespace Common.Messaging.Events
+using Common.Messaging.Events;
+
+namespace Common.Messaging
 {
-    public interface IActionRejected : IEvent
+    public interface IActionRejected : IIntegrationEvent
     {
         string Code { get; }
         string Reason { get; }

@@ -18,10 +18,7 @@ namespace Common.Messaging
             using var scope = _serviceFactory.CreateScope();
             var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResult));
             var handler = scope.ServiceProvider.GetRequiredService(handlerType);
-            if (handler is null)
-            {
-                return default;
-            }
+            if (handler is null) return default;
 
             return await (Task<TResult>) handlerType
                 .GetMethod(nameof(IQueryHandler<IQuery<TResult>, TResult>.HandleAsync))?

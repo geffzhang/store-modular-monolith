@@ -2,13 +2,8 @@
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.BuildingBlocks.Application.Data;
-using CompanyName.MyMeetings.BuildingBlocks.Infrastructure;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Commands;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Contracts;
-using Dapper;
 
-namespace CompanyName.MyMeetings.Modules.UserAccess.Application.Authentication.Authenticate
+namespace OnlineStore.Modules.Users.Application.Authentication.Authenticate
 {
     public class AuthenticateCommandHandler : ICommandHandler<AuthenticateCommand, AuthenticationResult>
     {

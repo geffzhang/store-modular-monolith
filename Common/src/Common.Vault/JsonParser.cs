@@ -14,7 +14,7 @@ namespace Common.Vault
         private readonly IDictionary<string, string> _mappings =
             new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        private readonly Stack<string> _stack = new Stack<string>();
+        private readonly Stack<string> _stack = new();
         private string _currentPath;
 
         public IDictionary<string, string> Parse(JObject jObject)
@@ -80,10 +80,7 @@ namespace Common.Vault
         {
             var key = _currentPath;
 
-            if (_mappings.ContainsKey(key))
-            {
-                throw new FormatException($"Duplicated key: '{key}'");
-            }
+            if (_mappings.ContainsKey(key)) throw new FormatException($"Duplicated key: '{key}'");
 
             _mappings[key] = data.ToString();
         }

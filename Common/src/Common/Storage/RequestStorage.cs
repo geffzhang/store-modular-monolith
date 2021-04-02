@@ -12,8 +12,14 @@ namespace Common.Storage
             _cache = cache;
         }
 
-        public void Set<T>(string key, T value) => _cache.Set(key, value, TimeSpan.FromSeconds(5));
+        public void Set<T>(string key, T value)
+        {
+            _cache.Set(key, value, TimeSpan.FromSeconds(5));
+        }
 
-        public T Get<T>(string key) => _cache.Get<T>(key);
+        public T Get<T>(string key)
+        {
+            return _cache.Get<T>(key);
+        }
     }
 }

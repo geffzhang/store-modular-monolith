@@ -1,10 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.BuildingBlocks.Infrastructure.EventBus;
-using CompanyName.MyMeetings.Modules.UserAccess.IntegrationEvents;
-using MediatR;
 
-namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.RegisterNewUser
+namespace OnlineStore.Modules.Users.Application.UserRegistrations.RegisterNewUser
 {
     public class NewUserRegisteredPublishEventHandler : INotificationHandler<NewUserRegisteredNotification>
     {

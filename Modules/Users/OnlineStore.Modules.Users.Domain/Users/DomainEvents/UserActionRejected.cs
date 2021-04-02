@@ -2,7 +2,7 @@ using System;
 using Common.Messaging;
 using static Common.Utils.DateTimeHelper;
 
-namespace OnlineStore.Modules.Users.Domain.Users.Events
+namespace OnlineStore.Modules.Users.Domain.Users.DomainEvents
 {
     internal class UserActionRejected : IActionRejected
     {

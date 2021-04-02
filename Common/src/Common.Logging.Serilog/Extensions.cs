@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Common.Extensions.DependencyInjection;
+using Common.Logging.Logging.Options;
+using Common.Logging.Options;
+using Common.Web;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
-using Common.Logging.Options;
-using Common.Web;
-using Common.Logging.Logging.Options;
-using Common.Extensions.DependencyInjection;
-using Common.Extensions.DependencyInjection;
 
 namespace Common.Logging
 {
@@ -17,21 +16,16 @@ namespace Common.Logging
     {
         private const string AppSectionName = "app";
         private const string LoggerSectionName = "logger";
-        
+
         public static IHostBuilder UseLogging(this IHostBuilder builder,
             Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
             string appSectionName = AppSectionName)
-            => builder.UseSerilog((context, loggerConfiguration) =>
+        {
+            return builder.UseSerilog((context, loggerConfiguration) =>
             {
-                if (string.IsNullOrWhiteSpace(loggerSectionName))
-                {
-                    loggerSectionName = LoggerSectionName;
-                }
+                if (string.IsNullOrWhiteSpace(loggerSectionName)) loggerSectionName = LoggerSectionName;
 
-                if (string.IsNullOrWhiteSpace(appSectionName))
-                {
-                    appSectionName = AppSectionName;
-                }
+                if (string.IsNullOrWhiteSpace(appSectionName)) appSectionName = AppSectionName;
 
                 var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
                 var loggerOptions = context.Configuration.GetOptions<LoggerOptions>(loggerSectionName);
@@ -39,8 +33,9 @@ namespace Common.Logging
                 MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
                 configure?.Invoke(loggerConfiguration);
             });
-        
-                private static void MapOptions(LoggerOptions loggerOptions, AppOptions appOptions,
+        }
+
+        private static void MapOptions(LoggerOptions loggerOptions, AppOptions appOptions,
             LoggerConfiguration loggerConfiguration, string environmentName)
         {
             var level = GetLogEventLevel(loggerOptions.Level);
@@ -53,9 +48,7 @@ namespace Common.Logging
                 .Enrich.WithProperty("Version", appOptions.Version);
 
             foreach (var (key, value) in loggerOptions.Tags ?? new Dictionary<string, object>())
-            {
                 loggerConfiguration.Enrich.WithProperty(key, value);
-            }
 
             foreach (var (key, value) in loggerOptions.MinimumLevelOverrides ?? new Dictionary<string, string>())
             {
@@ -78,30 +71,25 @@ namespace Common.Logging
             var fileOptions = options.File ?? new FileOptions();
             var seqOptions = options.Seq ?? new SeqOptions();
 
-            if (consoleOptions.Enabled)
-            {
-                loggerConfiguration.WriteTo.Console();
-            }
+            if (consoleOptions.Enabled) loggerConfiguration.WriteTo.Console();
 
             if (fileOptions.Enabled)
             {
                 var path = string.IsNullOrWhiteSpace(fileOptions.Path) ? "logs/logs.txt" : fileOptions.Path;
                 if (!Enum.TryParse<RollingInterval>(fileOptions.Interval, true, out var interval))
-                {
                     interval = RollingInterval.Day;
-                }
 
                 loggerConfiguration.WriteTo.File(path, rollingInterval: interval);
             }
-            if (seqOptions.Enabled)
-            {
-                loggerConfiguration.WriteTo.Seq(seqOptions.Url, apiKey: seqOptions.ApiKey);
-            }
+
+            if (seqOptions.Enabled) loggerConfiguration.WriteTo.Seq(seqOptions.Url, apiKey: seqOptions.ApiKey);
         }
 
         private static LogEventLevel GetLogEventLevel(string level)
-            => Enum.TryParse<LogEventLevel>(level, true, out var logLevel) 
+        {
+            return Enum.TryParse<LogEventLevel>(level, true, out var logLevel)
                 ? logLevel
                 : LogEventLevel.Information;
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace OnlineStore.Modules.Users.Domain.Aggregates.UserRegistrations.DomainServices
+﻿namespace OnlineStore.Modules.Users.Domain.UserRegistrations.DomainServices
 {
     public interface IUsersCounter
     {

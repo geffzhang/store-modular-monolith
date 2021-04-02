@@ -7,10 +7,11 @@ namespace Common.Exceptions
 {
     internal sealed class ExceptionToResponseMapper : IExceptionToResponseMapper
     {
-        private static readonly ConcurrentDictionary<Type, string> Codes = new ConcurrentDictionary<Type, string>();
+        private static readonly ConcurrentDictionary<Type, string> Codes = new();
 
         public ExceptionResponse Map(Exception exception)
-            => exception switch
+        {
+            return exception switch
             {
                 DomainException ex => new ExceptionResponse(new {code = GetCode(ex), reason = ex.Message},
                     HttpStatusCode.BadRequest),
@@ -19,14 +20,12 @@ namespace Common.Exceptions
                 _ => new ExceptionResponse(new {code = "error", reason = "There was an error."},
                     HttpStatusCode.InternalServerError)
             };
+        }
 
         private static string GetCode(Exception exception)
         {
             var type = exception.GetType();
-            if (Codes.TryGetValue(type, out var code))
-            {
-                return code;
-            }
+            if (Codes.TryGetValue(type, out var code)) return code;
 
             var exceptionCode = exception.GetExceptionCode();
             Codes.TryAdd(type, exceptionCode);

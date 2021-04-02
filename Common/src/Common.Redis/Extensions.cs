@@ -10,10 +10,7 @@ namespace Common.Redis
 
         public static IServiceCollection AddRedis(this IServiceCollection services, string sectionName = SectionName)
         {
-            if (string.IsNullOrWhiteSpace(sectionName))
-            {
-                sectionName = SectionName;
-            }
+            if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
 
             var options = services.GetOptions<RedisOptions>(sectionName);
 

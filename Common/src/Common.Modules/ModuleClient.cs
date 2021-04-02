@@ -12,10 +12,11 @@ namespace Common.Modules
 {
     internal sealed class ModuleClient : IModuleClient
     {
-        private readonly ConcurrentDictionary<Type, MessageAttribute> _registrations =
-            new ConcurrentDictionary<Type, MessageAttribute>();
-
         private readonly IModuleRegistry _moduleRegistry;
+
+        private readonly ConcurrentDictionary<Type, MessageAttribute> _registrations =
+            new();
+
         private readonly IModuleSerializer _serializer;
 
         public ModuleClient(IModuleRegistry moduleRegistry, IModuleSerializer serializer)
@@ -28,15 +29,11 @@ namespace Common.Modules
         {
             var registration = _moduleRegistry.GetRequestRegistration(path);
             if (registration is null)
-            {
                 throw new InvalidOperationException($"No action has been defined for path: {path}");
-            }
 
             if (request is IMessage message)
-            {
                 // A synchronous request
                 message.Id = Guid.Empty;
-            }
 
             var receiverRequest = TranslateType(request, registration.RequestType);
             var result = await registration.Action(receiverRequest);
@@ -67,15 +64,9 @@ namespace Common.Modules
                     _registrations.TryAdd(registration.ReceiverType, messageAttribute);
                 }
 
-                if (messageAttribute is null || !messageAttribute.Enabled)
-                {
-                    continue;
-                }
+                if (messageAttribute is null || !messageAttribute.Enabled) continue;
 
-                if (messageAttribute.Module != module)
-                {
-                    continue;
-                }
+                if (messageAttribute.Module != module) continue;
 
                 var action = registration.Action;
                 var receiverBroadcast = TranslateType(message, registration.ReceiverType);
@@ -86,6 +77,8 @@ namespace Common.Modules
         }
 
         private object TranslateType(object value, Type type)
-            => _serializer.Deserialize(_serializer.Serialize(value), type);
+        {
+            return _serializer.Deserialize(_serializer.Serialize(value), type);
+        }
     }
 }

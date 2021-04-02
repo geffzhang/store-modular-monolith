@@ -19,27 +19,23 @@ namespace Common.Auth
             JwtRegisteredClaimNames.UniqueName,
             JwtRegisteredClaimNames.Jti,
             JwtRegisteredClaimNames.Iat,
-            ClaimTypes.Role,
+            ClaimTypes.Role
         };
 
-        private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-        private readonly JwtOptions _options;
-        private readonly TokenValidationParameters _tokenValidationParameters;
-        private readonly SigningCredentials _signingCredentials;
         private readonly string _issuer;
+
+        private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler = new();
+        private readonly JwtOptions _options;
+        private readonly SigningCredentials _signingCredentials;
+        private readonly TokenValidationParameters _tokenValidationParameters;
 
         public JwtHandler(JwtOptions options, TokenValidationParameters tokenValidationParameters)
         {
             var issuerSigningKey = tokenValidationParameters.IssuerSigningKey;
-            if (issuerSigningKey is null)
-            {
-                throw new InvalidOperationException("Issuer signing key not set.");
-            }
+            if (issuerSigningKey is null) throw new InvalidOperationException("Issuer signing key not set.");
 
             if (string.IsNullOrWhiteSpace(options.Algorithm))
-            {
                 throw new InvalidOperationException("Security algorithm not set.");
-            }
 
             _options = options;
             _tokenValidationParameters = tokenValidationParameters;
@@ -51,35 +47,25 @@ namespace Common.Auth
             IDictionary<string, IEnumerable<string>> claims = null)
         {
             if (string.IsNullOrWhiteSpace(userId))
-            {
                 throw new ArgumentException("User ID claim (subject) cannot be empty.", nameof(userId));
-            }
 
             var now = DateTime.UtcNow;
             var jwtClaims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, userId),
-                new Claim(JwtRegisteredClaimNames.UniqueName, userId),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, now.ToUnixTimeMilliseconds().ToString())
+                new(JwtRegisteredClaimNames.Sub, userId),
+                new(JwtRegisteredClaimNames.UniqueName, userId),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(JwtRegisteredClaimNames.Iat, now.ToUnixTimeMilliseconds().ToString())
             };
-            if (!string.IsNullOrWhiteSpace(role))
-            {
-                jwtClaims.Add(new Claim(ClaimTypes.Role, role));
-            }
+            if (!string.IsNullOrWhiteSpace(role)) jwtClaims.Add(new Claim(ClaimTypes.Role, role));
 
-            if (!string.IsNullOrWhiteSpace(audience))
-            {
-                jwtClaims.Add(new Claim(JwtRegisteredClaimNames.Aud, audience));
-            }
+            if (!string.IsNullOrWhiteSpace(audience)) jwtClaims.Add(new Claim(JwtRegisteredClaimNames.Aud, audience));
 
             if (claims?.Any() is true)
             {
                 var customClaims = new List<Claim>();
                 foreach (var (claim, values) in claims)
-                {
                     customClaims.AddRange(values.Select(value => new Claim(claim, value)));
-                }
 
                 jwtClaims.AddRange(customClaims);
             }
@@ -113,10 +99,7 @@ namespace Common.Auth
         {
             _jwtSecurityTokenHandler.ValidateToken(accessToken, _tokenValidationParameters,
                 out var validatedSecurityToken);
-            if (!(validatedSecurityToken is JwtSecurityToken jwt))
-            {
-                return null;
-            }
+            if (!(validatedSecurityToken is JwtSecurityToken jwt)) return null;
 
             return new JsonWebTokenPayload
             {

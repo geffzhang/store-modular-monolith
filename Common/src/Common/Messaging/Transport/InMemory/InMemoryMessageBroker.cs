@@ -1,27 +1,27 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Common.Contexts;
 using Common.Messaging.Outbox;
 using Common.Utils;
-using IInfrastructure.Contexts;
 using Microsoft.Extensions.Logging;
 
-namespace Common.Messaging.Transport
+namespace Common.Messaging.Transport.InMemory
 {
     internal class InMemoryMessageBroker : ITransport
     {
-        private readonly IModuleClient _moduleClient;
-        private readonly ICommandProcessor _commandProcessor;
         private readonly IContext _context;
-        private readonly IOutbox _outbox;
-        private readonly MessagingOptions _messagingOptions;
         private readonly ILogger<InMemoryMessageBroker> _logger;
+        private readonly IAsyncMessageDispatcher _messageDispatcher;
+        private readonly MessagingOptions _messagingOptions;
+        private readonly IModuleClient _moduleClient;
+        private readonly IOutbox _outbox;
 
-        public InMemoryMessageBroker(IModuleClient moduleClient, ICommandProcessor commandProcessor,
+        public InMemoryMessageBroker(IModuleClient moduleClient, IAsyncMessageDispatcher messageDispatcher,
             IContext context, IOutbox outbox, MessagingOptions messagingOptions, ILogger<InMemoryMessageBroker> logger)
         {
             _moduleClient = moduleClient;
-            _commandProcessor = commandProcessor;
+            _messageDispatcher = messageDispatcher;
             _context = context;
             _outbox = outbox;
             _messagingOptions = messagingOptions;
@@ -30,24 +30,14 @@ namespace Common.Messaging.Transport
 
         public async Task PublishAsync(params IMessage[] messages)
         {
-            if (messages is null)
-            {
-                return;
-            }
+            if (messages is null) return;
 
-            messages = messages.Where(x => x is {}).ToArray();
-            if (!messages.Any())
-            {
-                return;
-            }
+            messages = messages.Where(x => x is { }).ToArray();
+            if (!messages.Any()) return;
 
             foreach (var message in messages)
-            {
                 if (message.CorrelationId == Guid.Empty)
-                {
                     message.CorrelationId = _context.CorrelationId;
-                }
-            }
 
             if (_outbox.Enabled)
             {
@@ -60,9 +50,10 @@ namespace Common.Messaging.Transport
             {
                 var name = message.GetType().Name.Underscore();
                 _logger.LogInformation($"Publishing a message: '{name}' with ID: '{message.Id:N}'...");
+
                 if (_messagingOptions.UseBackgroundDispatcher)
                 {
-                    await _commandProcessor.PublishMessageAsync(message);
+                    await _messageDispatcher.PublishAsync(message);
                     continue;
                 }
 

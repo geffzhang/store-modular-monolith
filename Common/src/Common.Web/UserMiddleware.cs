@@ -14,7 +14,7 @@ namespace Common.Web
         {
             "POST", "PUT", "PATCH"
         };
-        
+
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             var request = context.Request;

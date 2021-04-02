@@ -1,6 +1,6 @@
 using System;
 
-namespace IInfrastructure.Contexts
+namespace Common.Contexts
 {
     public interface IContext
     {

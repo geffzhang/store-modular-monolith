@@ -1,9 +1,9 @@
 ﻿using System;
 using Common.Domain.Types;
-using OnlineStore.Modules.Users.Domain.Exceptions;
+using OnlineStore.Modules.Users.Domain.RefreshTokens.DomainExceptions;
 using OnlineStore.Modules.Users.Domain.Users;
 
-namespace OnlineStore.Modules.Users.Domain.RefreshToken
+namespace OnlineStore.Modules.Users.Domain.RefreshTokens
 {
     internal class RefreshToken : AggregateRoot
     {

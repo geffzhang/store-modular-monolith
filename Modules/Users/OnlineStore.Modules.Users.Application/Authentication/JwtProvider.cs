@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Trill.Modules.Users.Core.DTO;
-using Trill.Shared.Abstractions.Auth;
 
-namespace Trill.Modules.Users.Core.Services
+namespace OnlineStore.Modules.Users.Application.Authentication
 {
     internal class JwtProvider : IJwtProvider
     {

@@ -18,7 +18,9 @@ namespace Common.Vault
         }
 
         public async Task<T> GetAsync<T>(string path)
-            => JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(await GetAsync(path)));
+        {
+            return JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(await GetAsync(path)));
+        }
 
         public async Task<IDictionary<string, object>> GetAsync(string path)
         {

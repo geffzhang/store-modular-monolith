@@ -1,7 +1,6 @@
 using System;
-using Trill.Modules.Users.Core.DTO;
 
-namespace Trill.Modules.Users.Core.Services
+namespace OnlineStore.Modules.Users.Application.Authentication
 {
     internal interface ITokenStorage
     {

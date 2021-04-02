@@ -10,10 +10,7 @@ namespace Common.Messaging.Outbox.Mongo
         public static IServiceCollection AddMongoOutbox(this IServiceCollection services,
             string sectionName = SectionName)
         {
-            if (string.IsNullOrWhiteSpace(sectionName))
-            {
-                sectionName = SectionName;
-            }
+            if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
 
             var outboxOptions = services.GetOptions<OutboxOptions>($"{sectionName}:outbox");
 
@@ -21,10 +18,7 @@ namespace Common.Messaging.Outbox.Mongo
                 .AddSingleton(outboxOptions)
                 .AddTransient<IOutbox, MongoOutbox>();
 
-            if (outboxOptions.Enabled)
-            {
-                services.AddHostedService<OutboxProcessor>();
-            }
+            if (outboxOptions.Enabled) services.AddHostedService<OutboxProcessor>();
 
             return services;
         }

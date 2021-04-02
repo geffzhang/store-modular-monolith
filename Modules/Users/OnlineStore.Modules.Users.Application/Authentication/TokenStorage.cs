@@ -1,8 +1,6 @@
 using System;
-using Trill.Modules.Users.Core.DTO;
-using Trill.Shared.Abstractions.Storage;
 
-namespace Trill.Modules.Users.Core.Services
+namespace OnlineStore.Modules.Users.Application.Authentication
 {
     internal class TokenStorage : ITokenStorage
     {

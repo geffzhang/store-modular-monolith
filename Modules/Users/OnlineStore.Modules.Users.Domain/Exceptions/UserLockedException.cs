@@ -1,15 +1,15 @@
 using System;
-using Trill.Shared.Kernel.Exceptions;
+using Common.Exceptions;
 
-namespace Trill.Modules.Users.Core.Domain.Exceptions
+namespace OnlineStore.Modules.Users.Domain.Exceptions
 {
     internal class UserLockedException : DomainException
     {
-        public Guid UserId { get; }
-
         public UserLockedException(Guid userId) : base($"User with ID: '{userId}' is locked.")
         {
             UserId = userId;
         }
+
+        public Guid UserId { get; }
     }
 }

@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using Common.Domain.Types;
-using OnlineStore.Modules.Users.Domain.Aggregates.UserRegistrations.DomainServices;
-using OnlineStore.Modules.Users.Domain.Aggregates.Users;
-using OnlineStore.Modules.Users.Domain.Events;
-using OnlineStore.Modules.Users.Domain.Rules;
+using OnlineStore.Modules.Users.Domain.UserRegistrations.DomainEvents;
+using OnlineStore.Modules.Users.Domain.UserRegistrations.DomainServices;
+using OnlineStore.Modules.Users.Domain.UserRegistrations.Rules;
+using OnlineStore.Modules.Users.Domain.Users;
 
-namespace OnlineStore.Modules.Users.Domain.Aggregates.UserRegistrations
+namespace OnlineStore.Modules.Users.Domain.UserRegistrations
 {
     public class UserRegistration : AggregateRoot<Guid, UserRegistrationId>
     {
@@ -58,18 +59,22 @@ namespace OnlineStore.Modules.Users.Domain.Aggregates.UserRegistrations
             return new(login, password, email, firstName, lastName, usersCounter);
         }
 
-        public User CreateUser()
+        public User CreateUser(IReadOnlyList<string> permissions, IReadOnlyList<string> roles)
         {
             CheckRule(new UserCannotBeCreatedWhenRegistrationIsNotConfirmedRule(Status));
 
-            return User.CreateFromUserRegistration(
+            return User.Of(
                 Id,
-                _login,
-                _password,
-                _email,
-                _firstName,
-                _lastName,
-                _name);
+                Email,
+                FirstName,
+                LastName,
+                Name,
+                Login,
+                Password,
+                DateTime.Now,
+                permissions,
+                roles,
+                false);
         }
 
         public void Confirm()

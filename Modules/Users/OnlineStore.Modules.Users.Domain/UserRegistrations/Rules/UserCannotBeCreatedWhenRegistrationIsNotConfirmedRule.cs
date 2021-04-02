@@ -1,7 +1,6 @@
 ﻿using Common.Domain;
-using OnlineStore.Modules.Users.Domain.Aggregates.UserRegistrations;
 
-namespace OnlineStore.Modules.Users.Domain.Rules
+namespace OnlineStore.Modules.Users.Domain.UserRegistrations.Rules
 {
     public class UserCannotBeCreatedWhenRegistrationIsNotConfirmedRule : IBusinessRule
     {

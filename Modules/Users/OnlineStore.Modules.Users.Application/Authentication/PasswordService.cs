@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Trill.Modules.Users.Core.Services
+namespace OnlineStore.Modules.Users.Application.Authentication
 {
     internal class PasswordService : IPasswordService
     {

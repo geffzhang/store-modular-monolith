@@ -10,14 +10,14 @@ namespace Common.Generators
         {
             var generatorId = 0;
             var generatorIdEnv = Environment.GetEnvironmentVariable("GENERATOR_ID");
-            if (!string.IsNullOrWhiteSpace(generatorIdEnv))
-            {
-                int.TryParse(generatorIdEnv, out generatorId);
-            }
-            
+            if (!string.IsNullOrWhiteSpace(generatorIdEnv)) int.TryParse(generatorIdEnv, out generatorId);
+
             _generator = new IdGen.IdGenerator(generatorId);
         }
 
-        public long Generate() => _generator.CreateId();
+        public long Generate()
+        {
+            return _generator.CreateId();
+        }
     }
 }

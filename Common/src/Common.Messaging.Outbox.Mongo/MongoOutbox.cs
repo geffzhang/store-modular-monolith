@@ -2,20 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Common.Utils;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using Common.Modules;
-using Common.Utils;
 
 namespace Common.Messaging.Outbox.Mongo
 {
     internal sealed class MongoOutbox : IOutbox
     {
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings SerializerSettings = new()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             Converters = new List<JsonConverter>
@@ -24,17 +23,16 @@ namespace Common.Messaging.Outbox.Mongo
             }
         };
 
-        private readonly IMongoDatabase _database;
-        private readonly IModuleClient _moduleClient;
-        private readonly ICommandProcessor _commandProcessor;
-        private readonly ILogger<MongoOutbox> _logger;
         private readonly string _collectionName;
+        private readonly ICommandProcessor _commandProcessor;
+
+        private readonly IMongoDatabase _database;
+        private readonly ILogger<MongoOutbox> _logger;
+        private readonly IModuleClient _moduleClient;
         private readonly string[] _modules;
         private readonly bool _useBackgroundDispatcher;
 
-        public bool Enabled { get; }
-
-        public MongoOutbox(IMongoDatabase database, IModuleRegistry moduleRegistry, OutboxOptions outboxOptions, 
+        public MongoOutbox(IMongoDatabase database, IModuleRegistry moduleRegistry, OutboxOptions outboxOptions,
             MessagingOptions messagingOptions, IModuleClient moduleClient, ICommandProcessor commandProcessor,
             ILogger<MongoOutbox> logger)
         {
@@ -50,6 +48,8 @@ namespace Common.Messaging.Outbox.Mongo
                 : outboxOptions.CollectionName;
         }
 
+        public bool Enabled { get; }
+
         public async Task SaveAsync(params IMessage[] messages)
         {
             if (!Enabled)
@@ -64,7 +64,7 @@ namespace Common.Messaging.Outbox.Mongo
                 return;
             }
 
-            var outboxMessages = messages.Where(x => x is {})
+            var outboxMessages = messages.Where(x => x is { })
                 .Select(x => new OutboxMessage
                 {
                     Id = x.Id,
@@ -75,18 +75,18 @@ namespace Common.Messaging.Outbox.Mongo
                     ReceivedAt = DateTime.UtcNow.ToUnixTimeMilliseconds()
                 }).ToArray();
 
-            if (!outboxMessages.Any())
-            {
-                _logger.LogWarning("No messages have been provided to be saved to the outbox.");
-            }
+            if (!outboxMessages.Any()) _logger.LogWarning("No messages have been provided to be saved to the outbox.");
 
             var module = messages[0].GetModuleName();
-            await _database.GetCollection<OutboxMessage>($"{module}-module.{_collectionName}").InsertManyAsync(outboxMessages);
+            await _database.GetCollection<OutboxMessage>($"{module}-module.{_collectionName}")
+                .InsertManyAsync(outboxMessages);
             _logger.LogInformation($"Saved {outboxMessages.Length} messages to the outbox ('{module}').");
         }
 
         public Task PublishUnsentAsync()
-            => Task.WhenAll(_modules.Select(PublishUnsentAsync));
+        {
+            return Task.WhenAll(_modules.Select(PublishUnsentAsync));
+        }
 
         private async Task PublishUnsentAsync(string module)
         {
@@ -106,7 +106,8 @@ namespace Common.Messaging.Outbox.Mongo
             foreach (var outboxMessage in unsentMessages)
             {
                 var type = Type.GetType(outboxMessage.Type);
-                var message = JsonConvert.DeserializeObject(outboxMessage.Payload, type, SerializerSettings) as IMessage;
+                var message =
+                    JsonConvert.DeserializeObject(outboxMessage.Payload, type, SerializerSettings) as IMessage;
                 if (message is null)
                 {
                     _logger.LogError($"Invalid message type: {type?.Name} (cannot cast to {nameof(IMessage)}).");
@@ -120,13 +121,9 @@ namespace Common.Messaging.Outbox.Mongo
                 _logger.LogInformation($"Publishing a message: '{name}' with ID: '{message.Id}' (outbox)...");
 
                 if (_useBackgroundDispatcher)
-                {
                     await _commandProcessor.PublishMessageAsync(message);
-                }
                 else
-                {
                     await _moduleClient.SendAsync(message);
-                }
 
                 outboxMessage.SentAt = DateTime.UtcNow.ToUnixTimeMilliseconds();
                 await collection.ReplaceOneAsync(x => x.Id == outboxMessage.Id, outboxMessage);

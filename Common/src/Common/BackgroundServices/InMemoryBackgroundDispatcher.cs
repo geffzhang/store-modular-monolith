@@ -1,9 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Common.Messaging;
 using Common.Messaging.Transport.InMemory;
-using Common.Modules;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -12,8 +10,8 @@ namespace Common.BackgroundServices
     internal sealed class InMemoryBackgroundDispatcher : BackgroundService
     {
         private readonly IMessageChannel _channel;
-        private readonly IModuleClient _moduleClient;
         private readonly ILogger<InMemoryBackgroundDispatcher> _logger;
+        private readonly IModuleClient _moduleClient;
 
         public InMemoryBackgroundDispatcher(IMessageChannel channel, IModuleClient moduleClient,
             ILogger<InMemoryBackgroundDispatcher> logger)
@@ -27,7 +25,6 @@ namespace Common.BackgroundServices
         {
             _logger.LogInformation("Running the background event dispatcher...");
             await foreach (var @event in _channel.Reader.ReadAllAsync(stoppingToken))
-            {
                 try
                 {
                     await _moduleClient.SendAsync(@event);
@@ -36,7 +33,6 @@ namespace Common.BackgroundServices
                 {
                     _logger.LogError(exception, exception.Message);
                 }
-            }
 
             _logger.LogInformation("Finished running the background event dispatcher.");
         }

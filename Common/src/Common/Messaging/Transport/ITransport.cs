@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
-using Common.Messaging;
 
-namespace Common.Messaging
+namespace Common.Messaging.Transport
 {
     public interface ITransport
     {

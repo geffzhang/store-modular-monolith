@@ -1,14 +1,14 @@
-using Trill.Shared.Kernel.Exceptions;
+using Common.Exceptions;
 
-namespace Trill.Modules.Users.Core.Domain.Exceptions
+namespace OnlineStore.Modules.Users.Domain.Exceptions
 {
     internal class InvalidCredentialsException : DomainException
     {
-        public string Name { get; }
-
         public InvalidCredentialsException(string name) : base("Invalid credentials.")
         {
             Name = name;
         }
+
+        public string Name { get; }
     }
 }

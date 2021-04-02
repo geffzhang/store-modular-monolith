@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Commands;
+using Common.Domain;
 using CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.SendUserRegistrationConfirmationEmail;
-using MediatR;
 
-namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.RegisterNewUser
+namespace OnlineStore.Modules.Users.Application.UserRegistrations.RegisterNewUser
 {
-    public class NewUserRegisteredEnqueueEmailConfirmationHandler : INotificationHandler<NewUserRegisteredNotification>
+    public class NewUserRegisteredEnqueueEmailConfirmationHandler : IDomainNotificationEventHandler<NewUserRegisteredNotification>
     {
         private readonly ICommandsScheduler _commandsScheduler;
 

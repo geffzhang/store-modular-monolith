@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace IInfrastructure.Contexts
+namespace Common.Contexts
 {
     public interface IIdentityContext
     {

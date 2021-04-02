@@ -5,13 +5,13 @@ using Common.Utils;
 namespace Common.Messaging.Inbox
 {
     [Decorator]
-    internal class InboxEventHandlerDecorator<T> : IEventHandler<T> where T : class, IEvent
+    internal class InboxEventHandlerDecorator<T> : IIntegrationEventHandler<T> where T : class, IIntegrationEvent
     {
-        private readonly IEventHandler<T> _handler;
+        private readonly IIntegrationEventHandler<T> _handler;
         private readonly IInbox _inbox;
         private readonly string _module;
 
-        public InboxEventHandlerDecorator(IEventHandler<T> handler, IInbox inbox)
+        public InboxEventHandlerDecorator(IIntegrationEventHandler<T> handler, IInbox inbox)
         {
             _handler = handler;
             _inbox = inbox;
@@ -19,8 +19,10 @@ namespace Common.Messaging.Inbox
         }
 
         public Task HandleAsync(T @event)
-            => _inbox.Enabled
+        {
+            return _inbox.Enabled
                 ? _inbox.HandleAsync(@event, () => _handler.HandleAsync(@event), _module)
                 : _handler.HandleAsync(@event);
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace OnlineStore.Modules.Users.Domain.Aggregates.Customers
+﻿namespace OnlineStore.Modules.Users.Domain.Customers
 {
     public class CustomerGroupId
     {

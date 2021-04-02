@@ -1,6 +1,5 @@
 using Common.Extensions.DependencyInjection;
 using Common.Messaging.Commands;
-using Common.Messaging.Events;
 using Common.Messaging.Outbox;
 using Common.Messaging.Outbox.Mongo;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,10 +13,7 @@ namespace Common.Messaging.Inbox.Mongo
         public static IServiceCollection AddMongoInbox(this IServiceCollection services,
             string sectionName = SectionName)
         {
-            if (string.IsNullOrWhiteSpace(sectionName))
-            {
-                sectionName = SectionName;
-            }
+            if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
 
             var inboxOptions = services.GetOptions<InboxOptions>($"{sectionName}:inbox");
             services
@@ -28,7 +24,7 @@ namespace Common.Messaging.Inbox.Mongo
             if (inboxOptions.Enabled)
             {
                 services.TryDecorate(typeof(ICommandHandler<>), typeof(InboxCommandHandlerDecorator<>));
-                services.TryDecorate(typeof(IEventHandler<>), typeof(InboxEventHandlerDecorator<>));
+                services.TryDecorate(typeof(InboxEventHandlerDecorator<>), typeof(InboxEventHandlerDecorator<>));
             }
 
             return services;

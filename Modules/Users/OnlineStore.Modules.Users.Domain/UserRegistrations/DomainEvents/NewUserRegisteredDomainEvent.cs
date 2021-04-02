@@ -1,7 +1,7 @@
 ﻿using System;
 using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Users.Domain.UserRegistrations.Events
+namespace OnlineStore.Modules.Users.Domain.UserRegistrations.DomainEvents
 {
     public class NewUserRegisteredDomainEvent : DomainEventBase
     {

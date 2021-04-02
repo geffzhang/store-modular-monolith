@@ -10,10 +10,10 @@ namespace Common.Messaging.Outbox
 {
     internal class OutboxProcessor : BackgroundService
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ILogger<OutboxProcessor> _logger;
-        private readonly TimeSpan _interval;
         private readonly bool _enabled;
+        private readonly TimeSpan _interval;
+        private readonly ILogger<OutboxProcessor> _logger;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
         public OutboxProcessor(IServiceScopeFactory serviceScopeFactory, OutboxOptions outboxOptions,
             ILogger<OutboxProcessor> logger)

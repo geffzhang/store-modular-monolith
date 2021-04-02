@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Common.Exceptions;
-using Common.Messaging;
 using Common.Messaging.Commands;
 using Common.Messaging.Events;
 using Microsoft.AspNetCore.Builder;
@@ -14,10 +13,14 @@ namespace Common.Modules
     public static class Extensions
     {
         public static IModuleSubscriber UseModuleRequests(this IApplicationBuilder app)
-            => app.ApplicationServices.GetRequiredService<IModuleSubscriber>();
-        
+        {
+            return app.ApplicationServices.GetRequiredService<IModuleSubscriber>();
+        }
+
         public static IContractRegistry UseContracts(this IApplicationBuilder app)
-            => app.ApplicationServices.GetRequiredService<IContractRegistry>();
+        {
+            return app.ApplicationServices.GetRequiredService<IContractRegistry>();
+        }
 
         public static IServiceCollection AddExceptionToMessageMapper<T>(this IServiceCollection services)
             where T : class, IExceptionToMessageMapper
@@ -27,8 +30,9 @@ namespace Common.Modules
 
             return services;
         }
-        
-        internal static IServiceCollection AddModuleRequests(this IServiceCollection services, IList<Assembly> assemblies)
+
+        internal static IServiceCollection AddModuleRequests(this IServiceCollection services,
+            IList<Assembly> assemblies)
         {
             services.AddModuleRegistry(assemblies);
             services.AddSingleton<IModuleSubscriber, ModuleSubscriber>();
@@ -47,7 +51,7 @@ namespace Common.Modules
                 .ToArray();
 
             var eventTypes = types
-                .Where(t => t.IsClass && typeof(IEvent).IsAssignableFrom(t))
+                .Where(t => t.IsClass && typeof(IIntegrationEvent).IsAssignableFrom(t))
                 .ToArray();
 
             // services.AddSingleton<IModuleSerializer, JsonModuleSerializer>();
@@ -59,20 +63,16 @@ namespace Common.Modules
                 var dispatcherType = commandProcessor.GetType();
 
                 foreach (var type in commandTypes)
-                {
                     registry.AddBroadcastAction(type, @event =>
                         (Task) dispatcherType.GetMethod(nameof(commandProcessor.SendCommandAsync))
                             ?.MakeGenericMethod(type)
                             .Invoke(commandProcessor, new[] {@event}));
-                }
 
                 foreach (var type in eventTypes)
-                {
                     registry.AddBroadcastAction(type, @event =>
-                        (Task) dispatcherType.GetMethod(nameof(commandProcessor.PublishEventAsync))
+                        (Task) dispatcherType.GetMethod(nameof(commandProcessor.PublishIntegrationEventAsync))
                             ?.MakeGenericMethod(type)
                             .Invoke(commandProcessor, new[] {@event}));
-                }
 
                 return registry;
             });

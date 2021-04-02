@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Authentication;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Commands;
-using CompanyName.MyMeetings.Modules.UserAccess.Domain.UserRegistrations;
-using MediatR;
+using Common.Messaging.Commands;
+using OnlineStore.Modules.Users.Application.Authentication;
+using OnlineStore.Modules.Users.Domain.UserRegistrations;
+using OnlineStore.Modules.Users.Domain.UserRegistrations.DomainServices;
 
-namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.RegisterNewUser
+namespace OnlineStore.Modules.Users.Application.UserRegistrations.RegisterNewUser
 {
-    internal class RegisterNewUserCommandHandler : ICommandHandler<RegisterNewUserCommand, Guid>
+    internal class RegisterNewUserCommandHandler : ICommandHandler<RegisterNewUserCommand>
     {
         private readonly IUserRegistrationRepository _userRegistrationRepository;
         private readonly IUsersCounter _usersCounter;
@@ -21,21 +21,19 @@ namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistration
             _usersCounter = usersCounter;
         }
 
-        public async Task<Guid> Handle(RegisterNewUserCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(RegisterNewUserCommand command)
         {
-            var password = PasswordManager.HashPassword(request.Password);
+            var password = PasswordManager.HashPassword(command.Password);
 
             var userRegistration = UserRegistration.RegisterNewUser(
-                request.Login,
+                command.Login,
                 password,
-                request.Email,
-                request.FirstName,
-                request.LastName,
+                command.Email,
+                command.FirstName,
+                command.LastName,
                 _usersCounter);
 
             await _userRegistrationRepository.AddAsync(userRegistration);
-
-            return userRegistration.Id.Value;
         }
     }
 }

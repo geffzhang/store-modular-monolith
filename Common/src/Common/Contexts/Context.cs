@@ -1,15 +1,10 @@
 using System;
 using Microsoft.AspNetCore.Http;
 
-namespace IInfrastructure.Contexts
+namespace Common.Contexts
 {
     internal sealed class Context : IContext
     {
-        public string RequestId { get; } = $"{Guid.NewGuid():N}";
-        public Guid CorrelationId { get; } = Guid.NewGuid();
-        public string TraceId { get; }
-        public IIdentityContext Identity { get; }
-
         internal Context() : this($"{Guid.NewGuid():N}", IdentityContext.Empty)
         {
         }
@@ -26,5 +21,9 @@ namespace IInfrastructure.Contexts
         }
 
         internal static IContext Empty => new Context();
+        public string RequestId { get; } = $"{Guid.NewGuid():N}";
+        public Guid CorrelationId { get; } = Guid.NewGuid();
+        public string TraceId { get; }
+        public IIdentityContext Identity { get; }
     }
 }

@@ -10,8 +10,8 @@ namespace Common.Auth
     internal sealed class InMemoryAccessTokenService : IAccessTokenService
     {
         private readonly IMemoryCache _cache;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly TimeSpan _expires;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public InMemoryAccessTokenService(IMemoryCache cache,
             IHttpContextAccessor httpContextAccessor,
@@ -23,13 +23,19 @@ namespace Common.Auth
         }
 
         public Task<bool> IsCurrentActiveToken()
-            => IsActiveAsync(GetCurrentAsync());
+        {
+            return IsActiveAsync(GetCurrentAsync());
+        }
 
         public Task DeactivateCurrentAsync()
-            => DeactivateAsync(GetCurrentAsync());
+        {
+            return DeactivateAsync(GetCurrentAsync());
+        }
 
         public Task<bool> IsActiveAsync(string token)
-            => Task.FromResult(string.IsNullOrWhiteSpace(_cache.Get<string>(GetKey(token))));
+        {
+            return Task.FromResult(string.IsNullOrWhiteSpace(_cache.Get<string>(GetKey(token))));
+        }
 
         public Task DeactivateAsync(string token)
         {
@@ -51,6 +57,9 @@ namespace Common.Auth
                 : authorizationHeader.Single().Split(' ').Last();
         }
 
-        private static string GetKey(string token) => $"blacklisted-tokens:{token}";
+        private static string GetKey(string token)
+        {
+            return $"blacklisted-tokens:{token}";
+        }
     }
 }

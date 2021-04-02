@@ -2,23 +2,33 @@
 using System.Linq;
 using System.Reflection;
 
-namespace Moduliths.Domain
+namespace Common.Domain.Types
 {
     /// <summary>
-    /// Avoiding Primative Obsession
+    ///     Avoiding Primitive Obsession
     /// </summary>
     /// <typeparam name="TId"></typeparam>
-    public abstract class IdentityBase<TId> : ValueObjectBase
+    public abstract class IdentityBase<TId> : ValueObject
     {
-        public TId Id { get; protected set; }
-        protected IdentityBase(TId id) => Id = id;
+        protected IdentityBase(TId id)
+        {
+            Value = id;
+        }
+
+        public TId Value { get; protected set; }
 
         protected override IEnumerable<object> GetEqualityComponents()
         {
-            yield return Id;
+            yield return Value;
         }
+        
+        public static implicit operator TId(IdentityBase<TId> identity)
+            => identity.Value;
 
-        public override string ToString() => $"{GetType().Name}:{Id}";
+        public override string ToString()
+        {
+            return $"{GetType().Name}:{Value}";
+        }
     }
 
     public static class IdentityFactory
@@ -33,12 +43,12 @@ namespace Moduliths.Domain
             if (id == null) return null;
 
             var identityConstructor = typeof(TIdentity)
-                    .GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
-                    .FirstOrDefault(x => x.GetParameters().Length > 0);
+                .GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
+                .FirstOrDefault(x => x.GetParameters().Length > 0);
 
-            var instance = identityConstructor?.Invoke(new object[] { id });
+            var instance = identityConstructor?.Invoke(new object[] {id});
 
-            return (TIdentity)instance;
+            return (TIdentity) instance;
         }
     }
 }

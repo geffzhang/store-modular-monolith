@@ -2,11 +2,6 @@
 {
     public abstract class PagedBase
     {
-        public int CurrentPage { get; set; }
-        public int ResultsPerPage { get; set; }
-        public int TotalPages { get; set; }
-        public long TotalResults { get; set; }
-
         protected PagedBase()
         {
         }
@@ -19,5 +14,10 @@
             TotalPages = totalPages;
             TotalResults = totalResults;
         }
+
+        public int CurrentPage { get; set; }
+        public int ResultsPerPage { get; set; }
+        public int TotalPages { get; set; }
+        public long TotalResults { get; set; }
     }
 }

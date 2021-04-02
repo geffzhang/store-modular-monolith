@@ -1,5 +1,5 @@
 using System;
-using Common.Messaging.Events;
+using Common.Messaging;
 
 namespace Common.Exceptions
 {

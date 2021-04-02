@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 
-namespace CompanyName.MyMeetings.Modules.UserAccess.Application.Authentication.Authenticate
+namespace OnlineStore.Modules.Users.Application.Authentication.Authenticate
 {
     public class UserDto
     {
