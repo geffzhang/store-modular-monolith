@@ -2,20 +2,21 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Common.Messaging;
+using Common.Messaging.Transport.InMemory;
 using Common.Modules;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Common.BackgroundServices
 {
-    internal sealed class BackgroundDispatcher : BackgroundService
+    internal sealed class InMemoryBackgroundDispatcher : BackgroundService
     {
         private readonly IMessageChannel _channel;
         private readonly IModuleClient _moduleClient;
-        private readonly ILogger<BackgroundDispatcher> _logger;
+        private readonly ILogger<InMemoryBackgroundDispatcher> _logger;
 
-        public BackgroundDispatcher(IMessageChannel channel, IModuleClient moduleClient,
-            ILogger<BackgroundDispatcher> logger)
+        public InMemoryBackgroundDispatcher(IMessageChannel channel, IModuleClient moduleClient,
+            ILogger<InMemoryBackgroundDispatcher> logger)
         {
             _channel = channel;
             _moduleClient = moduleClient;

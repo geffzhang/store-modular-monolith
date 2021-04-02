@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Common.Messaging.Outbox;
-using IInfrastructure.Contexts;
 using Common.Utils;
+using IInfrastructure.Contexts;
+using Microsoft.Extensions.Logging;
 
-namespace Common.Messaging.Transport.InMemory
+namespace Common.Messaging.Transport
 {
     internal class InMemoryMessageBroker : ITransport
     {
