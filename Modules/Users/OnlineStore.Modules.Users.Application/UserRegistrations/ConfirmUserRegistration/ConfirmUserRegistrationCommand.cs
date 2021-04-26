@@ -1,7 +1,6 @@
 ﻿using System;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Contracts;
 
-namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.ConfirmUserRegistration
+namespace OnlineStore.Modules.Users.Application.UserRegistrations.ConfirmUserRegistration
 {
     public class ConfirmUserRegistrationCommand : CommandBase
     {

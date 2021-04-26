@@ -3,9 +3,9 @@ using Common.Messaging.Commands;
 using Common.Messaging.Events;
 using Common.Messaging.Queries;
 
-namespace Common
+namespace Common.Dispatcher
 {
-    public class InProcessDispatcher: IInProcessDispatcher
+    internal class InProcessDispatcher: IInProcessDispatcher
     {
         private readonly ICommandDispatcher _commandDispatcher;
         private readonly IEventDispatcher _eventDispatcher;

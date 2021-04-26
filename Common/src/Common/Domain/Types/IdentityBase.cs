@@ -12,22 +12,22 @@ namespace Common.Domain.Types
     {
         protected IdentityBase(TId id)
         {
-            Value = id;
+            Id = id;
         }
 
-        public TId Value { get; protected set; }
+        public TId Id { get; protected set; }
 
         protected override IEnumerable<object> GetEqualityComponents()
         {
-            yield return Value;
+            yield return Id;
         }
         
         public static implicit operator TId(IdentityBase<TId> identity)
-            => identity.Value;
+            => identity.Id;
 
         public override string ToString()
         {
-            return $"{GetType().Name}:{Value}";
+            return $"{GetType().Name}:{Id}";
         }
     }
 

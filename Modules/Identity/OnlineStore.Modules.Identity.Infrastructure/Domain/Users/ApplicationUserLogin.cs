@@ -1,6 +1,4 @@
-﻿using Common.Domain.Types;
-
-namespace Common.Identity
+﻿namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
 {
     public class ApplicationUserLogin 
     {

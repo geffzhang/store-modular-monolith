@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace VirtoCommerce.Platform.Core.Security
+namespace Common.Identity
 {
     public class SecurityResult
     {

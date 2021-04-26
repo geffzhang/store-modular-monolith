@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Common.Utils.Extensions;
 
-namespace VirtoCommerce.Platform.Core.Common
+namespace Common.Domain
 {
     /// <summary>
     /// Abstract static type factory. With supports of type overriding and sets special factories.
@@ -15,25 +16,11 @@ namespace VirtoCommerce.Platform.Core.Common
         /// <summary>
         /// All registered type mapping informations within current factory instance
         /// </summary>
-        public static IEnumerable<TypeInfo<BaseType>> AllTypeInfos
-        {
-            get
-            {
-                return _typeInfos;
-            }
-        }
+        public static IEnumerable<TypeInfo<BaseType>> AllTypeInfos => _typeInfos;
 
-#pragma warning disable S2743 // Static fields should not be used in generic types
         // False-positive SLint warning disabled.
         // This field really need for every class applied by the template
-        public static bool HasOverrides
-#pragma warning restore S2743 // Static fields should not be used in generic types
-        {
-            get
-            {
-                return _typeInfos.Count > 0;
-            }
-        }
+        public static bool HasOverrides => _typeInfos.Count > 0;
 
         /// <summary>
         /// Register new type (fluent method)
@@ -46,10 +33,7 @@ namespace VirtoCommerce.Platform.Core.Common
 
         public static TypeInfo<BaseType> RegisterType(Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
             var result = _typeInfos.FirstOrDefault(x => x.AllSubclasses.Contains(type));
 
@@ -58,6 +42,7 @@ namespace VirtoCommerce.Platform.Core.Common
                 result = new TypeInfo<BaseType>(type);
                 _typeInfos.Add(result);
             }
+
             return result;
         }
 
@@ -106,6 +91,7 @@ namespace VirtoCommerce.Platform.Core.Common
             {
                 result = TryCreateInstance(typeName);
             }
+
             return result;
         }
 
@@ -124,6 +110,7 @@ namespace VirtoCommerce.Platform.Core.Common
                 {
                     result = (BaseType)Activator.CreateInstance(typeInfo.Type);
                 }
+
                 typeInfo.SetupAction?.Invoke(result);
             }
             else
@@ -131,8 +118,10 @@ namespace VirtoCommerce.Platform.Core.Common
                 var baseType = typeof(BaseType);
                 if (baseType.IsAbstract)
                 {
-                    throw new OperationCanceledException($"A type with {typeName} name is not registered in the AbstractFactory, you cannot create an instance of an abstract class {baseType.Name} because it does not have a complete implementation");
+                    throw new OperationCanceledException(
+                        $"A type with {typeName} name is not registered in the AbstractFactory, you cannot create an instance of an abstract class {baseType.Name} because it does not have a complete implementation");
                 }
+
                 result = (BaseType)Activator.CreateInstance(typeof(BaseType));
             }
 
@@ -149,6 +138,7 @@ namespace VirtoCommerce.Platform.Core.Common
             {
                 result = _typeInfos.FirstOrDefault(x => x.IsAssignableTo(typeName));
             }
+
             return result;
         }
     }
@@ -183,6 +173,7 @@ namespace VirtoCommerce.Platform.Core.Common
             {
                 Services.Add(service);
             }
+
             return this;
         }
 
@@ -213,7 +204,8 @@ namespace VirtoCommerce.Platform.Core.Common
 
         public bool IsAssignableTo(string typeName)
         {
-            return Type.GetTypeInheritanceChainTo(typeof(BaseType)).Concat(new[] { typeof(BaseType) }).Any(t => typeName.EqualsInvariant(t.Name));
+            return Type.GetTypeInheritanceChainTo(typeof(BaseType)).Concat(new[] {typeof(BaseType)})
+                .Any(t => typeName.EqualsInvariant(t.Name));
         }
 
         public IEnumerable<Type> AllSubclasses

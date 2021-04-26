@@ -1,4 +1,4 @@
-﻿namespace Common.Persitence.Postgres
+﻿namespace Common.Persistence.Postgres
 {
     internal class PostgresOptions
     {

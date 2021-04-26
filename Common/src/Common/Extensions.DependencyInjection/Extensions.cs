@@ -1,43 +1,79 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Common.Contexts;
 using Common.Dependency.ServiceLocator;
+using Common.Dispatcher;
+using Common.Domain;
 using Common.Exceptions;
 using Common.Generators;
 using Common.Logging.Serilog;
 using Common.Messaging;
 using Common.Messaging.Commands;
+using Common.Messaging.Dispatcher;
 using Common.Messaging.Events;
+using Common.Messaging.Inbox;
+using Common.Messaging.Inbox.Mongo;
+using Common.Messaging.Outbox;
+using Common.Messaging.Outbox.Mongo;
 using Common.Messaging.Queries;
 using Common.Messaging.Scheduling;
 using Common.Messaging.Serialization;
 using Common.Messaging.Serialization.Newtonsoft;
 using Common.Messaging.Transport;
 using Common.Messaging.Transport.InMemory;
+using Common.Modules;
+using Common.Redis;
+using Common.Scheduling;
 using Common.Services;
 using Common.Storage;
 using Common.Web;
 using Figgle;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
+[assembly: InternalsVisibleTo("OnlineStore.API")]
+[assembly: InternalsVisibleTo("OnlineStore.Tests.Benchmarks")]
+[assembly: InternalsVisibleTo("OnlineStore.Common.Tests.Integration")]
 namespace Common.Extensions.DependencyInjection
 {
-    public static class ServiceCollectionExtensions
+    public static class Extensions
     {
         private const string CorsPolicy = "cors";
         private const string AppSectionName = "app";
 
-        public static IServiceCollection AddCommon(this IServiceCollection services,
+        public static IServiceCollection AddCommon(this IServiceCollection services, IList<Assembly> assemblies,
+            IList<IModule> modules,
             string sectionName = AppSectionName)
         {
             if (string.IsNullOrWhiteSpace(sectionName)) sectionName = AppSectionName;
+
+            var disabledModules = new List<string>();
+            using (var serviceProvider = services.BuildServiceProvider())
+            {
+                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                foreach (var (key, value) in configuration.AsEnumerable())
+                {
+                    if (!key.Contains(":module:enabled"))
+                    {
+                        continue;
+                    }
+
+                    if (!bool.Parse(value))
+                    {
+                        disabledModules.Add(key.Split(":")[0]);
+                    }
+                }
+            }
 
             services.AddNewtonsoftMessageSerializer(options =>
             {
@@ -54,18 +90,26 @@ namespace Common.Extensions.DependencyInjection
             services.TryDecorate(typeof(ICommandHandler<>), typeof(LoggingCommandHandlerDecorator<>));
             services.TryDecorate(typeof(IIntegrationEventHandler<>), typeof(LoggingIntegrationEventHandlerDecorator<>));
 
-            CommandHandlersFromAssemblies(services);
-            EventHandlersFromAssemblies(services);
-            QueryHandlersFromAssemblies(services);
+            services.AddCommand(assemblies);
+            services.AddEvent(assemblies);
+            services.AddQuery(assemblies);
+            services.AddDomainEvents(assemblies);
 
             services.AddSingleton<IQueryProcessor, QueryProcessor>();
             services.AddSingleton<ICommandProcessor, CommandProcessor>();
             services.AddSingleton<IMessagesExecutor, MessagesExecutor>();
 
+            services.AddSingleton<IOutOfProcessDispatcher, OutOfProcessDispatcher>();
+            services.AddSingleton<IInProcessDispatcher, InProcessDispatcher>();
+
             services
                 .AddSingleton<IDateTimeProvider, DateTimeProvider>()
                 .AddSingleton<IRequestStorage, RequestStorage>()
                 .AddSingleton<IRng, Rng>()
+                .AddRedis()
+                .AddModuleInfo(modules)
+                .AddModuleRequests(assemblies)
+                .AddMemoryCache()
                 .AddSingleton<IIdGenerator, IdGenerator>()
                 .AddScoped<ErrorHandlerMiddleware>()
                 .AddScoped<UserMiddleware>()
@@ -90,6 +134,19 @@ namespace Common.Extensions.DependencyInjection
                 .AddControllers()
                 .ConfigureApplicationPartManager(manager =>
                 {
+                    var removedParts = new List<ApplicationPart>();
+                    foreach (var disabledModule in disabledModules)
+                    {
+                        var parts = manager.ApplicationParts.Where(x => x.Name.Contains(disabledModule,
+                            StringComparison.InvariantCultureIgnoreCase));
+                        removedParts.AddRange(parts);
+                    }
+
+                    foreach (var part in removedParts)
+                    {
+                        manager.ApplicationParts.Remove(part);
+                    }
+
                     manager.FeatureProviders.Add(new InternalControllerFeatureProvider());
                 })
                 .AddNewtonsoftJson(x =>
@@ -101,8 +158,7 @@ namespace Common.Extensions.DependencyInjection
                     };
                 });
 
-            AddInMemoryMessageBroker(services, "messaging");
-
+            AddMessaging(services, "messaging");
 
             var appOptions = services.GetOptions<AppOptions>(sectionName);
             services.AddSingleton(appOptions);
@@ -124,10 +180,22 @@ namespace Common.Extensions.DependencyInjection
 
             return services;
         }
-
-        private static IServiceCollection CommandHandlersFromAssemblies(IServiceCollection services)
+        
+        public static IServiceCollection AddDomainEvents(this IServiceCollection services, IEnumerable<Assembly> assemblies)
         {
-            services.Scan(s => s.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
+            services.AddSingleton<IDomainEventDispatcher, DomainEventDispatcher>();
+            services.Scan(s => s.FromAssemblies(assemblies)
+                .AddClasses(c => c.AssignableTo(typeof(IDomainEventHandler<>)))
+                .AsImplementedInterfaces()
+                .WithScopedLifetime());
+            return services;
+        }
+        private static IServiceCollection AddCommand(this IServiceCollection services,
+            IList<Assembly> assemblies)
+        {
+            services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
+
+            services.Scan(s => s.FromAssemblies(assemblies)
                 .AddClasses(c => c.AssignableTo(typeof(ICommandHandler<>))
                     .WithoutAttribute(typeof(DecoratorAttribute)))
                 .AsImplementedInterfaces()
@@ -136,9 +204,11 @@ namespace Common.Extensions.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection QueryHandlersFromAssemblies(IServiceCollection services)
+        private static IServiceCollection AddQuery(this IServiceCollection services, IList<Assembly> assemblies)
         {
-            services.Scan(s => s.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
+            services.AddSingleton<IQueryDispatcher, QueryDispatcher>();
+
+            services.Scan(s => s.FromAssemblies(assemblies)
                 .AddClasses(c => c.AssignableTo(typeof(IQueryHandler<,>)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());
@@ -147,9 +217,11 @@ namespace Common.Extensions.DependencyInjection
         }
 
 
-        private static IServiceCollection EventHandlersFromAssemblies(IServiceCollection services)
+        private static IServiceCollection AddEvent(this IServiceCollection services, IList<Assembly> assemblies)
         {
-            services.Scan(s => s.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
+            services.AddSingleton<IEventDispatcher, EventDispatcher>();
+
+            services.Scan(s => s.FromAssemblies(assemblies)
                 .AddClasses(c => c.AssignableTo(typeof(IEventHandler<>))
                     .WithoutAttribute(typeof(DecoratorAttribute)))
                 .AsImplementedInterfaces()
@@ -159,15 +231,36 @@ namespace Common.Extensions.DependencyInjection
         }
 
 
-        private static IServiceCollection AddInMemoryMessageBroker(IServiceCollection services, string sectionName)
+        public static IServiceCollection AddMessaging(this IServiceCollection services, string sectionName)
         {
             var messagingOptions = services.GetOptions<MessagingOptions>(sectionName);
+            var inboxOptions = services.GetOptions<InboxOptions>($"{sectionName}:inbox");
+            var outboxOptions = services.GetOptions<OutboxOptions>($"{sectionName}:outbox");
             services
                 .AddSingleton(messagingOptions)
+                .AddSingleton(inboxOptions)
+                .AddSingleton(outboxOptions)
+                .AddSingleton<IAsyncMessageDispatcher, InMemoryAsyncMessageDispatcher>()
+                .AddTransient<IInbox, MongoInbox>()
+                .AddTransient<IOutbox, MongoOutbox>()
                 .AddScoped<ITransport, InMemoryMessageBroker>();
 
+            if (inboxOptions.Enabled)
+            {
+                services.TryDecorate(typeof(ICommandHandler<>), typeof(InboxCommandHandlerDecorator<>));
+                services.TryDecorate(typeof(IEventHandler<>), typeof(InboxEventHandlerDecorator<>));
+            }
+
+            if (outboxOptions.Enabled)
+            {
+                services.AddHostedService<OutboxProcessor>();
+            }
+
             // Adding background service
-            if (messagingOptions.UseBackgroundDispatcher) services.AddHostedService<InMemoryBackgroundDispatcher>();
+            if (messagingOptions.UseBackgroundDispatcher)
+            {
+                services.AddHostedService<InMemoryBackgroundDispatcher>();
+            }
 
             return services;
         }
@@ -180,7 +273,7 @@ namespace Common.Extensions.DependencyInjection
             return app;
         }
 
-        public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
+        public static IApplicationBuilder UseCommon(this IApplicationBuilder app)
         {
             app.UseCors(CorsPolicy);
             app.UseMiddleware<UserMiddleware>();

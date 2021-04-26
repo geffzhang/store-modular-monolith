@@ -1,21 +1,23 @@
 ﻿using System;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Commands;
+using Common.Messaging.Commands;
 using Newtonsoft.Json;
+using OnlineStore.Modules.Users.Domain.UserRegistrations;
 
-namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.SendUserRegistrationConfirmationEmail
+namespace OnlineStore.Modules.Users.Application.UserRegistrations.SendUserRegistrationConfirmationEmail
 {
-    public class SendUserRegistrationConfirmationEmailCommand : InternalCommandBase
+    public class SendUserRegistrationConfirmationEmailCommand : ICommand
     {
         [JsonConstructor]
         public SendUserRegistrationConfirmationEmailCommand(Guid id, UserRegistrationId userRegistrationId, string email)
-        : base(id)
         {
+            Id = id;
             UserRegistrationId = userRegistrationId;
             Email = email;
         }
 
         internal UserRegistrationId UserRegistrationId { get; }
-
         internal string Email { get; }
+        public Guid Id { get; set; }
+        public Guid CorrelationId { get; set; }
     }
 }

@@ -1,12 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Common.Messaging.Transport.InMemory;
 using Common.Modules;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Common.BackgroundServices
+namespace Common.Messaging.Transport.InMemory
 {
     internal sealed class InMemoryBackgroundDispatcher : BackgroundService
     {
@@ -28,7 +27,7 @@ namespace Common.BackgroundServices
             await foreach (var @event in _channel.Reader.ReadAllAsync(stoppingToken))
                 try
                 {
-                    await _moduleClient.SendAsync(@event);
+                    await _moduleClient.PublishAsync(@event);
                 }
                 catch (Exception exception)
                 {

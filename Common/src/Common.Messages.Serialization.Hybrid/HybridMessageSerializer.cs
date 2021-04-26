@@ -1,26 +1,44 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Ardalis.GuardClauses;
+using Common.Collections;
+using Common.Messaging.Serialization;
 using Common.Serialization;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace Common.Messages.Serialization.Hybrid
 {
-    public class HybridMessageSerializer : IHybridSerializer
+    public class HybridMessageSerializer : IHybridMessageSerializer
     {
-        private readonly Logger<HybridJsonSerializer> _logger;
-        protected JsonOptions Options { get; }
-
+        private readonly ILogger<HybridMessageSerializer> _logger;
+        private readonly ITypeList<IMessageSerializer> _serializers = new TypeList<IMessageSerializer>();
         protected IServiceScopeFactory ServiceScopeFactory { get; }
+        public IMessageSerializer DefaultSerializer { get; set; }
 
-        public HybridJsonSerializer(IOptions<HybridSerializationOptions> options, IServiceScopeFactory serviceScopeFactory, Logger<HybridJsonSerializer> logger)
+        public HybridMessageSerializer(IOptions<HybridSerializationOptions> options,
+            IServiceScopeFactory serviceScopeFactory, ILogger<HybridMessageSerializer> logger)
         {
             _logger = logger;
-            Options = options.Value;
             ServiceScopeFactory = serviceScopeFactory;
+            foreach (var optionsProvider in options.Value.Providers)
+            {
+                _serializers.Add(optionsProvider);
+            }
+        }
+
+        public void Add(IMessageSerializer serializer)
+        {
+            if (_serializers.Count == 0 && DefaultSerializer == null)
+            {
+                DefaultSerializer = serializer;
+            }
+
+            _serializers.Add(serializer.GetType());
         }
 
         public string Serialize([CanBeNull] object obj, bool camelCase = true, bool indented = false)
@@ -50,14 +68,14 @@ namespace Common.Messages.Serialization.Hybrid
             using (var scope = ServiceScopeFactory.CreateScope())
             {
                 var serializerProvider = GetSerializerProvider(scope.ServiceProvider, type);
-                return serializerProvider.Deserialize(type, jsonString, camelCase);
+                return serializerProvider.Deserialize(jsonString, type, camelCase);
             }
         }
-        
+
         protected virtual IMessageSerializer GetSerializerProvider(IServiceProvider serviceProvider,
             [CanBeNull] Type type)
         {
-            foreach (var providerType in Options.Providers.Reverse())
+            foreach (var providerType in _serializers.Reverse())
             {
                 var provider = serviceProvider.GetRequiredService(providerType) as IMessageSerializer;
                 if (provider.CanHandle(type))

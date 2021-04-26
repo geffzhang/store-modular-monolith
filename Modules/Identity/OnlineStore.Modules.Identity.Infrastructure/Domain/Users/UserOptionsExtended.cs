@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OnlineStore.Modules.Identity.Application.Authentication
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
 {
     public class UserOptionsExtended
     {

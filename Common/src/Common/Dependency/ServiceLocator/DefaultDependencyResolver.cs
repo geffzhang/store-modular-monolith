@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Common.Dependency
+namespace Common.Dependency.ServiceLocator
 {
     public class DefaultDependencyResolver : IDependencyResolver
     {

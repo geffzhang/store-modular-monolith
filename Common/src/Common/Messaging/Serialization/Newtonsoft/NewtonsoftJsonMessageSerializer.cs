@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Common.Serialization;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Common.Messages.Serialization.Json.Newtonsoft
+namespace Common.Messaging.Serialization.Newtonsoft
 {
     public class NewtonsoftJsonMessageSerializer : IMessageSerializer
     {
         private readonly NewtonsoftJsonUnSupportedTypeMatcher _newtonsoftJsonUnSupportedTypeMatcher;
-        private readonly List<JsonConverter> _converters;
+        private readonly IList<JsonConverter> _converters;
 
         public NewtonsoftJsonMessageSerializer(
             IOptions<NewtonsoftJsonOptions> options,
@@ -19,10 +17,7 @@ namespace Common.Messages.Serialization.Json.Newtonsoft
             IServiceProvider serviceProvider)
         {
             _newtonsoftJsonUnSupportedTypeMatcher = newtonsoftJsonUnSupportedTypeMatcher;
-            _converters = options.Value
-                .Converters
-                .Select(c => (JsonConverter) serviceProvider.GetService(c))
-                .ToList();
+            _converters = options.Value.Converters;
         }
 
         public bool CanHandle(Type type)
@@ -40,7 +35,7 @@ namespace Common.Messages.Serialization.Json.Newtonsoft
             return JsonConvert.DeserializeObject<T>(payload, CreateSerializerSettings(camelCase));
         }
 
-        public object Deserialize(Type type, string payload, bool camelCase = true)
+        public object Deserialize(string payload, Type type, bool camelCase = true)
         {
             return JsonConvert.DeserializeObject(payload, type, CreateSerializerSettings(camelCase));
         }

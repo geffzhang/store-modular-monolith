@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
 using Common.Messaging.Commands;
 using Common.Utils;
+using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
 
-namespace Common.Logging
+namespace Common.Logging.Serilog
 {
     [Decorator]
     internal sealed class LoggingCommandHandlerDecorator<T> : ICommandHandler<T> where T : class, ICommand

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
+using Common.Identity;
 
-namespace Common.Identity
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
 {
     public interface IUserApiKeyService
     {

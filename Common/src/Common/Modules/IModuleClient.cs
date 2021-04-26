@@ -5,7 +5,8 @@ namespace Common.Modules
 {
     public interface IModuleClient
     {
-        Task<TResult> RequestAsync<TResult>(string path, object request) where TResult : class;
-        Task SendAsync(IMessage message);
+        Task SendAsync(string path, object request);
+        Task<TResult> SendAsync<TResult>(string path, object request) where TResult : class;
+        Task PublishAsync(IMessage message);
     }
 }

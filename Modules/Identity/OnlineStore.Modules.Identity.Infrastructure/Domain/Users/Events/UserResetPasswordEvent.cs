@@ -1,6 +1,6 @@
 ﻿using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Events
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events
 {
     public class UserResetPasswordEvent : DomainEventBase
     {

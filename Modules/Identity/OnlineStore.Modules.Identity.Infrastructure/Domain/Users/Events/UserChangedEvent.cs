@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using Common.Messaging.Events;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Events
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events
 {
     public class UserChangedEvent : GenericChangedEntryEvent<ApplicationUser>
     {

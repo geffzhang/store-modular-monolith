@@ -1,6 +1,6 @@
 ﻿using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Users.Domain.UserRegistrations.DomainEvents
+namespace OnlineStore.Modules.Identity.Domain.UserRegistrations.DomainEvents
 {
     public class UserRegistrationExpiredDomainEvent : DomainEventBase
     {

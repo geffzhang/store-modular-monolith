@@ -1,12 +1,11 @@
 ﻿using System.Collections.Specialized;
 using Common.Extensions.DependencyInjection;
-using Common.Messaging.Scheduling;
-using Common.Scheduling.Quartz.MessagesScheduler;
+using Common.Messaging.Scheduling.Quartz.MessagesScheduler;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 using Quartz.Impl;
 
-namespace Common.Scheduling.Quartz
+namespace Common.Messaging.Scheduling.Quartz
 {
     public static class Extensions
     {
@@ -32,7 +31,6 @@ namespace Common.Scheduling.Quartz
             services.AddSingleton(scheduler);
 
             services.AddSingleton<IQuartzMessagesScheduler, QuartzMessagesScheduler>();
-            services.AddSingleton<IMessagesScheduler, QuartzMessagesScheduler>();
 
             return services;
         }

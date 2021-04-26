@@ -1,6 +1,7 @@
 ﻿using System;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Application.Authentication
+namespace OnlineStore.Modules.Identity.Infrastructure.Authentication
 {
     public class PasswordExpiryHelper
     {
@@ -24,6 +25,5 @@ namespace OnlineStore.Modules.Identity.Application.Authentication
 
             return result;
         }
-    } 
     }
 }

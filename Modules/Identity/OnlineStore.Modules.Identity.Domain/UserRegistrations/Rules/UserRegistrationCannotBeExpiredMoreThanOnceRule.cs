@@ -1,6 +1,6 @@
 ﻿using Common.Domain;
 
-namespace OnlineStore.Modules.Users.Domain.UserRegistrations.Rules
+namespace OnlineStore.Modules.Identity.Domain.UserRegistrations.Rules
 {
     public class UserRegistrationCannotBeExpiredMoreThanOnceRule : IBusinessRule
     {

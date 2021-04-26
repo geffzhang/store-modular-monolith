@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -6,21 +7,33 @@ using Common.Exceptions;
 using Common.Messaging.Commands;
 using Common.Messaging.Events;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 
 namespace Common.Modules
 {
     public static class Extensions
     {
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            Converters = new List<JsonConverter>
+            {
+                new StringEnumConverter(new CamelCaseNamingStrategy())
+            }
+        };
+        
         public static IModuleSubscriber UseModuleRequests(this IApplicationBuilder app)
-        {
-            return app.ApplicationServices.GetRequiredService<IModuleSubscriber>();
-        }
-
+            => app.ApplicationServices.GetRequiredService<IModuleSubscriber>();
+        
         public static IContractRegistry UseContracts(this IApplicationBuilder app)
-        {
-            return app.ApplicationServices.GetRequiredService<IContractRegistry>();
-        }
+            => app.ApplicationServices.GetRequiredService<IContractRegistry>();
 
         public static IServiceCollection AddExceptionToMessageMapper<T>(this IServiceCollection services)
             where T : class, IExceptionToMessageMapper
@@ -30,9 +43,8 @@ namespace Common.Modules
 
             return services;
         }
-
-        internal static IServiceCollection AddModuleRequests(this IServiceCollection services,
-            IList<Assembly> assemblies)
+        
+        internal static IServiceCollection AddModuleRequests(this IServiceCollection services, IList<Assembly> assemblies)
         {
             services.AddModuleRegistry(assemblies);
             services.AddSingleton<IModuleSubscriber, ModuleSubscriber>();
@@ -41,6 +53,47 @@ namespace Common.Modules
 
             return services;
         }
+        
+        internal static IServiceCollection AddModuleInfo(this IServiceCollection services, IList<IModule> modules)
+        {
+            var moduleInfoProvider = new ModuleInfoProvider();
+            var moduleInfo =
+                modules?.Select(x => new ModuleInfo(x.Name, x.Path, x.Policies ?? Enumerable.Empty<string>())) ??
+                Enumerable.Empty<ModuleInfo>();
+            moduleInfoProvider.Modules.AddRange(moduleInfo);
+            services.AddSingleton(moduleInfoProvider);
+
+            return services;
+        }
+
+        internal static void MapModuleInfo(this IEndpointRouteBuilder endpoint)
+        {
+            endpoint.MapGet("modules", context =>
+            {
+                var moduleInfoProvider = context.RequestServices.GetRequiredService<ModuleInfoProvider>();
+                var json = JsonConvert.SerializeObject(moduleInfoProvider.Modules, SerializerSettings);
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsync(json);
+            });
+        }
+        
+        internal static IHostBuilder ConfigureModules(this IHostBuilder builder)
+            => builder.ConfigureAppConfiguration((ctx, cfg) =>
+            {
+                foreach (var settings in GetSettings("*"))
+                {
+                    cfg.AddJsonFile(settings);
+                }
+
+                foreach (var settings in GetSettings($"*.{ctx.HostingEnvironment.EnvironmentName}"))
+                {
+                    cfg.AddJsonFile(settings);
+                }
+
+                IEnumerable<string> GetSettings(string pattern)
+                    => Directory.EnumerateFiles(ctx.HostingEnvironment.ContentRootPath,
+                        $"module.{pattern}.json", SearchOption.AllDirectories);
+            });
 
         private static void AddModuleRegistry(this IServiceCollection services, IEnumerable<Assembly> assemblies)
         {
@@ -51,7 +104,7 @@ namespace Common.Modules
                 .ToArray();
 
             var eventTypes = types
-                .Where(t => t.IsClass && typeof(IIntegrationEvent).IsAssignableFrom(t))
+                .Where(t => t.IsClass && typeof(IEvent).IsAssignableFrom(t))
                 .ToArray();
 
             // services.AddSingleton<IModuleSerializer, JsonModuleSerializer>();
@@ -60,19 +113,23 @@ namespace Common.Modules
             {
                 var registry = new ModuleRegistry();
                 var commandProcessor = sp.GetRequiredService<ICommandProcessor>();
-                var dispatcherType = commandProcessor.GetType();
+                var commandProcessorType = commandProcessor.GetType();
 
                 foreach (var type in commandTypes)
+                {
                     registry.AddBroadcastAction(type, @event =>
-                        (Task) dispatcherType.GetMethod(nameof(commandProcessor.SendCommandAsync))
+                        (Task) commandProcessorType.GetMethod(nameof(commandProcessor.SendCommandAsync))
                             ?.MakeGenericMethod(type)
                             .Invoke(commandProcessor, new[] {@event}));
+                }
 
                 foreach (var type in eventTypes)
+                {
                     registry.AddBroadcastAction(type, @event =>
-                        (Task) dispatcherType.GetMethod(nameof(commandProcessor.PublishIntegrationEventAsync))
+                        (Task) commandProcessorType.GetMethod(nameof(commandProcessor.PublishDomainEventAsync))
                             ?.MakeGenericMethod(type)
                             .Invoke(commandProcessor, new[] {@event}));
+                }
 
                 return registry;
             });

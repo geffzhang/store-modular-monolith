@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Common.Extensions.DependencyInjection;
-using Common.Logging.Logging.Options;
-using Common.Logging.Options;
+using Common.Logging.Serilog.Options;
 using Common.Web;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
 
-namespace Common.Logging
+namespace Common.Logging.Serilog
 {
     internal static class Extensions
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Common.Persitence.Postgres
+namespace Common.Persistence.Postgres
 {
     public interface IUnitOfWork
     {

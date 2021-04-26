@@ -1,3 +1,5 @@
+using System;
+
 namespace Common.Messaging.Events
 {
     //Marker

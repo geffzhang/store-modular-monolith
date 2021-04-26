@@ -1,4 +1,4 @@
-namespace Common.Logging.Options
+namespace Common.Logging.Serilog.Options
 {
     internal class ConsoleOptions
     {

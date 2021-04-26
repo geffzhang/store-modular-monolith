@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Common.Messaging.Commands;
 using Common.Utils;
+using Common.Utils.Extensions;
 
 namespace Common.Messaging.Inbox
 {

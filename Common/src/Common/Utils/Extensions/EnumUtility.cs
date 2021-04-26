@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 
-namespace VirtoCommerce.Platform.Core.Common
+namespace Common.Utils.Extensions
 {
     public static class EnumUtility
     {

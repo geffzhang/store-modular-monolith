@@ -1,10 +1,11 @@
 using System;
 using Common.Domain;
+using Common.Domain.Types;
 using static Common.Utils.DateTimeHelper;
 
-namespace OnlineStore.Modules.Users.Domain.Users.DomainEvents
+namespace OnlineStore.Modules.Identity.Domain.Users.DomainEvents
 {
-    internal class UserUnlocked : IDomainEvent
+    internal class UserUnlocked : DomainEventBase
     {
         public UserUnlocked(UserId userId)
         {

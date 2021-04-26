@@ -1,7 +1,7 @@
 ﻿using Common.Domain;
-using OnlineStore.Modules.Users.Domain.UserRegistrations.DomainServices;
+using OnlineStore.Modules.Identity.Domain.UserRegistrations.DomainServices;
 
-namespace OnlineStore.Modules.Users.Domain.UserRegistrations.Rules
+namespace OnlineStore.Modules.Identity.Domain.UserRegistrations.Rules
 {
     public class UserLoginMustBeUniqueRule : IBusinessRule
     {

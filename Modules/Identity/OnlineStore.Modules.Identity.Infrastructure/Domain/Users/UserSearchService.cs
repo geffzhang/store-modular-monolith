@@ -1,11 +1,16 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Common.Identity.Search;
+using Common.Domain;
+using Common.Utils.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OnlineStore.Modules.Identity.Application.Search.Dtos;
+using OnlineStore.Modules.Identity.Domain.Users;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
+using OnlineStore.Modules.Identity.Infrastructure.Search;
 
-namespace Common.Identity.Services
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
 {
     public class UserSearchService : IUserSearchService
     {
@@ -24,6 +29,7 @@ namespace Common.Identity.Services
                 {
                     throw new ArgumentNullException(nameof(criteria));
                 }
+
                 if (!userManager.SupportsQueryableUsers)
                 {
                     throw new NotSupportedException();
@@ -53,13 +59,8 @@ namespace Common.Identity.Services
 
                 result.TotalCount = await query.CountAsync();
 
-                var sortInfos = criteria.SortInfos;
-                if (sortInfos.IsNullOrEmpty())
-                {
-                    sortInfos = new[] { new SortInfo { SortColumn = ReflectionUtility.GetPropertyName<ApplicationUser>(x => x.UserName), SortDirection = SortDirection.Descending } };
-                }
-                result.Results = await query.OrderBySortInfos(sortInfos).Skip(criteria.Skip).Take(criteria.Take).ToArrayAsync();
-
+                var res = await query.Skip(criteria.Skip).Take(criteria.Take).ToArrayAsync();
+                result.Results = res.Select(user => user.ToUser()).ToList();
                 return result;
             }
         }

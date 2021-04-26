@@ -10,6 +10,6 @@ namespace Common.Domain
 
     public interface IDomainNotificationEvent : IEvent
     {
-        Guid Id { get; }
     }
+    
 }

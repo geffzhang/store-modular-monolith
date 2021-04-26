@@ -3,15 +3,15 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Trill.Shared.Infrastructure.Modules
+namespace Common.Modules
 {
     public interface IModule
     {
         string Name { get; }
         string Path { get; }
         IEnumerable<string> Policies => null;
-        void ConfigureServices(IServiceCollection services);
-        void ConfigureMiddleware(IApplicationBuilder app);
+        void Register(IServiceCollection services);
+        void Use(IApplicationBuilder app);
         void ConfigureEndpoints(IEndpointRouteBuilder endpoints);
     }
 }

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
+using OnlineStore.Modules.Identity.Application.Search.Dtos;
 
-namespace Common.Identity.Search
+namespace OnlineStore.Modules.Identity.Infrastructure.Search
 {
     public interface IUserSearchService
     {

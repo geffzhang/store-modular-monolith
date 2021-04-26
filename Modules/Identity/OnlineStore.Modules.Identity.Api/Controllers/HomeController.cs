@@ -1,7 +1,15 @@
-﻿namespace OnlineStore.Modules.Identity.Api.Controllers
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace OnlineStore.Modules.Identity.Api.Controllers
 {
-    public class HomeController
+    [ApiController]
+    [Route("")]
+    public class HomeController : ControllerBase
     {
-        
+        [HttpGet]
+        public string Index()
+        {
+            return "Identity Module";
+        }
     }
 }

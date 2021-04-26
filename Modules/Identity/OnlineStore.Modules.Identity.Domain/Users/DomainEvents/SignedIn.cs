@@ -1,9 +1,9 @@
 using System;
 using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Users.Domain.Users.DomainEvents
+namespace OnlineStore.Modules.Identity.Domain.Users.DomainEvents
 {
-    internal class SignedIn : DomainEventBase<Guid>
+    internal class SignedIn : DomainEventBase
     {
         public SignedIn(Guid userId)
         {

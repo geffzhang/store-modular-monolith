@@ -1,4 +1,4 @@
-﻿namespace Common.Scheduling.Hangfire
+﻿namespace Common.Messaging.Scheduling.Hangfire
 {
     public class HangfireOptions
     {

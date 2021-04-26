@@ -7,41 +7,44 @@ using System.Threading.Tasks;
 using Common.Messaging;
 using Common.Messaging.Commands;
 using Common.Utils;
+using Common.Utils.Extensions;
 
 namespace Common.Modules
 {
     internal sealed class ModuleClient : IModuleClient
     {
         private readonly IModuleRegistry _moduleRegistry;
-
-        private readonly ConcurrentDictionary<Type, MessageAttribute> _registrations =
-            new();
-
-        private readonly IModuleSerializer _serializer;
-
-        public ModuleClient(IModuleRegistry moduleRegistry, IModuleSerializer serializer)
+        private readonly IModuleSerializer _moduleSerializer;
+        private readonly ConcurrentDictionary<Type, MessageAttribute> _registrations = new();
+        public ModuleClient(IModuleRegistry moduleRegistry, IModuleSerializer moduleSerializer)
         {
             _moduleRegistry = moduleRegistry;
-            _serializer = serializer;
+            _moduleSerializer = moduleSerializer;
         }
 
-        public async Task<TResult> RequestAsync<TResult>(string path, object request) where TResult : class
+        public Task SendAsync(string path, object request) => SendAsync<object>(path, request);
+
+        public async Task<TResult> SendAsync<TResult>(string path, object request) where TResult : class
         {
             var registration = _moduleRegistry.GetRequestRegistration(path);
             if (registration is null)
-                throw new InvalidOperationException($"No action has been defined for path: {path}");
+            {
+                throw new InvalidOperationException($"No action has been defined for path: '{path}'.");
+            }
 
             if (request is IMessage message)
+            {
                 // A synchronous request
                 message.Id = Guid.Empty;
+            }
 
             var receiverRequest = TranslateType(request, registration.RequestType);
             var result = await registration.Action(receiverRequest);
 
-            return _serializer.Deserialize<TResult>(_serializer.Serialize(result));
+            return result is null ? null : TranslateType<TResult>(result);
         }
 
-        public async Task SendAsync(IMessage message)
+        public async Task PublishAsync(IMessage message)
         {
             var module = message.GetModuleName();
             var tasks = new List<Task>();
@@ -64,9 +67,15 @@ namespace Common.Modules
                     _registrations.TryAdd(registration.ReceiverType, messageAttribute);
                 }
 
-                if (messageAttribute is null || !messageAttribute.Enabled) continue;
+                if (messageAttribute is null || !messageAttribute.Enabled)
+                {
+                    continue;
+                }
 
-                if (messageAttribute.Module != module) continue;
+                if (messageAttribute.Module != module)
+                {
+                    continue;
+                }
 
                 var action = registration.Action;
                 var receiverBroadcast = TranslateType(message, registration.ReceiverType);
@@ -76,9 +85,10 @@ namespace Common.Modules
             await Task.WhenAll(tasks);
         }
 
+        private T TranslateType<T>(object value)
+            => _moduleSerializer.Deserialize<T>(_moduleSerializer.Serialize(value));
+        
         private object TranslateType(object value, Type type)
-        {
-            return _serializer.Deserialize(_serializer.Serialize(value), type);
-        }
+            => _moduleSerializer.Deserialize(_moduleSerializer.Serialize(value), type);
     }
 }

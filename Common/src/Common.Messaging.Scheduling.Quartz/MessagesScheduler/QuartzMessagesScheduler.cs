@@ -1,25 +1,22 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Common.Messaging.Commands;
-using Common.Messaging.Scheduling;
 using Common.Messaging.Serialization;
+using Common.Scheduling;
 using Microsoft.Extensions.Options;
 using Quartz;
 
-namespace Common.Scheduling.Quartz.MessagesScheduler
+namespace Common.Messaging.Scheduling.Quartz.MessagesScheduler
 {
     public class QuartzMessagesScheduler : IQuartzMessagesScheduler
     {
-        private readonly IRecurringQuartzMessagesScheduler _recurringQuartzMessagesScheduler;
         private readonly IMessageSerializer _messageSerializer;
         private readonly QuartzOptions _options;
         private readonly IScheduler _scheduler;
 
         public QuartzMessagesScheduler(IScheduler scheduler, IOptions<QuartzOptions> options,
-            IRecurringQuartzMessagesScheduler recurringQuartzMessagesScheduler,
             IMessageSerializer messageSerializer)
         {
-            _recurringQuartzMessagesScheduler = recurringQuartzMessagesScheduler;
             _messageSerializer = messageSerializer;
             _options = options.Value;
             _scheduler = scheduler;

@@ -1,4 +1,4 @@
-namespace Common.Mongo
+namespace Common.Persistence.Mongo
 {
     public class MongoOptions
     {

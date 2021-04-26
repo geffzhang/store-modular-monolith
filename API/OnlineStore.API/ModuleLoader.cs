@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Common.Modules;
 using Microsoft.Extensions.Configuration;
 
 namespace Shopping.API
@@ -11,7 +12,7 @@ namespace Shopping.API
     {
         public static IList<Assembly> LoadAssemblies(IConfiguration configuration)
         {
-            const string modulePart = "Confab.Modules.";
+            const string modulePart = "OnlineStore.Modules.";
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
             var locations = assemblies.Where(x => !x.IsDynamic).Select(x => x.Location).ToArray();
             var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll")
@@ -43,14 +44,35 @@ namespace Shopping.API
 
             return assemblies;
         }
-
+        
         public static IList<IModule> LoadModules(IEnumerable<Assembly> assemblies)
-            => assemblies
+        {
+            var moduleType = typeof(IModule);
+            var modules = assemblies
                 .SelectMany(x => x.GetTypes())
-                .Where(x => typeof(IModule).IsAssignableFrom(x) && !x.IsInterface)
+                .Where(x => moduleType.IsAssignableFrom(x) && !x.IsInterface)
                 .OrderBy(x => x.Name)
                 .Select(Activator.CreateInstance)
                 .Cast<IModule>()
                 .ToList();
+
+            ValidateModules(modules);
+
+            return modules;
+        }
+
+        private static void ValidateModules(IEnumerable<IModule> modules)
+        {
+            var duplicatedModulePaths = modules
+                .Where(x => !string.IsNullOrWhiteSpace(x.Path))
+                .GroupBy(x => x.Path)
+                .Where(x => x.Count() > 1)
+                .Select(x => $"'/{x.Key}'")
+                .ToArray();
+            if (duplicatedModulePaths.Any())
+            {
+                throw new Exception($"Duplicated module paths: {string.Join(",", duplicatedModulePaths)}");
+            }
+        }
     }
 }

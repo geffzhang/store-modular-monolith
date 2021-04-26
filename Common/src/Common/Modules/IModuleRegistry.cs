@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Common.Modules;
 
-namespace Common
+namespace Common.Modules
 {
     public interface IModuleRegistry
     {

@@ -1,24 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using Common.Domain.Types;
-using OnlineStore.Modules.Users.Domain.UserRegistrations.DomainEvents;
-using OnlineStore.Modules.Users.Domain.UserRegistrations.DomainServices;
-using OnlineStore.Modules.Users.Domain.UserRegistrations.Rules;
-using OnlineStore.Modules.Users.Domain.Users;
+using OnlineStore.Modules.Identity.Domain.Permissions;
+using OnlineStore.Modules.Identity.Domain.UserRegistrations.DomainEvents;
+using OnlineStore.Modules.Identity.Domain.UserRegistrations.DomainServices;
+using OnlineStore.Modules.Identity.Domain.UserRegistrations.Rules;
+using OnlineStore.Modules.Identity.Domain.Users;
 
-namespace OnlineStore.Modules.Users.Domain.UserRegistrations
+namespace OnlineStore.Modules.Identity.Domain.UserRegistrations
 {
     public class UserRegistration : AggregateRoot<Guid, UserRegistrationId>
     {
-        public string Email { get; private set; }
-        public string FirstName { get; private set; }
-        public string LastName { get; private set; }
-        public string Name { get; private set; }
-        public string Login { get; private set; }
-        public string Password { get; private set; }
-        public DateTime RegisterDate { get; private set; }
+        public string Email { get; }
+        public string FirstName { get; }
+        public string LastName { get; }
+        public string Name { get; }
+        public string Login { get; }
+        public string Password { get; }
+        public DateTime RegisterDate { get; }
         public DateTime? ConfirmedDate { get; private set; }
         public UserRegistrationStatus Status { get; private set; }
+        public Address Address { get; }
 
         private UserRegistration()
         {
@@ -31,7 +33,9 @@ namespace OnlineStore.Modules.Users.Domain.UserRegistrations
             string email,
             string firstName,
             string lastName,
-            IUsersCounter usersCounter)
+            Address address,
+            IUsersCounter usersCounter,
+            string confirmLink)
         {
             CheckRule(new UserLoginMustBeUniqueRule(usersCounter, login));
 
@@ -41,11 +45,13 @@ namespace OnlineStore.Modules.Users.Domain.UserRegistrations
             Email = email;
             FirstName = firstName;
             LastName = lastName;
+            Address = address;
             Name = $"{firstName} {lastName}";
             RegisterDate = DateTime.UtcNow;
             Status = UserRegistrationStatus.WaitingForConfirmation;
 
-            AddDomainEvent(new NewUserRegisteredDomainEvent(Id, Login, Email, FirstName, LastName, Name, RegisterDate));
+            AddDomainEvent(new NewUserRegisteredDomainEvent(Id, Login, Email, FirstName, LastName, Name, RegisterDate,
+                Address, confirmLink));
         }
 
         public static UserRegistration RegisterNewUser(
@@ -54,27 +60,18 @@ namespace OnlineStore.Modules.Users.Domain.UserRegistrations
             string email,
             string firstName,
             string lastName,
-            IUsersCounter usersCounter)
+            Address address,
+            IUsersCounter usersCounter,
+            string confirmLink)
         {
-            return new(login, password, email, firstName, lastName, usersCounter);
+            return new(login, password, email, firstName, lastName, address, usersCounter, confirmLink);
         }
-
-        public User CreateUser(IReadOnlyList<string> permissions, IReadOnlyList<string> roles)
+        
+        public User CreateUser()
         {
-            CheckRule(new UserCannotBeCreatedWhenRegistrationIsNotConfirmedRule(Status));
-
-            return User.Of(
-                Id,
-                Email,
-                FirstName,
-                LastName,
-                Name,
-                Login,
-                Password,
-                DateTime.Now,
-                permissions,
-                roles,
-                false);
+            this.CheckRule(new UserCannotBeCreatedWhenRegistrationIsNotConfirmedRule(Status));
+            return null;
+            // return User.Of(new UserId(Id.Id), Email, FirstName, LastName, Name, Login, Password, Created,new List<Permission>(){P}
         }
 
         public void Confirm()

@@ -1,6 +1,6 @@
 ﻿namespace Common.Messaging.Dispatcher
 {
-    public class OutOfProcessDispatcher
+    internal class OutOfProcessDispatcher: IOutOfProcessDispatcher
     {
         
     }

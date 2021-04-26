@@ -1,8 +1,10 @@
-﻿using Common.Persitence.Postgres.Decorators;
+﻿using Common.Extensions.DependencyInjection;
+using Common.Messaging.Commands;
+using Common.Persistence.Postgres.Decorators;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Common.Persitence.Postgres
+namespace Common.Persistence.Postgres
 {
     public static class Extensions
     {

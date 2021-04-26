@@ -1,26 +1,28 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Common.Domain;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.SendUserRegistrationConfirmationEmail;
+using Common.Messaging.Events;
+using Common.Messaging.Scheduling;
+using Common.Scheduling;
+using OnlineStore.Modules.Users.Application.UserRegistrations.SendUserRegistrationConfirmationEmail;
 
 namespace OnlineStore.Modules.Users.Application.UserRegistrations.RegisterNewUser
 {
-    public class NewUserRegisteredEnqueueEmailConfirmationHandler : IDomainNotificationEventHandler<NewUserRegisteredNotification>
+    public class NewUserRegisteredEnqueueEmailConfirmationHandler : IEventHandler<NewUserRegisteredNotification>
     {
-        private readonly ICommandsScheduler _commandsScheduler;
+        private readonly IMessagesScheduler _messagesScheduler;
 
-        public NewUserRegisteredEnqueueEmailConfirmationHandler(ICommandsScheduler commandsScheduler)
+        public NewUserRegisteredEnqueueEmailConfirmationHandler(IMessagesScheduler messagesScheduler)
         {
-            _commandsScheduler = commandsScheduler;
+            _messagesScheduler = messagesScheduler;
         }
 
-        public async Task Handle(NewUserRegisteredNotification notification, CancellationToken cancellationToken)
+        public async Task HandleAsync(NewUserRegisteredNotification @event)
         {
-            await _commandsScheduler.EnqueueAsync(new SendUserRegistrationConfirmationEmailCommand(
+            await _messagesScheduler.EnqueueAsync(new SendUserRegistrationConfirmationEmailCommand(
                 Guid.NewGuid(),
-                notification.DomainEvent.UserRegistrationId,
-                notification.DomainEvent.Email));
+                @event.DomainEvent.UserRegistrationId,
+                @event.DomainEvent.Email));
         }
     }
 }

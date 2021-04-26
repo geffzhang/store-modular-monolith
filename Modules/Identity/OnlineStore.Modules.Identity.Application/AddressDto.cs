@@ -1,4 +1,4 @@
-﻿namespace OnlineStore.Modules.Identity.Api.Dtos
+﻿namespace OnlineStore.Modules.Identity.Application
 {
     public class AddressDto
     {

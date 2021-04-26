@@ -1,7 +1,7 @@
 ﻿using System;
 using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Users.Domain.UserRegistrations
+namespace OnlineStore.Modules.Identity.Domain.UserRegistrations
 {
     public class UserRegistrationId : IdentityBase<Guid>
     {
@@ -11,6 +11,6 @@ namespace OnlineStore.Modules.Users.Domain.UserRegistrations
         
         public static implicit operator UserRegistrationId(Guid id) => new(id);
 
-        public static implicit operator Guid(UserRegistrationId id) => id.Value;
+        public static implicit operator Guid(UserRegistrationId id) => id.Id;
     }
 }

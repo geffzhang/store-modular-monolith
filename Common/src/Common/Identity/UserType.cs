@@ -1,4 +1,4 @@
-namespace VirtoCommerce.Platform.Core.Security
+namespace Common.Identity
 {
     public enum UserType
     {

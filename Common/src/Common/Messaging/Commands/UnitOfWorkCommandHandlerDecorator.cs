@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Common.Exceptions;
 using Common.Messaging.Transport;
-using Common.Mongo;
+using Common.Persistence.Mongo;
 using Microsoft.Extensions.Logging;
 
 namespace Common.Messaging.Commands
@@ -17,9 +17,9 @@ namespace Common.Messaging.Commands
         private readonly MongoOptions _options;
         private readonly IMongoSessionFactory _sessionFactory;
 
-        public UnitOfWorkCommandHandlerDecorator(ICommandHandler<T> handler, IMongoSessionFactory sessionFactory,
-            IExceptionToMessageMapperResolver exceptionToMessageMapperResolver, ITransport messageBroker,
-            MongoOptions options, ILogger<UnitOfWorkCommandHandlerDecorator<T>> logger)
+        public UnitOfWorkCommandHandlerDecorator(ICommandHandler<T> handler,
+            IMongoSessionFactory sessionFactory, IExceptionToMessageMapperResolver exceptionToMessageMapperResolver,
+            ITransport messageBroker, MongoOptions options, ILogger<UnitOfWorkCommandHandlerDecorator<T>> logger)
         {
             _handler = handler;
             _sessionFactory = sessionFactory;

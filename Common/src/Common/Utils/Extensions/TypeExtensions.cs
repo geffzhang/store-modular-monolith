@@ -2,16 +2,17 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
-namespace VirtoCommerce.Platform.Core.Extensions
+namespace Common.Utils.Extensions
 {
     public static class TypeExtensions
     {
         public static Type[] GetTypeInheritanceChainTo(this Type type, Type toBaseType)
         {
-            var retVal = new List<Type> { type };
+            var retVal = new List<Type> {type};
 
             var baseType = type.BaseType;
 
@@ -24,7 +25,8 @@ namespace VirtoCommerce.Platform.Core.Extensions
             return retVal.ToArray();
         }
 
-        private static readonly ConcurrentDictionary<Type, string> PrettyPrintCache = new ConcurrentDictionary<Type, string>();
+        private static readonly ConcurrentDictionary<Type, string> PrettyPrintCache =
+            new ConcurrentDictionary<Type, string>();
 
         public static string PrettyPrint(this Type type)
         {
@@ -43,7 +45,9 @@ namespace VirtoCommerce.Platform.Core.Extensions
                 });
         }
 
-        private static readonly ConcurrentDictionary<Type, string> TypeCacheKeys = new ConcurrentDictionary<Type, string>();
+        private static readonly ConcurrentDictionary<Type, string> TypeCacheKeys =
+            new ConcurrentDictionary<Type, string>();
+
         public static string GetCacheKey(this Type type)
         {
             return TypeCacheKeys.GetOrAdd(type, t => $"{t.PrettyPrint()}");
@@ -82,13 +86,15 @@ namespace VirtoCommerce.Platform.Core.Extensions
             }
         }
 
-        private static IEnumerable<KeyValuePair<string, object>> TraverseObjectGraphRecursively(this object obj, List<object> visited, string memberPath)
+        private static IEnumerable<KeyValuePair<string, object>> TraverseObjectGraphRecursively(this object obj,
+            List<object> visited, string memberPath)
         {
             yield return new KeyValuePair<string, object>(memberPath, obj);
             if (obj != null)
             {
                 var typeOfOriginal = obj.GetType();
-                if (!IsPrimitive(typeOfOriginal) && !visited.Any(x => ReferenceEquals(obj, x))) // ReferenceEquals is a mandatory approach
+                if (!IsPrimitive(typeOfOriginal) && !visited.Any(x => ReferenceEquals(obj, x))
+                ) // ReferenceEquals is a mandatory approach
                 {
                     visited.Add(obj);
                     if (obj is IEnumerable objEnum)
@@ -97,7 +103,8 @@ namespace VirtoCommerce.Platform.Core.Extensions
                         var iIdx = 0;
                         while (originalEnumerator.MoveNext())
                         {
-                            foreach (var result in originalEnumerator.Current.TraverseObjectGraphRecursively(visited, $@"{memberPath}[{iIdx++}]"))
+                            foreach (var result in originalEnumerator.Current.TraverseObjectGraphRecursively(visited,
+                                $@"{memberPath}[{iIdx++}]"))
                             {
                                 yield return result;
                             }
@@ -105,9 +112,11 @@ namespace VirtoCommerce.Platform.Core.Extensions
                     }
                     else
                     {
-                        foreach (var propInfo in typeOfOriginal.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                        foreach (var propInfo in typeOfOriginal.GetProperties(BindingFlags.Instance |
+                                                                              BindingFlags.Public))
                         {
-                            foreach (var result in propInfo.GetValue(obj).TraverseObjectGraphRecursively(visited, $@"{memberPath}.{propInfo.Name}"))
+                            foreach (var result in propInfo.GetValue(obj)
+                                .TraverseObjectGraphRecursively(visited, $@"{memberPath}.{propInfo.Name}"))
                             {
                                 yield return result;
                             }
@@ -148,6 +157,7 @@ namespace VirtoCommerce.Platform.Core.Extensions
                    || typeInfo.IsGenericType
                    && typeInfo.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
+
         public static Type UnwrapEnumType(this Type type)
         {
             var isNullable = type.IsNullableType();
@@ -162,10 +172,23 @@ namespace VirtoCommerce.Platform.Core.Extensions
         }
 
         public static Type MakeNullable(this Type type, bool nullable = true)
-          => type.IsNullableType() == nullable
-              ? type
-              : nullable
-                  ? typeof(Nullable<>).MakeGenericType(type)
-                  : type.UnwrapNullableType();
+            => type.IsNullableType() == nullable
+                ? type
+                : nullable
+                    ? typeof(Nullable<>).MakeGenericType(type)
+                    : type.UnwrapNullableType();
+
+        public static T ConvertTo<T>(this string input)
+        {
+            try
+            {
+                var converter = TypeDescriptor.GetConverter(typeof(T));
+                return (T)converter.ConvertFromString(input);
+            }
+            catch (NotSupportedException)
+            {
+                return default;
+            }
+        }
     }
 }

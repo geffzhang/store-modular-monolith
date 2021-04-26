@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Common.Identity
+namespace OnlineStore.Modules.Identity.Infrastructure.Authentication
 {
     /// <summary>
     /// Service for checking password against password security policies.

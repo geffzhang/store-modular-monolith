@@ -1,16 +1,18 @@
-﻿using Common.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
+using Common.Collections;
 using Newtonsoft.Json;
 
-namespace Common.Messages.Serialization.Json.Newtonsoft
+namespace Common.Messaging.Serialization.Newtonsoft
 {
     public class NewtonsoftJsonOptions
     {
-        public ITypeList<JsonConverter> Converters { get; }
+        public IList<JsonConverter> Converters { get; set; }
         public ITypeList UnSupportedTypes { get; }
-        
+
         public NewtonsoftJsonOptions()
         {
-            Converters = new TypeList<JsonConverter>();
+            Converters = new List<JsonConverter>();
             UnSupportedTypes = new TypeList();
         }
     }

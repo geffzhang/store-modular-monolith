@@ -11,7 +11,7 @@ namespace OnlineStore.Modules.Users.Domain.Users
         {
             Value = value;
         }
-
+        
         public static UserRole User => new(nameof(User));
         public static UserRole Admin => new(nameof(Admin));
 

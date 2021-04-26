@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace Common.Identity.Authorization
+namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
 {
     public class PermissionAuthorizationRequirement : IAuthorizationRequirement
     {

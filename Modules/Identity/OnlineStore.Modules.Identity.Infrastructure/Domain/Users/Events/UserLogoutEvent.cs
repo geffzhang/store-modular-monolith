@@ -1,7 +1,6 @@
 using Common.Domain.Types;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Events
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events
 {
     public class UserLogoutEvent : DomainEventBase
     {

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 
-namespace VirtoCommerce.Platform.Core.Caching
+namespace Common.Caching.Caching
 {
     public interface IPlatformMemoryCache : IMemoryCache
     {

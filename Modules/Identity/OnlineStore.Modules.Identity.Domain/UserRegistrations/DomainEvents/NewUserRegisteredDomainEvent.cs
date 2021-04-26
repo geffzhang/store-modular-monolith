@@ -1,7 +1,7 @@
 ﻿using System;
 using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Users.Domain.UserRegistrations.DomainEvents
+namespace OnlineStore.Modules.Identity.Domain.UserRegistrations.DomainEvents
 {
     public class NewUserRegisteredDomainEvent : DomainEventBase
     {
@@ -12,7 +12,9 @@ namespace OnlineStore.Modules.Users.Domain.UserRegistrations.DomainEvents
             string firstName,
             string lastName,
             string name,
-            DateTime registerDate)
+            DateTime registerDate,
+            Address address,
+            string confirmLink)
         {
             UserRegistrationId = userRegistrationId;
             Login = login;
@@ -21,6 +23,8 @@ namespace OnlineStore.Modules.Users.Domain.UserRegistrations.DomainEvents
             LastName = lastName;
             Name = name;
             RegisterDate = registerDate;
+            Address = address;
+            ConfirmLink = confirmLink;
         }
 
         public UserRegistrationId UserRegistrationId { get; }
@@ -34,7 +38,11 @@ namespace OnlineStore.Modules.Users.Domain.UserRegistrations.DomainEvents
         public string LastName { get; }
 
         public string Name { get; }
-
+        
+        public string ConfirmLink { get; }
+        
+        public Address Address { get; }
+        
         public DateTime RegisterDate { get; }
     }
 }

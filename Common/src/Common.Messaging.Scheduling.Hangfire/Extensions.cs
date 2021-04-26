@@ -1,9 +1,8 @@
 ﻿using Common.Extensions.DependencyInjection;
-using Common.Messaging.Scheduling;
-using Common.Scheduling.Hangfire.MessagesScheduler;
+using Common.Messaging.Scheduling.Hangfire.MessagesScheduler;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Common.Scheduling.Hangfire
+namespace Common.Messaging.Scheduling.Hangfire
 {
     public static class Extensions
     {
@@ -17,7 +16,6 @@ namespace Common.Scheduling.Hangfire
             services.AddSingleton(hangfireOptions);
 
             services.AddSingleton<IHangfireMessagesScheduler, HangfireMessagesScheduler>();
-            services.AddSingleton<IMessagesScheduler, HangfireMessagesScheduler>();
 
             return services;
         }

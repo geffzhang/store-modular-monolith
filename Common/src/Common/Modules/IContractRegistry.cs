@@ -1,4 +1,4 @@
-namespace Trill.Shared.Infrastructure.Modules
+namespace Common.Modules
 {
     public interface IContractRegistry
     {

@@ -1,4 +1,4 @@
-namespace Common.Identity
+namespace OnlineStore.Modules.Identity.Infrastructure.Authentication
 {
     /// <summary>
     /// Result of password security validation.

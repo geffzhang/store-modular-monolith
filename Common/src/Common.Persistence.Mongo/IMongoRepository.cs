@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Common.Messaging.Queries;
 using MongoDB.Driver;
 
-namespace Common.Mongo
+namespace Common.Persistence.Mongo
 {
     public interface IMongoRepository<TEntity, in TIdentifiable> where TEntity : IIdentifiable<TIdentifiable>
     {

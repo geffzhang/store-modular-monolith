@@ -1,31 +1,16 @@
 ﻿using System;
-using Common.Messages.Serialization.Hybrid;
-using Common.Messages.Serialization.Json.Newtonsoft;
-using Common.Messages.Serialization.Json.SystemTextJson;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Common.Messages.Serialization.Json
+namespace Common.Messages.Serialization.Hybrid
 {
     public static class Extensions
     {
-        public static IServiceCollection AddJson(this IServiceCollection services,
-            Action<TextJsonSerializerOptions> textJsonSerializerOptions = null)
+        public static IServiceCollection AddHybridMessageSerializer(this IServiceCollection services,
+            Action<HybridSerializationOptions> hybridSerializationOptions)
         {
-            services.Configure(textJsonSerializerOptions);
+            services.Configure(hybridSerializationOptions);
             
-            services.Configure<JsonOptions>(options => { options.Providers.Add<TextJsonMessageSerializer>(); });
-            services.AddSingleton<IJsonSerializer, JsonSerializer>();
-            
-            return services;
-        }
-
-        public static IServiceCollection AddJson(this IServiceCollection services,
-            Action<NewtonsoftJsonOptions> newtonsoftJsonOptions = null)
-        {
-            services.Configure(newtonsoftJsonOptions);
-
-            services.Configure<JsonOptions>(options => { options.Providers.Add<NewtonsoftJsonSerializerProvider>(); });
-            services.AddSingleton<IJsonSerializer, JsonSerializer>();
+            services.AddSingleton<IHybridMessageSerializer, HybridMessageSerializer>();
             
             return services;
         }

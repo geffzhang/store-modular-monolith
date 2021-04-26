@@ -1,10 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.BuildingBlocks.Application.Emails;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Commands;
-using MediatR;
 
-namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.SendUserRegistrationConfirmationEmail
+namespace OnlineStore.Modules.Users.Application.UserRegistrations.SendUserRegistrationConfirmationEmail
 {
     internal class SendUserRegistrationConfirmationEmailCommandHandler : ICommandHandler<SendUserRegistrationConfirmationEmailCommand>
     {

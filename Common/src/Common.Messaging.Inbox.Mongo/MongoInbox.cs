@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using Common.Mongo;
+using Common.Messaging.Serialization;
+using Common.Persistence.Mongo;
 using Common.Utils;
+using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
@@ -13,15 +15,17 @@ namespace Common.Messaging.Inbox.Mongo
         private readonly string _collectionName;
         private readonly IMongoDatabase _database;
         private readonly ILogger<MongoInbox> _logger;
+        private readonly IMessageSerializer _messageSerializer;
         private readonly IMongoSessionFactory _sessionFactory;
         private readonly bool _transactionsEnabled;
 
         public MongoInbox(IMongoSessionFactory sessionFactory, InboxOptions inboxOptions, MongoOptions mongoOptions,
-            IMongoDatabase database, ILogger<MongoInbox> logger)
+            IMongoDatabase database, ILogger<MongoInbox> logger,IMessageSerializer messageSerializer)
         {
             _sessionFactory = sessionFactory;
             _database = database;
             _logger = logger;
+            _messageSerializer = messageSerializer;
             _transactionsEnabled = !mongoOptions.DisableTransactions;
             Enabled = inboxOptions.Enabled;
             _collectionName = string.IsNullOrWhiteSpace(inboxOptions.CollectionName)

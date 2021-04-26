@@ -2,17 +2,29 @@ using System;
 
 namespace Common.Domain.Types
 {
-    public abstract class DomainNotificationEventBase<T> : IDomainNotificationEventBase<T>
-        where T : IDomainEvent
+    public abstract class DomainNotificationEventBase<TEventType> : IDomainNotificationEvent<TEventType>
+        where TEventType : IDomainEvent
     {
-        public DomainNotificationEventBase(T domainEvent, Guid id)
+        protected DomainNotificationEventBase(TEventType domainEvent, Guid id)
         {
             Id = id;
             DomainEvent = domainEvent;
         }
 
-        public T DomainEvent { get; }
+        public Guid Id { get; set; }
+        public Guid CorrelationId { get; set; }
+        public TEventType DomainEvent { get; }
+    }
 
-        public Guid Id { get; }
+
+    public abstract class DomainNotificationEventBase : IDomainNotificationEvent
+    {
+        protected DomainNotificationEventBase(Guid id)
+        {
+            Id = id;
+        }
+
+        public Guid Id { get; set; }
+        public Guid CorrelationId { get; set; }
     }
 }

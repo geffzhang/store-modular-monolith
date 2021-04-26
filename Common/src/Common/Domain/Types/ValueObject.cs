@@ -5,7 +5,7 @@ using Common.Domain.Exceptions;
 
 namespace Common.Domain.Types
 {
-    public abstract class ValueObject : IEquatable<ValueObject>
+    public abstract class ValueObject : IEquatable<ValueObject>,  ICloneable
     {
         public bool Equals(ValueObject obj)
         {
@@ -57,6 +57,11 @@ namespace Common.Domain.Types
         protected static void CheckRule(IBusinessRule rule)
         {
             if (rule.IsBroken()) throw new BusinessRuleValidationException(rule);
+        }
+        
+        public virtual object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 }

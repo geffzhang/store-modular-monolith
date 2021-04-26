@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Common.Messaging.Commands;
 
-namespace Common.Messaging.Scheduling
+namespace Common.Scheduling
 {
     public interface IEnqueueMessages
     {

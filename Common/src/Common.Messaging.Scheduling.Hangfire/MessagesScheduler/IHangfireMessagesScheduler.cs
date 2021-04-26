@@ -1,8 +1,8 @@
 ﻿using Common.Messaging.Commands;
-using Common.Messaging.Scheduling;
+using Common.Scheduling;
 using Hangfire;
 
-namespace Common.Scheduling.Hangfire.MessagesScheduler
+namespace Common.Messaging.Scheduling.Hangfire.MessagesScheduler
 {
     public interface IHangfireMessagesScheduler : IMessagesScheduler
     {

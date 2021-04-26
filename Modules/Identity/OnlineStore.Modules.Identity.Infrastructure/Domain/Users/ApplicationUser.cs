@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using OnlineStore.Modules.Identity.Domain.Users;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 
-namespace Common.Identity
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
 {
     public class ApplicationUser : IdentityUser<string>
     {
@@ -16,7 +18,6 @@ namespace Common.Identity
         /// Tenant id
         /// </summary>
         public virtual string StoreId { get; set; }
-
         public virtual bool IsActive { get; set; }
         public virtual string MemberId { get; set; }
         public virtual bool IsAdministrator { get; set; }
@@ -26,12 +27,19 @@ namespace Common.Identity
         public virtual string PhotoUrl { get; set; }
         public virtual string UserType { get; set; }
         public virtual string Status { get; set; }
+        
+        [Obsolete("Left due to compatibility issues. Will be removed. Instead of, use properties: EmailConfirmed, LockoutEnd.")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public virtual AccountState UserState { get; set; }
+        
         public virtual string Password { get; set; }
         public virtual DateTime CreatedDate { get; set; }
         public virtual DateTime? ModifiedDate { get; set; }
         public virtual string CreatedBy { get; set; }
         public virtual string ModifiedBy { get; set; }
         public virtual IList<ApplicationRole> Roles { get; set; }
+        public virtual ICollection<IdentityUserRole<string>> UserRoles { get; set; }
+        public virtual string[] Permissions { get; set; }
 
         /// <summary>
         /// External provider logins.
@@ -47,5 +55,32 @@ namespace Common.Identity
         /// The last date when the password was changed
         /// </summary>
         public virtual DateTime? LastPasswordChangedDate { get; set; }
+        
+        
+        public virtual void Patch(ApplicationUser target)
+        {
+            target.UserName = UserName;
+            target.IsAdministrator = IsAdministrator;
+            target.Email = Email;
+            target.NormalizedEmail = NormalizedEmail;
+            target.NormalizedUserName = NormalizedUserName;
+            target.EmailConfirmed = EmailConfirmed;
+            target.PasswordHash = PasswordHash;
+            target.SecurityStamp = SecurityStamp;
+            target.PhoneNumberConfirmed = PhoneNumberConfirmed;
+            target.PhoneNumber = PhoneNumber;
+            target.TwoFactorEnabled = TwoFactorEnabled;
+            target.LockoutEnabled = LockoutEnabled;
+            target.LockoutEnd = LockoutEnd;
+            target.AccessFailedCount = AccessFailedCount;
+            target.MemberId = MemberId;
+            target.StoreId = StoreId;
+            target.PhotoUrl = PhotoUrl;
+            target.UserType = UserType;
+            target.Status = Status;
+            target.Password = Password;
+            target.PasswordExpired = PasswordExpired;
+            target.LastPasswordChangedDate = LastPasswordChangedDate;
+        }
     }
 }

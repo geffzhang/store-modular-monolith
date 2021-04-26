@@ -1,8 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 
-namespace Common.Identity.Services
+namespace OnlineStore.Modules.Identity.Infrastructure.Authentication
 {
     /// <summary>
     /// Implementation of <see cref="IPasswordCheckService"/> that does actual password validation.

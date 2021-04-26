@@ -24,11 +24,14 @@ namespace OnlineStore.Modules.Identity.Domain.Permissions
 
         public IList<PermissionScope> AvailableScopes { get; } = new List<PermissionScope>();
 
-        public Permission(string name, string groupName)
+        private Permission(string name, string groupName)
         {
             Name = name;
             GroupName = groupName;
         }
+
+        public static Permission Of(string name, string groupName) => new(name, groupName);
+        
 
         public static Permission TryCreateFromClaim(Claim claim, JsonSerializerSettings jsonSettings)
         {

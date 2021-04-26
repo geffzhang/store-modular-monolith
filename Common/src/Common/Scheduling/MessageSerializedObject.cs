@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace Common.Messaging.Scheduling
+namespace Common.Scheduling
 {
     public class MessageSerializedObject
     {

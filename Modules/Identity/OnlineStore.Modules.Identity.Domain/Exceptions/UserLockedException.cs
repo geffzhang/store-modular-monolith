@@ -1,7 +1,7 @@
 using System;
 using Common.Exceptions;
 
-namespace OnlineStore.Modules.Users.Domain.Exceptions
+namespace OnlineStore.Modules.Identity.Domain.Exceptions
 {
     internal class UserLockedException : DomainException
     {

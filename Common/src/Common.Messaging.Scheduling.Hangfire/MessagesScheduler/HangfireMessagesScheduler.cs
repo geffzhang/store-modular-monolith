@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Common.Messaging.Commands;
-using Common.Messaging.Scheduling;
+using Common.Scheduling;
 using Hangfire;
 using Newtonsoft.Json;
 
-namespace Common.Scheduling.Hangfire.MessagesScheduler
+namespace Common.Messaging.Scheduling.Hangfire.MessagesScheduler
 {
     public class HangfireMessagesScheduler : IHangfireMessagesScheduler
     {

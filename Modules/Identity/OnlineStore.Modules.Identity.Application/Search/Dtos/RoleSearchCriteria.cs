@@ -1,7 +1,8 @@
-﻿namespace OnlineStore.Modules.Identity.Domain.Search
+﻿using Common.Domain.Types;
+
+namespace OnlineStore.Modules.Identity.Application.Search.Dtos
 {
     public class RoleSearchCriteria : SearchCriteriaBase
     {
-        //TODO: Update UI pagination to use Skip and Take properties
     }
 }

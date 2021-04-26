@@ -4,7 +4,7 @@ using Common.Messaging.Queries;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 
-namespace Common.Mongo
+namespace Common.Persistence.Mongo
 {
     public static class Pagination
     {

@@ -3,7 +3,7 @@ using OnlineStore.Modules.Identity.Domain.Permissions;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions
 {
-    public class DefaultPermissionProvider : IPermissionService
+    public class PermissionService : IPermissionService
     {
         private readonly List<Permission> _permissions = new List<Permission>();
 

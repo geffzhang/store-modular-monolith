@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Users.Domain.UserRegistrations
+namespace OnlineStore.Modules.Identity.Domain.UserRegistrations
 {
     public class UserRegistrationStatus : ValueObject
     {

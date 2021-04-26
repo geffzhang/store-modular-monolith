@@ -3,7 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common.Contexts;
 using Common.Messaging.Outbox;
+using Common.Modules;
 using Common.Utils;
+using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Common.Messaging.Transport.InMemory
@@ -57,7 +59,7 @@ namespace Common.Messaging.Transport.InMemory
                     continue;
                 }
 
-                await _moduleClient.SendAsync(message);
+                await _moduleClient.PublishAsync(message);
             }
         }
     }

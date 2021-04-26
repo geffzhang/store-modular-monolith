@@ -1,9 +1,8 @@
-using VirtoCommerce.Platform.Core.Common;
-
-namespace VirtoCommerce.Platform.Core.Security
+namespace Common.Identity
 {
-    public class UserApiKey : AuditableEntity
+    public class UserApiKey 
     {
+        public string Id { get; set; }
         public string ApiKey { get; set; }
         public string UserName { get; set; }
         public string UserId { get; set; }

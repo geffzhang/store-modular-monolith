@@ -7,7 +7,8 @@ namespace Common.Domain.Types
         public AggregateId(T id) : base(id)
         {
         }
-        public static implicit operator T(AggregateId<T> id) => id.Value;
+
+        public static implicit operator T(AggregateId<T> id) => id.Id;
         public static implicit operator AggregateId<T>(T id) => new(id);
     }
 

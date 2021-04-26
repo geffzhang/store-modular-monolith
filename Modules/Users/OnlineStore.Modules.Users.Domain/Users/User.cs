@@ -28,7 +28,7 @@ namespace OnlineStore.Modules.Users.Domain.Users
         public string LastName { get; }
         public bool IsActive { get; }
         public string Login { get; }
-        public string RefreshTokenHash { get; }
+        public string RefreshToken { get; }
         public string Password { get; }
         public DateTime CreatedAt { get; }
         public bool Locked { get; private set; }

@@ -1,8 +1,10 @@
-﻿namespace OnlineStore.Modules.Identity.Infrastructure.Context
+﻿using Microsoft.AspNetCore.Http;
+
+namespace OnlineStore.Modules.Identity.Application.Context
 {
     public interface IOnlineStoreContextBuilder
     {
         HttpContext HttpContext { get; }
-        IOnlineStoreContext OnlineStoreContext { get; }
+        StoreContext.OnlineStoreContext OnlineStoreContext { get; }
     }
 }

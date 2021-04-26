@@ -1,9 +1,10 @@
 using System.Threading.Tasks;
 using Common.Messaging.Queries;
 using Common.Utils;
+using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 
-namespace Common.Logging
+namespace Common.Logging.Serilog
 {
     [Decorator]
     internal sealed class LoggingQueryHandlerDecorator<TQuery, TResult> : IQueryHandler<TQuery, TResult>

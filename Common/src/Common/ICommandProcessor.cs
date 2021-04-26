@@ -15,6 +15,6 @@ namespace Common
         Task PublishDomainNotificationEventAsync<T>(T domainNotificationEvent)
             where T : class, IDomainNotificationEvent;
 
-        Task PublishMessageAsync<T>(T message) where T : class, IMessage;
+        Task PublishMessageAsync<T>(T message) where T :  IMessage;
     }
 }

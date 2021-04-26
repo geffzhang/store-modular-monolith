@@ -1,10 +1,11 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
+using Common.Domain.Types;
 
-namespace VirtoCommerce.Platform.Core.Common
+namespace Common.Utils.Extensions
 {
     /// <summary>
     /// Class that provides extension methods to Collection
@@ -83,11 +84,6 @@ namespace VirtoCommerce.Platform.Core.Common
                 skipCount += pageSize;
             }
             while (skipCount < totalCount);
-        }
-
-        public static bool IsNullCollection<T>(this ICollection<T> collection)
-        {
-            return collection is NullCollection<T>;
         }
 
         public static void Patch<T>(this ICollection<T> source, ICollection<T> target, Action<T, T> patch)

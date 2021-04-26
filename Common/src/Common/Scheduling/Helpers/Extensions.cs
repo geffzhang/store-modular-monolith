@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection;
 
-namespace Common.Messaging.Scheduling.Helpers
+namespace Common.Scheduling.Helpers
 {
     public static class Extensions
     {

@@ -6,11 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace VirtoCommerce.Platform.Core.Common
+namespace Common.Utils.Extensions
 {
     public static class StringExtensions
     {
-        private static readonly Regex _emailRegex = new Regex(@"^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-||_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+([a-z]+|\d|-|\.{0,1}|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])?([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+        private static readonly Regex _emailRegex = new Regex(
+            @"^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-||_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+([a-z]+|\d|-|\.{0,1}|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])?([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$",
+            RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         public static bool IsAbsoluteUrl(this string url)
         {
@@ -18,7 +20,12 @@ namespace VirtoCommerce.Platform.Core.Common
             {
                 throw new ArgumentNullException(url);
             }
-            var shemes = new string[] { Uri.UriSchemeFile, Uri.UriSchemeFtp, Uri.UriSchemeHttp, Uri.UriSchemeHttps, Uri.UriSchemeMailto, Uri.UriSchemeNetPipe, Uri.UriSchemeNetTcp };
+
+            var shemes = new string[]
+            {
+                Uri.UriSchemeFile, Uri.UriSchemeFtp, Uri.UriSchemeHttp, Uri.UriSchemeHttps, Uri.UriSchemeMailto,
+                Uri.UriSchemeNetPipe, Uri.UriSchemeNetTcp
+            };
             var retVal = shemes.Any(x => url.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
             return retVal;
         }
@@ -33,7 +40,6 @@ namespace VirtoCommerce.Platform.Core.Common
             }
 
             return retVal;
-
         }
 
         public static bool TryParse(this string u, bool defaultValue)
@@ -46,7 +52,6 @@ namespace VirtoCommerce.Platform.Core.Common
             }
 
             return retVal;
-
         }
 
         public static int TryParse(this string u, int defaultValue)
@@ -59,7 +64,6 @@ namespace VirtoCommerce.Platform.Core.Common
             }
 
             return retVal;
-
         }
 
         public static int TryParse(this string u)
@@ -155,7 +159,10 @@ namespace VirtoCommerce.Platform.Core.Common
 
         public static string EscapeSearchTerm(this string term)
         {
-            char[] specialCharacters = { '+', '-', '!', '(', ')', '{', '}', '[', ']', '^', '"', '~', '*', '?', ':', '\\' };
+            char[] specialCharacters =
+            {
+                '+', '-', '!', '(', ')', '{', '}', '[', ']', '^', '"', '~', '*', '?', ':', '\\'
+            };
             var retVal = new StringBuilder("");
             //'&&', '||',
             foreach (var ch in term)
@@ -164,8 +171,10 @@ namespace VirtoCommerce.Platform.Core.Common
                 {
                     retVal.Append("\\");
                 }
+
                 retVal.Append(ch);
             }
+
             retVal = retVal.Replace("&&", @"\&&");
             retVal = retVal.Replace("||", @"\||");
 
@@ -265,6 +274,7 @@ namespace VirtoCommerce.Platform.Core.Common
                         d[i - 1, j - 1] + cost);
                 }
             }
+
             // Step 7
             return d[n, m];
         }
@@ -295,7 +305,8 @@ namespace VirtoCommerce.Platform.Core.Common
                 right = Enumerable.Empty<string>();
             }
 
-            return left.Join(right.DefaultIfEmpty(String.Empty), x => true, y => true, (x, y) => String.Join(delimiter, new[] { x, y }.Where(z => !String.IsNullOrEmpty(z)))).ToArray();
+            return left.Join(right.DefaultIfEmpty(String.Empty), x => true, y => true,
+                (x, y) => String.Join(delimiter, new[] {x, y}.Where(z => !String.IsNullOrEmpty(z)))).ToArray();
         }
 
         public static string FirstCharToUpper(this string input)
@@ -304,6 +315,7 @@ namespace VirtoCommerce.Platform.Core.Common
             {
                 throw new ArgumentException("input");
             }
+
             return input.First().ToString().ToUpper() + input.Substring(1);
         }
 
@@ -313,8 +325,8 @@ namespace VirtoCommerce.Platform.Core.Common
             {
                 throw new ArgumentNullException(nameof(input));
             }
+
             return _emailRegex.IsMatch(input);
         }
-
     }
 }

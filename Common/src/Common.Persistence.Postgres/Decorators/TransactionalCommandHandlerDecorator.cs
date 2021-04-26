@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Common.Messaging.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Common.Persitence.Postgres.Decorators
+namespace Common.Persistence.Postgres.Decorators
 {
     [Decorator]
     internal class TransactionalCommandHandlerDecorator<T> : ICommandHandler<T> where T : class, ICommand

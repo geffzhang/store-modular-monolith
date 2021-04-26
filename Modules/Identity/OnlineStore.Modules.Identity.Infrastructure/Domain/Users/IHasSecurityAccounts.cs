@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 
-namespace Common.Identity
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
 {
     public interface IHasSecurityAccounts 
     {

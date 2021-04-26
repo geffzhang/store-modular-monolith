@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Common.Messaging.Scheduling
+namespace Common.Scheduling
 {
     public interface IMessagesExecutor
     {

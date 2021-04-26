@@ -2,7 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>OnlineStore.Modules.Identity.Core</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Common\src\Common.csproj" />
+  </ItemGroup>
 
 </Project>

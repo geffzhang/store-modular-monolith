@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Identity.Domain.Search
+namespace OnlineStore.Modules.Identity.Application.Search.Dtos
 {
     public class UserSearchCriteria : SearchCriteriaBase
     {

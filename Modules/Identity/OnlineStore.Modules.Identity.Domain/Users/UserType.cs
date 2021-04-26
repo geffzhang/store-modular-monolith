@@ -1,7 +1,9 @@
 ﻿namespace OnlineStore.Modules.Identity.Domain.Users
 {
-    public class UserType
+    public enum UserType
     {
-        
+        Customer,
+        Manager,
+        Administrator
     }
 }

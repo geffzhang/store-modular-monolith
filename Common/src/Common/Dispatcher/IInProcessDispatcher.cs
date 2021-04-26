@@ -3,7 +3,7 @@ using Common.Messaging.Commands;
 using Common.Messaging.Events;
 using Common.Messaging.Queries;
 
-namespace Common
+namespace Common.Dispatcher
 {
     public interface IInProcessDispatcher
     {

@@ -6,7 +6,7 @@ using Common.Messaging.Queries;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 
-namespace Common.Mongo.Repositories
+namespace Common.Persistence.Mongo.Repositories
 {
     internal class MongoRepository<TEntity, TIdentifiable> : IMongoRepository<TEntity, TIdentifiable>
         where TEntity : IIdentifiable<TIdentifiable>

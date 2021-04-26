@@ -1,4 +1,4 @@
-﻿namespace Common.Scheduling.Quartz
+﻿namespace Common.Messaging.Scheduling.Quartz
 {
     public class QuartzOptions
     {

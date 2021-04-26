@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace VirtoCommerce.Platform.Core.Common
+namespace Common.Utils.Extensions
 {
     public static class EnumerableExtensions
     {
@@ -26,6 +26,7 @@ namespace VirtoCommerce.Platform.Core.Common
                     page = new List<T>();
                 }
             }
+
             if (page.Count > 0)
             {
                 yield return page;
@@ -79,6 +80,7 @@ namespace VirtoCommerce.Platform.Core.Common
             {
                 hash = hash ^ EqualityComparer<T>.Default.GetHashCode(element);
             }
+
             return hash;
         }
     }

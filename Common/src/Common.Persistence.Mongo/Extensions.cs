@@ -1,8 +1,8 @@
 using System;
 using Common.Extensions.DependencyInjection;
-using Common.Mongo.Factories;
-using Common.Mongo.Repositories;
-using Common.Mongo.Seeders;
+using Common.Persistence.Mongo.Factories;
+using Common.Persistence.Mongo.Repositories;
+using Common.Persistence.Mongo.Seeders;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -10,7 +10,7 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 
-namespace Common.Mongo
+namespace Common.Persistence.Mongo
 {
     public static class Extensions
     {

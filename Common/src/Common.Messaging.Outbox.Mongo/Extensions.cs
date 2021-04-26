@@ -17,7 +17,8 @@ namespace Common.Messaging.Outbox.Mongo
             services
                 .AddSingleton(outboxOptions)
                 .AddTransient<IOutbox, MongoOutbox>();
-
+            
+            // Adding background service
             if (outboxOptions.Enabled) services.AddHostedService<OutboxProcessor>();
 
             return services;

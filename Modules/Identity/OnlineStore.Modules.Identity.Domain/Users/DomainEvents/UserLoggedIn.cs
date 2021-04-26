@@ -3,9 +3,9 @@ using Common.Domain.Types;
 
 namespace OnlineStore.Modules.Identity.Domain.Users.DomainEvents
 {
-    public class UserLoginEvent : DomainEventBase
+    public class UserLoggedIn : DomainEventBase
     {
-        public UserLoginEvent(string userId)
+        public UserLoggedIn(string userId)
         {
             UserId = userId;
         }

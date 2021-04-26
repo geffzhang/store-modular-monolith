@@ -1,4 +1,4 @@
-namespace VirtoCommerce.Platform.Core.Common
+namespace Common.Domain.Types
 {
     public enum EntryState
     {

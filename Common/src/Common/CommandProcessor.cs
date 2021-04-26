@@ -117,7 +117,7 @@ namespace Common
             await handler.HandleAsync(command);
         }
 
-        public async Task PublishMessageAsync<T>(T message) where T : class, IMessage
+        public async Task PublishMessageAsync<T>(T message) where T : IMessage
         {
             await _messageBroker.PublishAsync(message);
         }

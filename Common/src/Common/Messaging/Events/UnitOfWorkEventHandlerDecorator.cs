@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Common.Exceptions;
 using Common.Messaging.Transport;
-using Common.Mongo;
+using Common.Persistence.Mongo;
 using Microsoft.Extensions.Logging;
 
 namespace Common.Messaging.Events

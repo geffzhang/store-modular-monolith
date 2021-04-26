@@ -3,7 +3,7 @@ using Common.Utils.Extensions;
 using Newtonsoft.Json;
 using OnlineStore.Modules.Identity.Domain.Permissions;
 
-namespace Common.Identity
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions
 {
     public static class ClaimsPrincipalExtensions
     {
@@ -23,16 +23,16 @@ namespace Common.Identity
         public static bool HasGlobalPermission(this ClaimsPrincipal principal, string permissionName)
         {
             // TODO: Check cases with locked user
-            var result = principal.IsInRole(SecurityConstants.SystemRoles.Administrator);
+            var result = principal.IsInRole(Common.Identity.SecurityConstants.SystemRoles.Administrator);
 
             if (!result)
             {
                 // Breaking change in v3:
                 // Do not allow users with Customer role login into platform
-                result = !principal.IsInRole(SecurityConstants.SystemRoles.Customer);
+                result = !principal.IsInRole(Common.Identity.SecurityConstants.SystemRoles.Customer);
                 if (result)
                 {
-                    result = principal.HasClaim(SecurityConstants.Claims.PermissionClaimType, permissionName);
+                    result = principal.HasClaim(Common.Identity.SecurityConstants.Claims.PermissionClaimType, permissionName);
                 }
             }
             return result;

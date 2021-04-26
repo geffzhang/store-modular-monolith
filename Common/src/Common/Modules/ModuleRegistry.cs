@@ -3,52 +3,50 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Utils;
+using Common.Utils.Extensions;
 
 namespace Common.Modules
 {
     internal class ModuleRegistry : IModuleRegistry
     {
-        private readonly IList<ModuleBroadcastRegistration> _broadcastActions;
         private readonly ISet<string> _modules = new HashSet<string>();
         private readonly IDictionary<string, ModuleRequestRegistration> _requestActions;
+        private readonly IList<ModuleBroadcastRegistration> _broadcastActions;
 
+        public IEnumerable<string> Modules => _modules;
+        
         public ModuleRegistry()
         {
             _broadcastActions = new List<ModuleBroadcastRegistration>();
             _requestActions = new Dictionary<string, ModuleRequestRegistration>();
         }
 
-        public IEnumerable<string> Modules => _modules;
-
         public ModuleRequestRegistration GetRequestRegistration(string path)
-        {
-            return _requestActions.TryGetValue(path, out var registration) ? registration : default;
-        }
+            => _requestActions.TryGetValue(path, out var registration) ? registration : default; 
 
-        public IEnumerable<ModuleBroadcastRegistration> GetBroadcastRegistrations(string path)
-        {
-            return _broadcastActions.Where(r => r.Path == path);
-        }
+        public IEnumerable<ModuleBroadcastRegistration> GetBroadcastRegistrations(string key)
+            => _broadcastActions.Where(r => r.Key == key);
 
         public bool TryAddRequestAction(string path, Type requestType, Type responseType,
             Func<object, Task<object>> action)
         {
-            if (path == null) throw new InvalidOperationException("Request path cannot be null.");
-
-            var registration = new ModuleRequestRegistration
+            if (path == null)
             {
-                RequestType = requestType,
-                ResponseType = responseType,
-                Action = action
-            };
+                throw new InvalidOperationException("Request path cannot be null.");
+            }
+
+            var registration = new ModuleRequestRegistration(requestType, responseType, action);
 
             return _requestActions.TryAdd(path, registration);
         }
 
         public void AddBroadcastAction(Type requestType, Func<object, Task> action)
         {
-            if (string.IsNullOrWhiteSpace(requestType.Namespace)) throw new Exception("Missing namespace.");
-
+            if (string.IsNullOrWhiteSpace(requestType.Namespace))
+            {
+                throw new Exception("Missing namespace.");
+            }
+            
             var registration = new ModuleBroadcastRegistration
             {
                 ReceiverType = requestType,

@@ -1,4 +1,4 @@
-namespace Common.Logging.Logging.Options
+namespace Common.Logging.Serilog.Options
 {
     internal class FileOptions
     {

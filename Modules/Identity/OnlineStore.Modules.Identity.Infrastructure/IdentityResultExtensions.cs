@@ -2,7 +2,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Authentication.Dtos;
 
-namespace OnlineStore.Modules.Identity.Application.Authentication
+namespace OnlineStore.Modules.Identity.Infrastructure
 {
     public static class IdentityResultExtensions
     {

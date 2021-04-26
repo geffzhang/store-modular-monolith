@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using Microsoft.Extensions.Options;
 
-namespace Common.Messages.Serialization.Json.Newtonsoft
+namespace Common.Messaging.Serialization.Newtonsoft
 {
     public class NewtonsoftJsonUnSupportedTypeMatcher
     {

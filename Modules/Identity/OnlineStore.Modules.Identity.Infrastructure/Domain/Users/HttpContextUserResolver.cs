@@ -1,7 +1,6 @@
-﻿using Common.Identity;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
-namespace OnlineStore.Modules.Identity.Infrastructure
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
 {
     public class HttpContextUserResolver : IUserNameResolver
     {
@@ -22,7 +21,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure
                 var identity = context.User.Identity;
                 if (identity != null && identity.IsAuthenticated)
                 {
-                    result = context.Request.Headers["VirtoCommerce-User-Name"];
+                    result = context.Request.Headers["User-Name"];
                     if (string.IsNullOrEmpty(result))
                     {
                         result = identity.Name;

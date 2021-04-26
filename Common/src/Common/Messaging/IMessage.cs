@@ -7,4 +7,5 @@ namespace Common.Messaging
         Guid Id { get; set; }
         Guid CorrelationId { get; set; }
     }
+
 }

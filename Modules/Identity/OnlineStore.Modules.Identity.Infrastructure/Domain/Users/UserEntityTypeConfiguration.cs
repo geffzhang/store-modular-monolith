@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OnlineStore.Modules.Identity.Domain;
+using OnlineStore.Modules.Identity.Domain.Permissions;
 using OnlineStore.Modules.Identity.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.User
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
 {
     internal class UserEntityTypeConfiguration : IEntityTypeConfiguration<Identity.Domain.Users.User>
     {

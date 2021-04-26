@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text.Json;
 
-namespace Common.Utils
+namespace Common.Utils.Extensions
 {
     public static class FileContentReaderExtensions
     {

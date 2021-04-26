@@ -1,6 +1,6 @@
-﻿using Common.Messaging.Scheduling;
+﻿using Common.Scheduling;
 
-namespace Common.Scheduling.Quartz.MessagesScheduler
+namespace Common.Messaging.Scheduling.Quartz.MessagesScheduler
 {
     public interface IQuartzMessagesScheduler : IMessagesScheduler
     {

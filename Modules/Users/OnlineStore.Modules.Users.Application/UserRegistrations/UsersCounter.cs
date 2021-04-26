@@ -2,7 +2,7 @@
 using Dapper;
 using OnlineStore.Modules.Users.Domain.UserRegistrations.DomainServices;
 
-namespace OnlineStore.Modules.Users.Application.UserRegistrations.DomainServices
+namespace OnlineStore.Modules.Users.Application.UserRegistrations
 {
     //http://www.kamilgrzybek.com/design/domain-model-validation/
     public class UsersCounter : IUsersCounter

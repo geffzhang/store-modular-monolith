@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VirtoCommerce.Platform.Core.Common
+namespace Common
 {
     // http://sanjeev.dwivedi.net/?p=292
     // http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266983.aspx

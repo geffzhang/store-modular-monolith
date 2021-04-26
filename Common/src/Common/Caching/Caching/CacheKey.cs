@@ -1,7 +1,7 @@
 ﻿using System;
-using VirtoCommerce.Platform.Core.Extensions;
+using Common.Utils.Extensions;
 
-namespace VirtoCommerce.Platform.Core.Caching
+namespace Common.Caching.Caching
 {
     public static class CacheKey 
     {
@@ -14,7 +14,5 @@ namespace VirtoCommerce.Platform.Core.Caching
         {
             return With($"{ownerType.GetCacheKey()}:{string.Join("-", keys)}");
         }
-
-   
     }
 }

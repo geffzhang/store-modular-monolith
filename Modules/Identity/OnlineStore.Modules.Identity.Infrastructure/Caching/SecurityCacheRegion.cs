@@ -2,13 +2,16 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using Common.Caching.Caching;
+using Common.Identity;
 using Microsoft.Extensions.Primitives;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 
-namespace Common.Identity.Caching
+namespace OnlineStore.Modules.Identity.Infrastructure.Caching
 {
     public class SecurityCacheRegion : CancellableCacheRegion<SecurityCacheRegion>
     {
-        private static readonly ConcurrentDictionary<string, CancellationTokenSource> _usersRegionTokenLookup = new ConcurrentDictionary<string, CancellationTokenSource>();
+        private static readonly ConcurrentDictionary<string, CancellationTokenSource> _usersRegionTokenLookup =
+            new();
 
         public static IChangeToken CreateChangeTokenForUser(ApplicationUser user)
         {
@@ -16,8 +19,12 @@ namespace Common.Identity.Caching
             {
                 throw new ArgumentNullException(nameof(user));
             }
+
             var cancellationTokenSource = _usersRegionTokenLookup.GetOrAdd(user.Id, new CancellationTokenSource());
-            return new CompositeChangeToken(new[] { CreateChangeToken(), new CancellationChangeToken(cancellationTokenSource.Token) });
+            return new CompositeChangeToken(new[]
+            {
+                CreateChangeToken(), new CancellationChangeToken(cancellationTokenSource.Token)
+            });
         }
 
         public static void ExpireUser(ApplicationUser user)

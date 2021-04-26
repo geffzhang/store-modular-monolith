@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace Common.Persitence.Postgres
+namespace Common.Persistence.Postgres
 {
     public abstract class PostgresUnitOfWork<T> : IUnitOfWork where T : DbContext
     {

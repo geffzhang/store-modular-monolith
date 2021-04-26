@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Common.Utils.Extensions;
 using Microsoft.AspNetCore.Identity;
+using OnlineStore.Modules.Identity.Domain.Permissions;
 
-namespace Common.Identity
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles
 {
     public class ApplicationRole : IdentityRole<string>
     {
@@ -14,6 +15,7 @@ namespace Common.Identity
 
         public string Description { get; set; }
         public IList<Permission> Permissions { get; set; }
+        public ICollection<IdentityUserRole<string>> UserRoles { get; set; }
         
         public virtual void Patch(ApplicationRole target)
         {
@@ -22,10 +24,8 @@ namespace Common.Identity
             target.ConcurrencyStamp = ConcurrencyStamp;
             target.Description = Description;
 
-            if (Permissions.Any())
-            {
+            if (Permissions.Any()) 
                 Permissions.Patch(target.Permissions, (sourcePermission, targetPermission) => sourcePermission.Patch(targetPermission));
-            }
         }
     }
 }

@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using Common.Logging.Logging.Options;
-using Common.Logging.Options;
+using Common.Logging.Serilog.Options;
 
-namespace Common.Logging
+namespace Common.Logging.Serilog
 {
     internal class LoggerOptions
     {

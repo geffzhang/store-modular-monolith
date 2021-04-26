@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel;
 using System.Threading.Tasks;
 using Common.Messaging.Commands;
-using Common.Messaging.Scheduling.Helpers;
+using Common.Scheduling.Helpers;
 using Newtonsoft.Json;
 
-namespace Common.Messaging.Scheduling
+namespace Common.Scheduling
 {
     public class MessagesExecutor : IMessagesExecutor
     {

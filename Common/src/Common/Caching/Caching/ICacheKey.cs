@@ -1,4 +1,4 @@
-namespace VirtoCommerce.Platform.Core.Caching
+namespace Common.Caching.Caching
 {
     public interface ICacheKey
     {

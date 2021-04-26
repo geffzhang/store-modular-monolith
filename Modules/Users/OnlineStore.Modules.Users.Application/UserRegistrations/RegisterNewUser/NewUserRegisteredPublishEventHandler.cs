@@ -1,20 +1,22 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Common;
+using Common.Messaging.Events;
 
 namespace OnlineStore.Modules.Users.Application.UserRegistrations.RegisterNewUser
 {
-    public class NewUserRegisteredPublishEventHandler : INotificationHandler<NewUserRegisteredNotification>
+    public class NewUserRegisteredPublishEventHandler : IEventHandler<NewUserRegisteredNotification>
     {
-        private readonly IEventsBus _eventsBus;
+        private readonly ICommandProcessor _commandProcessor;
 
-        public NewUserRegisteredPublishEventHandler(IEventsBus eventsBus)
+        public NewUserRegisteredPublishEventHandler(ICommandProcessor commandProcessor)
         {
-            _eventsBus = eventsBus;
+            _commandProcessor = commandProcessor;
         }
 
         public Task Handle(NewUserRegisteredNotification notification, CancellationToken cancellationToken)
         {
-            _eventsBus.Publish(new NewUserRegisteredIntegrationEvent(
+            _commandProcessor.PublishMessageAsync(new NewUserRegisteredIntegrationEvent(
                 notification.Id,
                 notification.DomainEvent.OccurredOn,
                 notification.DomainEvent.UserRegistrationId.Value,
@@ -25,6 +27,11 @@ namespace OnlineStore.Modules.Users.Application.UserRegistrations.RegisterNewUse
                 notification.DomainEvent.Name));
 
             return Task.CompletedTask;
+        }
+
+        public Task HandleAsync(NewUserRegisteredNotification @event)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

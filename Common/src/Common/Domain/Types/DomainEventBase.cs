@@ -2,19 +2,13 @@ using System;
 
 namespace Common.Domain.Types
 {
-    public abstract class DomainEventBase<TId> : IDomainEvent
+    public abstract class DomainEventBase : IDomainEvent
     {
-        public DomainEventBase()
+        protected DomainEventBase()
         {
-            CreatedAt = DateTime.UtcNow;
+            OccurredOn = DateTime.Now;
         }
-
-        public TId Id { get; }
-
-        public DateTime CreatedAt { get; }
-    }
-
-    public abstract class DomainEventBase : DomainEventBase<Guid>
-    {
+        public int Version { get; set; }
+        public DateTime OccurredOn { get; }
     }
 }

@@ -4,7 +4,7 @@ using System.Collections.Specialized;
 using OnlineStore.Modules.Identity.Domain.Users;
 using Role = VaultSharp.V1.SecretsEngines.Database.Role;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Context
+namespace OnlineStore.Modules.Identity.Application.Context
 {
     public class StoreContext
     {
@@ -116,7 +116,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Context
         public object Clone()
         {
             //TODO: Implement deep clone
-            var result = MemberwiseClone() as WorkContext;
+            var result = MemberwiseClone() as OnlineStoreContext;
             return result;
         }
 

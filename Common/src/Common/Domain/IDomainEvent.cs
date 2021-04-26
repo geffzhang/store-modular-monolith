@@ -3,8 +3,9 @@ using Common.Messaging.Events;
 
 namespace Common.Domain
 {
-    public interface IDomainEvent : IEvent
+    public interface IDomainEvent 
     {
-        DateTime CreatedAt { get; }
+        public DateTime OccurredOn { get; }
     }
+    
 }

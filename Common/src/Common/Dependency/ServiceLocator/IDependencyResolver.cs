@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Common.Dependency
+namespace Common.Dependency.ServiceLocator
 {
     public interface IDependencyResolver
     {
