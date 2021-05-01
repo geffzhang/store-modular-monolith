@@ -5,6 +5,7 @@ using Common.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Modules.Identity.Application.Search.Dtos;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Search;
 

@@ -1,11 +1,12 @@
-﻿using Confab.Modules.Agendas.Application.Submissions.Services;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Confab.Modules.Agendas.Application
+namespace OnlineStore.Modules.Identity.Application
 {
     public static class Extensions
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
-            => services.AddSingleton<IEventMapper, EventMapper>();
+        {
+            return services;
+        }
     }
 }

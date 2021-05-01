@@ -15,12 +15,7 @@ using Common.Messaging;
 using Common.Messaging.Commands;
 using Common.Messaging.Dispatcher;
 using Common.Messaging.Events;
-using Common.Messaging.Inbox;
-using Common.Messaging.Inbox.Mongo;
-using Common.Messaging.Outbox;
-using Common.Messaging.Outbox.Mongo;
 using Common.Messaging.Queries;
-using Common.Messaging.Scheduling;
 using Common.Messaging.Serialization;
 using Common.Messaging.Serialization.Newtonsoft;
 using Common.Messaging.Transport;
@@ -44,6 +39,7 @@ using Newtonsoft.Json.Serialization;
 [assembly: InternalsVisibleTo("OnlineStore.API")]
 [assembly: InternalsVisibleTo("OnlineStore.Tests.Benchmarks")]
 [assembly: InternalsVisibleTo("OnlineStore.Common.Tests.Integration")]
+
 namespace Common.Extensions.DependencyInjection
 {
     public static class Extensions
@@ -51,8 +47,8 @@ namespace Common.Extensions.DependencyInjection
         private const string CorsPolicy = "cors";
         private const string AppSectionName = "app";
 
-        public static IServiceCollection AddCommon(this IServiceCollection services, IList<Assembly> assemblies,
-            IList<IModule> modules,
+        public static IServiceCollection AddCommon(this IServiceCollection services, IList<Assembly> assemblies = null,
+            IList<IModule> modules = null,
             string sectionName = AppSectionName)
         {
             if (string.IsNullOrWhiteSpace(sectionName)) sectionName = AppSectionName;
@@ -77,12 +73,12 @@ namespace Common.Extensions.DependencyInjection
 
             services.AddNewtonsoftMessageSerializer(options =>
             {
-                options.Converters = new List<JsonConverter>
-                {
-                    new StringEnumConverter(new CamelCaseNamingStrategy())
-                };
+                options.Converters = new List<JsonConverter> {new StringEnumConverter(new CamelCaseNamingStrategy())};
                 //options.UnSupportedTypes.Add<Test>();
             });
+
+            //Adding Auto Mapper
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             services.TryDecorate(typeof(ICommandHandler<>), typeof(UnitOfWorkCommandHandlerDecorator<>));
             services.TryDecorate(typeof(IIntegrationEventHandler<>), typeof(UnitOfWorkEventHandlerDecorator<>));
@@ -90,14 +86,10 @@ namespace Common.Extensions.DependencyInjection
             services.TryDecorate(typeof(ICommandHandler<>), typeof(LoggingCommandHandlerDecorator<>));
             services.TryDecorate(typeof(IIntegrationEventHandler<>), typeof(LoggingIntegrationEventHandlerDecorator<>));
 
-            services.AddCommand(assemblies);
-            services.AddEvent(assemblies);
-            services.AddQuery(assemblies);
-            services.AddDomainEvents(assemblies);
-
-            services.AddSingleton<IQueryProcessor, QueryProcessor>();
-            services.AddSingleton<ICommandProcessor, CommandProcessor>();
-            services.AddSingleton<IMessagesExecutor, MessagesExecutor>();
+            services.AddCommand(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
+            services.AddEvent(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
+            services.AddQuery(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
+            services.AddDomainEvents(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
 
             services.AddSingleton<IOutOfProcessDispatcher, OutOfProcessDispatcher>();
             services.AddSingleton<IInProcessDispatcher, InProcessDispatcher>();
@@ -108,7 +100,7 @@ namespace Common.Extensions.DependencyInjection
                 .AddSingleton<IRng, Rng>()
                 .AddRedis()
                 .AddModuleInfo(modules)
-                .AddModuleRequests(assemblies)
+                .AddModuleRequests(assemblies ?? AppDomain.CurrentDomain.GetAssemblies())
                 .AddMemoryCache()
                 .AddSingleton<IIdGenerator, IdGenerator>()
                 .AddScoped<ErrorHandlerMiddleware>()
@@ -116,7 +108,9 @@ namespace Common.Extensions.DependencyInjection
                 .AddSingleton<IExceptionToResponseMapper, ExceptionToResponseMapper>()
                 .AddSingleton<IExceptionToMessageMapper, ExceptionToMessageMapper>()
                 .AddSingleton<IExceptionToMessageMapperResolver, ExceptionToMessageMapperResolver>()
-                .AddSingleton<ICommandProcessor, CommandProcessor>()
+                .AddScoped<ICommandProcessor, CommandProcessor>()
+                .AddScoped<IQueryProcessor, QueryProcessor>()
+                .AddScoped<IMessagesExecutor, MessagesExecutor>()
                 .AddSingleton<IMessageChannel, MessageChannel>()
                 .AddSingleton<IContextFactory, ContextFactory>()
                 .AddScoped(ctx => ctx.GetRequiredService<IContextFactory>().Create())
@@ -180,8 +174,9 @@ namespace Common.Extensions.DependencyInjection
 
             return services;
         }
-        
-        public static IServiceCollection AddDomainEvents(this IServiceCollection services, IEnumerable<Assembly> assemblies)
+
+        public static IServiceCollection AddDomainEvents(this IServiceCollection services,
+            IEnumerable<Assembly> assemblies)
         {
             services.AddSingleton<IDomainEventDispatcher, DomainEventDispatcher>();
             services.Scan(s => s.FromAssemblies(assemblies)
@@ -190,6 +185,7 @@ namespace Common.Extensions.DependencyInjection
                 .WithScopedLifetime());
             return services;
         }
+
         private static IServiceCollection AddCommand(this IServiceCollection services,
             IList<Assembly> assemblies)
         {
@@ -234,27 +230,11 @@ namespace Common.Extensions.DependencyInjection
         public static IServiceCollection AddMessaging(this IServiceCollection services, string sectionName)
         {
             var messagingOptions = services.GetOptions<MessagingOptions>(sectionName);
-            var inboxOptions = services.GetOptions<InboxOptions>($"{sectionName}:inbox");
-            var outboxOptions = services.GetOptions<OutboxOptions>($"{sectionName}:outbox");
             services
                 .AddSingleton(messagingOptions)
-                .AddSingleton(inboxOptions)
-                .AddSingleton(outboxOptions)
                 .AddSingleton<IAsyncMessageDispatcher, InMemoryAsyncMessageDispatcher>()
-                .AddTransient<IInbox, MongoInbox>()
-                .AddTransient<IOutbox, MongoOutbox>()
                 .AddScoped<ITransport, InMemoryMessageBroker>();
 
-            if (inboxOptions.Enabled)
-            {
-                services.TryDecorate(typeof(ICommandHandler<>), typeof(InboxCommandHandlerDecorator<>));
-                services.TryDecorate(typeof(IEventHandler<>), typeof(InboxEventHandlerDecorator<>));
-            }
-
-            if (outboxOptions.Enabled)
-            {
-                services.AddHostedService<OutboxProcessor>();
-            }
 
             // Adding background service
             if (messagingOptions.UseBackgroundDispatcher)

@@ -1,58 +1,61 @@
-using System;
+using Common.Caching;
+using Common.Extensions.DependencyInjection;
+using Common.Messaging.Inbox.Mongo;
+using Common.Messaging.Outbox.Mongo;
+using Common.Persistence.Mongo;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using OnlineStore.Modules.Identity.Application.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Authorization;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Search;
 
-namespace OnlineStore.Modules.Identity.Infrastructure
+namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
 {
     public static class DependencyInjections
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services)
-            => services.AddIdentityServices(options => { })
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            // This custom provider allows able to use just [Authorize] instead of having to define [Authorize(AuthenticationSchemes = "Bearer")] above every API controller
+
+            // // without this Bearer authorization will not work
+            // services.AddSingleton<IAuthenticationSchemeProvider, CustomAuthenticationSchemeProvider>();
+            services.AddCommon()
+                .AddMongo()
+                .AddMongoOutbox()
+                .AddMongoInbox();
+
+            services.AddCaching(configuration);
+            services.AddIdentityServices(configuration, options => { })
                 .AddScoped<IUserRepository, UserRepository>();
 
+            // register the AuthorizationPolicyProvider which dynamically registers authorization policies for each permission defined in module manifest
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+            // authorization handler for policies based on permissions
+            services.AddSingleton<IAuthorizationHandler, DefaultPermissionAuthorizationHandler>();
 
 
-        private static IServiceCollection AddIdentityServices(this IServiceCollection services,
-            Action<AuthorizationOptions> setupAction = null)
-        {
-            // services.AddTransient<ISecurityRepository, SecurityRepository>();
-            // services.AddTransient<Func<ISecurityRepository>>(provider =>
-            //     () => provider.CreateScope().ServiceProvider.GetService<ISecurityRepository>());
-
-
-            // services.AddScoped<IUserApiKeyService, UserApiKeyService>();
-            // services.AddScoped<IUserApiKeySearchService, UserApiKeySearchService>();
-
-            services.AddScoped<IUserNameResolver, HttpContextUserResolver>();
-            services.AddSingleton<IPermissionService, PermissionService>();
-            services.AddScoped<IRoleSearchService, RoleSearchService>();
-            //Register as singleton because this abstraction can be used as dependency in singleton services
-            services.AddSingleton<IUserSearchService>(provider =>
-                new UserSearchService(provider.CreateScope().ServiceProvider
-                    .GetService<Func<UserManager<ApplicationUser>>>()));
-
-            //Identity dependencies override
-            services.TryAddScoped<RoleManager<ApplicationRole>, CustomRoleManager>();
-            services.TryAddScoped<UserManager<ApplicationUser>, CustomUserManager>();
-            services.AddSingleton<Func<UserManager<ApplicationUser>>>(provider =>
-                () => provider.CreateScope().ServiceProvider.GetService<UserManager<ApplicationUser>>());
-            //Use custom ClaimsPrincipalFactory to add system roles claims for user principal
-            services.TryAddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, CustomUserClaimsPrincipalFactory>();
-
-            if (setupAction != null) services.Configure(setupAction);
-
-            // services.AddSingleton(provider =>
-            //     new UserApiKeyActualizeEventHandler(provider.CreateScope().ServiceProvider
-            //         .GetService<IUserApiKeyService>()));
+            services.Configure<IdentityOptions>(configuration.GetSection("IdentityOptions"));
+            //services.Configure<PasswordOptionsExtended>(configuration.GetSection("IdentityOptions:Password"));
+            services.Configure<UserOptionsExtended>(configuration.GetSection("IdentityOptions:User"));
+            services.Configure<DataProtectionTokenProviderOptions>(
+                configuration.GetSection("IdentityOptions:DataProtection"));
 
             return services;
+        }
+
+        public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
+        {
+            // app.UseDefaultRolesAsync().GetAwaiter().GetResult();
+            // app.UseDefaultUsersAsync().GetAwaiter().GetResult();
+            // app.UsePermissions();
+
+            return app;
         }
     }
 }

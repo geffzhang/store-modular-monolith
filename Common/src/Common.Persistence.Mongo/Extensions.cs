@@ -30,7 +30,7 @@ namespace Common.Persistence.Mongo
             return services;
         }
 
-        internal static IServiceCollection AddMongo(this IServiceCollection services, string sectionName = SectionName,
+        public static IServiceCollection AddMongo(this IServiceCollection services, string sectionName = SectionName,
             Type seederType = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;

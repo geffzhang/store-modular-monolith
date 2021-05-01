@@ -1,4 +1,5 @@
 using System;
+using Common.Utils.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -6,10 +7,8 @@ using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
 using StackExchange.Redis;
-using VirtoCommerce.Platform.Caching;
-using VirtoCommerce.Platform.Core.Common;
 
-namespace VirtoCommerce.Platform.Redis
+namespace Common.Caching.Redis
 {
     public class RedisPlatformMemoryCache : PlatformMemoryCache
     {

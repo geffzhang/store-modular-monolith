@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Common;
 using Common.Caching.Caching;
 using Common.Domain.Types;
@@ -10,6 +11,7 @@ using Common.Messaging.Events;
 using Common.Utils.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Infrastructure.Caching;
@@ -21,8 +23,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
     public class CustomUserManager : AspNetUserManager<ApplicationUser>
     {
         private readonly IPlatformMemoryCache _memoryCache;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly RoleManager<ApplicationRole> _roleManager;
-        private readonly ICommandProcessor _commandProcessor;
 
         public CustomUserManager(IUserStore<ApplicationUser> store, IOptions<IdentityOptions> optionsAccessor,
             IPasswordHasher<ApplicationUser> passwordHasher,
@@ -30,13 +32,13 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
             IEnumerable<IPasswordValidator<ApplicationUser>> passwordValidators,
             ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services,
             ILogger<UserManager<ApplicationUser>> logger, RoleManager<ApplicationRole> roleManager,
-            IPlatformMemoryCache memoryCache, ICommandProcessor commandProcessor)
+            IPlatformMemoryCache memoryCache, IServiceScopeFactory serviceScopeFactory)
             : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors,
                 services, logger)
         {
             _memoryCache = memoryCache;
+            _serviceScopeFactory = serviceScopeFactory;
             _roleManager = roleManager;
-            _commandProcessor = commandProcessor;
         }
 
         public override async Task<ApplicationUser> FindByLoginAsync(string loginProvider, string providerKey)
@@ -141,11 +143,15 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
             {
                 new GenericChangedEntry<ApplicationUser>(user, EntryState.Deleted)
             };
-            await _commandProcessor.PublishDomainEventAsync(new UserChangingEvent(changedEntries));
+
+            using var scope = _serviceScopeFactory.CreateScope();
+            var commandProcessor = scope.ServiceProvider.GetRequiredService<ICommandProcessor>();
+
+            await commandProcessor.PublishDomainEventAsync(new UserChangingEvent(changedEntries));
             var result = await base.DeleteAsync(user);
             if (result.Succeeded)
             {
-                await _commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
+                await commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
                 SecurityCacheRegion.ExpireUser(user);
             }
 
@@ -179,14 +185,18 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
             {
                 new GenericChangedEntry<ApplicationUser>(user, existUser, EntryState.Modified)
             };
-            await _commandProcessor.PublishDomainEventAsync(new UserChangingEvent(changedEntries));
+
+            using var scope = _serviceScopeFactory.CreateScope();
+            var commandProcessor = scope.ServiceProvider.GetRequiredService<ICommandProcessor>();
+
+            await commandProcessor.PublishDomainEventAsync(new UserChangingEvent(changedEntries));
             //We need to use Patch method to update already tracked by DbContent entity, unless the UpdateAsync for passed user will throw exception
             //"The instance of entity type 'ApplicationUser' cannot be tracked because another instance with the same key value for {'Id'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached"
             user.Patch(existUser);
             var result = await base.UpdateAsync(existUser);
             if (result.Succeeded)
             {
-                await _commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
+                await commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
                 if (user.Roles != null)
                 {
                     var targetRoles = (await GetRolesAsync(existUser));
@@ -216,11 +226,15 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
             {
                 new GenericChangedEntry<ApplicationUser>(user, EntryState.Added)
             };
-            await _commandProcessor.PublishDomainEventAsync(new UserChangingEvent(changedEntries));
+
+            using var scope = _serviceScopeFactory.CreateScope();
+            var commandProcessor = scope.ServiceProvider.GetRequiredService<ICommandProcessor>();
+
+            await commandProcessor.PublishDomainEventAsync(new UserChangingEvent(changedEntries));
             var result = await base.CreateAsync(user);
             if (result.Succeeded)
             {
-                await _commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
+                await commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
                 if (!user.Roles.IsNullOrEmpty())
                 {
                     //Add

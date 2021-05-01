@@ -3,7 +3,7 @@ using Common.Utils.Extensions;
 using Newtonsoft.Json;
 using OnlineStore.Modules.Identity.Domain.Permissions;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions
+namespace OnlineStore.Modules.Identity.Application.Permissions
 {
     public static class ClaimsPrincipalExtensions
     {

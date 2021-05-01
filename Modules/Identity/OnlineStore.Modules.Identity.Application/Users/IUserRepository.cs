@@ -7,7 +7,8 @@ namespace OnlineStore.Modules.Identity.Application.Users
     public interface IUserRepository
     {
         Task<CreateUserResponse> AddAsync(User user);
-        Task<User> FindByName(string userName);
+        Task<User> FindByNameAsync(string userName);
+        Task<User> FindByIdAsync(string id);
         Task<bool> CheckPassword(User user, string password);
     }
 }

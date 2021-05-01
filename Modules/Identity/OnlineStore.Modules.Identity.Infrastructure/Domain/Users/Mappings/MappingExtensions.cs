@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
-using OnlineStore.Modules.Identity.Domain.Permissions;
+using OnlineStore.Modules.Identity.Application.Users.Dtos;
+using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
 using OnlineStore.Modules.Identity.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
 {
@@ -40,24 +41,23 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
 
         public static User ToUser(this ApplicationUser appUser)
         {
-            var permissions = appUser.Permissions.Select(x => Permission.Of(x, "User")).ToArray();
-
             return User.Of(new UserId(Guid.Parse(appUser.Id)), appUser.Email, appUser.FirstName, appUser.LastName,
-                appUser.Name, appUser.UserName, appUser.Password, appUser.CreatedDate, permissions, appUser.UserType,
-                appUser.Roles.Select(x => x.Name).ToList());
+                appUser.Name, appUser.UserName, appUser.Password, appUser.CreatedDate, appUser.CreatedBy,
+                appUser.Permissions, appUser.UserType, appUser.IsAdministrator, appUser.IsActive,
+                appUser.Roles.Select(x => x.Name).ToList(), appUser.LockoutEnabled, appUser.EmailConfirmed,
+                appUser.PhotoUrl, appUser.Status, appUser.ModifiedBy, appUser.ModifiedDate);
         }
 
-        public static ApplicationRole ToApplicationRole(this Role role)
+        public static RegisterNewUserCommand ToRegisterNewUserCommand(this RegisterNewUserRequest request)
         {
-            return new()
-            {
-                Description = role.Description, Id = role.Name, Name = role.Name, Permissions = role.Permissions
-            };
+            var command = new RegisterNewUserCommand(request.Id, request.Email, request.FirstName, request.LastName,
+                request.Name, request.UserName, request.Password, request.CreatedDate, request.CreatedBy,
+                request.Permissions.ToList(), request.UserType, request.IsAdministrator, request.IsActive,
+                request.Roles.ToList(), request.LockoutEnabled, request.EmailConfirmed, request.PhotoUrl,
+                request.Status, request.ModifiedBy, request.ModifiedDate);
+
+            return command;
         }
 
-        public static Role ToRole(this ApplicationRole role)
-        {
-            return Role.Of(role.Name, role.Description, role.Permissions.ToArray());
-        }
     }
 }

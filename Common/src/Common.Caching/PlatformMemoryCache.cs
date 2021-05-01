@@ -1,10 +1,10 @@
 using System;
+using Common.Caching.Caching;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VirtoCommerce.Platform.Core.Caching;
 
-namespace VirtoCommerce.Platform.Caching
+namespace Common.Caching
 {
     public class PlatformMemoryCache : IPlatformMemoryCache
     {

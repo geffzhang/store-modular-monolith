@@ -4,7 +4,7 @@ using StackExchange.Redis;
 
 namespace Common.Redis
 {
-    internal static class Extensions
+    public static class Extensions
     {
         private const string SectionName = "redis";
 

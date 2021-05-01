@@ -14,4 +14,16 @@
     <ProjectReference Include="..\OnlineStore.Modules.Identity.Domain\OnlineStore.Modules.Identity.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="RegisterNewUser\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="RegisterNewUser\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="RegisterNewUser\**" />
+  </ItemGroup>
+
 </Project>

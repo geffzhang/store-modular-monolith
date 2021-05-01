@@ -1,6 +1,6 @@
 using System;
 
-namespace VirtoCommerce.Platform.Caching
+namespace Common.Caching
 {
     public class CachingOptions
     {

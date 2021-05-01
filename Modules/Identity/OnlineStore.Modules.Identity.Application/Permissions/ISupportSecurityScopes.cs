@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions
+namespace OnlineStore.Modules.Identity.Application.Permissions
 {
     public interface ISupportSecurityScopes
     {

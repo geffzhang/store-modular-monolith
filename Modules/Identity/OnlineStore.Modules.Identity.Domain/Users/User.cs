@@ -15,9 +15,9 @@ namespace OnlineStore.Modules.Identity.Domain.Users
         // so OrderItems cannot be added from "outside the AggregateRoot" directly to the collection,
         // but only through the method UserAggregateRoot.AddAddress() which includes behaviour.
         private readonly List<Role> _userRoles;
+
         // private readonly List<ApplicationUserLogin> _logins;
         private readonly List<Permission> _permissions;
-
         public string UserName { get; }
         public bool EmailConfirmed { get; }
         public string Email { get; }
@@ -70,9 +70,11 @@ namespace OnlineStore.Modules.Identity.Domain.Users
         }
 
         private User(UserId id, string email, string firstName, string lastName,
-            string name, string userName, string password, DateTime createdAt,
-            IReadOnlyList<Permission> permissions, string userType,
-            IReadOnlyList<string> roles = null, bool locked = false)
+            string name, string userName, string password, DateTime createdDate, string createdBy,
+            IReadOnlyList<string> permissions, string userType, bool isAdmin = false, bool isActive = true,
+            IReadOnlyList<string> roles = null, bool locked = false, bool emailConfirmed = false,
+            string photoUrl = null, string status = null, string modifiedBy = null,
+            DateTime? modifiedDate = null)
         {
             if (string.IsNullOrWhiteSpace(email)) throw new InvalidEmailException(email);
 
@@ -87,17 +89,25 @@ namespace OnlineStore.Modules.Identity.Domain.Users
 
             UserName = userName;
             IsActive = true;
-            Id = new UserId(id.Id);
+            Id = id;
             Email = email.ToLowerInvariant();
             FirstName = firstName;
             LastName = lastName;
             Name = name.Trim();
             UserType = userType;
             Password = password;
-            Created = createdAt;
+            CreatedDate = createdDate;
             LockoutEnabled = locked;
-            _userRoles = roles?.Select(x => Role.Of(x)).ToList();
-            _permissions = permissions.ToList();
+            Roles = roles?.Select(x => Role.Of(x)).ToList();
+            Permissions = permissions.Select(x => Permission.Of(x, "")).ToList();
+            EmailConfirmed = emailConfirmed;
+            PhotoUrl = photoUrl;
+            Status = status;
+            CreatedBy = createdBy;
+            ModifiedBy = modifiedBy;
+            ModifiedDate = modifiedDate;
+            IsAdministrator = isAdmin;
+            IsActive = isActive;
 
             AddDomainEvent(new UserCreatedDomainEvent(Id));
         }
@@ -118,18 +128,21 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             if (role is null)
                 throw new Exception("Role can't be null.");
 
-            var exists = this._userRoles.Contains(role);
+            var exists = _userRoles.Contains(role);
 
-            if (!exists) this._userRoles.Add(role);
+            if (!exists) _userRoles.Add(role);
         }
 
         public static User Of(UserId id, string email, string firstName, string lastName,
-            string name, string login, string password, DateTime createdAt, IReadOnlyList<Permission> permissions,
-            string userType, IReadOnlyList<string> roles = null,
-            bool locked = false)
+            string name, string userName, string password, DateTime createdDate, string createdBy,
+            IReadOnlyList<string> permissions, string userType, bool isAdmin = false, bool isActive = true,
+            IReadOnlyList<string> roles = null, bool locked = false, bool emailConfirmed = false,
+            string photoUrl = null, string status = null, string modifiedBy = null,
+            DateTime? modifiedDate = null)
         {
-            return new User(id, email, firstName, lastName, name, login, password, createdAt, permissions, userType,
-                roles, locked);
+            return new User(id, email, firstName, lastName, name, userName, password, createdDate, createdBy,
+                permissions, userType,
+                isAdmin, isActive, roles, locked, emailConfirmed, photoUrl, status, modifiedBy, modifiedDate);
         }
     }
 }

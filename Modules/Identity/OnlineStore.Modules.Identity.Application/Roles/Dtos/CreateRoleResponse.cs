@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using OnlineStore.Modules.Identity.Domain.Users;
+﻿using System.Collections.Generic;
 
-namespace OnlineStore.Modules.Identity.Application.Users.Dtos
+namespace OnlineStore.Modules.Identity.Application.Roles.Dtos
 {
-    public class CreateUserResponse
+    public class CreateRoleResponse
     {
-        public UserId Id { get; }
+        public string Id { get; }
         public bool Success { get; }
         public IEnumerable<string> Errors { get; }
 
-        public CreateUserResponse(UserId id, bool success = false, IEnumerable<string> errors = null)
+        public CreateRoleResponse(string id, bool success = false, IEnumerable<string> errors = null)
         {
             Id = id;
             Success = success;

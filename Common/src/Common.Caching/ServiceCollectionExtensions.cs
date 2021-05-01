@@ -1,10 +1,10 @@
+using Common.Caching.Caching;
+using Common.Caching.Redis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
-using VirtoCommerce.Platform.Core.Caching;
-using VirtoCommerce.Platform.Redis;
 
-namespace VirtoCommerce.Platform.Caching
+namespace Common.Caching
 {
     public static class ServiceCollectionExtensions
     {

@@ -11,7 +11,7 @@ using Serilog.Filters;
 
 namespace Common.Logging.Serilog
 {
-    internal static class Extensions
+    public static class Extensions
     {
         private const string AppSectionName = "app";
         private const string LoggerSectionName = "logger";

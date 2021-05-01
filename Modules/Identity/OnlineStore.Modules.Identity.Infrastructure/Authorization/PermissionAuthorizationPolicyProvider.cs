@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using OnlineStore.Modules.Identity.Application.Permissions;
 using OnlineStore.Modules.Identity.Infrastructure.Authentication;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
 
@@ -19,7 +20,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
         private readonly IPlatformMemoryCache _memoryCache;
 
         public PermissionAuthorizationPolicyProvider(
-            IOptions<Microsoft.AspNetCore.Authorization.AuthorizationOptions> options, IConfiguration configuration,
+            IOptions<Microsoft.AspNetCore.Authorization.AuthorizationOptions> options,
             IPermissionService permissionService, IPlatformMemoryCache memoryCache)
             : base(options)
         {

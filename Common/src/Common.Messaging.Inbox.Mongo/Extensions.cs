@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.Messaging.Inbox.Mongo
 {
-    internal static class Extensions
+    public static class Extensions
     {
         private const string SectionName = "messaging";
 

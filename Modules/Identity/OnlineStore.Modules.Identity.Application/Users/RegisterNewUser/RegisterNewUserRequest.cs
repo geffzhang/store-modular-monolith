@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using OnlineStore.Modules.Identity.Domain.Permissions;
-using OnlineStore.Modules.Identity.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Application.Users.Dtos
+namespace OnlineStore.Modules.Identity.Application.Users.RegisterNewUser
 {
+    //https://enterprisecraftsmanship.com/posts/cqrs-commands-part-domain-model/
     public class RegisterNewUserRequest
     {
         public Guid Id { get; set; }

@@ -1,4 +1,4 @@
-namespace VirtoCommerce.Platform.Redis
+namespace Common.Caching.Redis
 {
     public class RedisCachingMessage
     {

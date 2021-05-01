@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OnlineStore.Modules.Identity.Application.Permissions;
 using OnlineStore.Modules.Identity.Domain.Permissions;
 using OnlineStore.Modules.Identity.Infrastructure.Caching;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;

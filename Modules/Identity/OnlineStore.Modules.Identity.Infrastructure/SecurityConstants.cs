@@ -50,7 +50,9 @@
                 SecurityCreate = "security:create",
                 SecurityAccess = "security:access",
                 SecurityUpdate = "security:update",
-                SecurityDelete = "security:delete";
+                SecurityDelete = "security:delete",
+                SecurityVerifyEmail = "security:verifyEmail",
+                SecurityLoginOnBehalf = "security:loginOnBehalf";
 
             public const string SecurityCallApi = "security:call_api";
 

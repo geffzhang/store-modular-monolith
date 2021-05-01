@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.Messaging.Outbox.Mongo
 {
-    internal static class Extensions
+    public static class Extensions
     {
         private const string SectionName = "messaging";
 
@@ -17,9 +17,10 @@ namespace Common.Messaging.Outbox.Mongo
             services
                 .AddSingleton(outboxOptions)
                 .AddTransient<IOutbox, MongoOutbox>();
-            
+
             // Adding background service
-            if (outboxOptions.Enabled) services.AddHostedService<OutboxProcessor>();
+            if (outboxOptions.Enabled)
+                services.AddHostedService<OutboxProcessor>();
 
             return services;
         }

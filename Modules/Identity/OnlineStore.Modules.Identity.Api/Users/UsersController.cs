@@ -14,8 +14,12 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using OnlineStore.Modules.Identity.Api.Models;
 using OnlineStore.Modules.Identity.Application.Authentication.Dtos;
+using OnlineStore.Modules.Identity.Application.Permissions;
 using OnlineStore.Modules.Identity.Application.Search;
 using OnlineStore.Modules.Identity.Application.Search.Dtos;
+using OnlineStore.Modules.Identity.Application.Users.Dtos;
+using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Domain.Permissions;
 using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
 using OnlineStore.Modules.Identity.Infrastructure;
@@ -23,10 +27,10 @@ using OnlineStore.Modules.Identity.Infrastructure.Authentication;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
+using OnlineStore.Modules.Identity.Infrastructure.Extensions;
 using OpenIddict.Abstractions;
 
-namespace OnlineStore.Modules.Identity.Api.Controllers
+namespace OnlineStore.Modules.Identity.Api.Users
 {
     [ApiController]
     [Route("users")]
@@ -36,8 +40,10 @@ namespace OnlineStore.Modules.Identity.Api.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IAuthorizationService _authorizationService;
+
         private readonly Infrastructure.Authorization.AuthorizationOptions
             _securityOptions;
+
         private readonly UserOptionsExtended _userOptionsExtended;
         private readonly IPermissionService _permissionsProvider;
         private readonly IUserSearchService _userSearchService;
@@ -272,24 +278,17 @@ namespace OnlineStore.Modules.Identity.Api.Controllers
         /// <summary>
         /// Create new user
         /// </summary>
-        /// <param name="newUser"></param>
+        /// <param name="request"></param>
         [HttpPost]
         [Route("users/create")]
         [Authorize(SecurityConstants.Permissions.SecurityCreate)]
-        public async Task<ActionResult<SecurityResult>> Create([FromBody] ApplicationUser newUser)
+        public async Task<ActionResult> Create([FromBody] RegisterNewUserRequest request)
         {
-            IdentityResult result;
+            var command = request.ToRegisterNewUserCommand();
 
-            if (string.IsNullOrEmpty(newUser.Password))
-            {
-                result = await _userManager.CreateAsync(newUser);
-            }
-            else
-            {
-                result = await _userManager.CreateAsync(newUser, newUser.Password);
-            }
+            await _commandProcessor.SendCommandAsync(command);
 
-            return Ok(IdentityResultExtensions.ToSecurityResult(result));
+            return Ok();
         }
 
         /// <summary>

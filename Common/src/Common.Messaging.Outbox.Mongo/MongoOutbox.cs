@@ -2,34 +2,33 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Messaging.Serialization;
+using Common.Messaging.Transport;
 using Common.Modules;
-using Common.Utils;
 using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-using Newtonsoft.Json;
 
 namespace Common.Messaging.Outbox.Mongo
 {
     internal sealed class MongoOutbox : IOutbox
     {
         private readonly string _collectionName;
-        private readonly ICommandProcessor _commandProcessor;
         private readonly IMessageSerializer _messageSerializer;
         private readonly IMongoDatabase _database;
         private readonly ILogger<MongoOutbox> _logger;
         private readonly IModuleClient _moduleClient;
+        private readonly IAsyncMessageDispatcher _messageDispatcher;
         private readonly string[] _modules;
         private readonly bool _useBackgroundDispatcher;
 
         public MongoOutbox(IMongoDatabase database, IModuleRegistry moduleRegistry, OutboxOptions outboxOptions,
-            MessagingOptions messagingOptions, IModuleClient moduleClient, ICommandProcessor commandProcessor,
+            MessagingOptions messagingOptions, IModuleClient moduleClient, IAsyncMessageDispatcher messageDispatcher,
             IMessageSerializer messageSerializer, ILogger<MongoOutbox> logger)
         {
             _database = database;
             _moduleClient = moduleClient;
-            _commandProcessor = commandProcessor;
+            _messageDispatcher = messageDispatcher;
             _messageSerializer = messageSerializer;
             _logger = logger;
             Enabled = outboxOptions.Enabled;
@@ -113,7 +112,7 @@ namespace Common.Messaging.Outbox.Mongo
                 _logger.LogInformation($"Publishing a message: '{name}' with ID: '{message.Id}' (outbox)...");
 
                 if (_useBackgroundDispatcher)
-                    await _commandProcessor.PublishMessageAsync(message);
+                    await _messageDispatcher.PublishAsync(message);
                 else
                     await _moduleClient.PublishAsync(message);
 
@@ -121,17 +120,6 @@ namespace Common.Messaging.Outbox.Mongo
                 await collection.ReplaceOneAsync(x => x.Id == outboxMessage.Id, outboxMessage);
                 _logger.LogInformation($"Published a message: '{name}' with ID: '{message.Id} (outbox)'.");
             }
-        }
-
-        private class OutboxMessage
-        {
-            public Guid Id { get; set; }
-            public Guid CorrelationId { get; set; }
-            public string Name { get; set; }
-            public string Type { get; set; }
-            public string Payload { get; set; }
-            public long ReceivedAt { get; set; }
-            public long? SentAt { get; set; }
         }
     }
 }

@@ -2,11 +2,11 @@
 using System.Linq;
 using Microsoft.AspNetCore.Identity;
 
-namespace OnlineStore.Modules.Identity.Application.Users.Dtos
+namespace OnlineStore.Modules.Identity.Application.Roles.Dtos
 {
-    public class UserActionIdentityResult
+    public class RoleActionIdentityResult
     {
-        private static readonly UserActionIdentityResult _success = new UserActionIdentityResult {Succeeded = true};
+        private static readonly RoleActionIdentityResult _success = new RoleActionIdentityResult {Succeeded = true};
         private List<IdentityError> _errors = new List<IdentityError>();
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace OnlineStore.Modules.Identity.Application.Users.Dtos
         /// Returns an <see cref="IdentityResult"/> indicating a successful identity operation.
         /// </summary>
         /// <returns>An <see cref="IdentityResult"/> indicating a successful operation.</returns>
-        public static UserActionIdentityResult Success => _success;
+        public static RoleActionIdentityResult Success => _success;
 
         public string MemberId { get; set; }
 
@@ -35,9 +35,9 @@ namespace OnlineStore.Modules.Identity.Application.Users.Dtos
         /// </summary>
         /// <param name="identityResult"></param>
         /// <returns></returns>
-        public static UserActionIdentityResult Instance(IdentityResult identityResult)
+        public static RoleActionIdentityResult Instance(IdentityResult identityResult)
         {
-            var result = new UserActionIdentityResult
+            var result = new RoleActionIdentityResult
             {
                 Succeeded = identityResult.Succeeded, _errors = identityResult.Errors.ToList()
             };
@@ -50,9 +50,9 @@ namespace OnlineStore.Modules.Identity.Application.Users.Dtos
         /// </summary>
         /// <param name="errors">An optional array of <see cref="IdentityError"/>s which caused the operation to fail.</param>
         /// <returns>An <see cref="IdentityResult"/> indicating a failed identity operation, with a list of <paramref name="errors"/> if applicable.</returns>
-        public static UserActionIdentityResult Failed(params IdentityError[] errors)
+        public static RoleActionIdentityResult Failed(params IdentityError[] errors)
         {
-            var result = new UserActionIdentityResult {Succeeded = false};
+            var result = new RoleActionIdentityResult {Succeeded = false};
             if (errors != null)
             {
                 result._errors.AddRange(errors);

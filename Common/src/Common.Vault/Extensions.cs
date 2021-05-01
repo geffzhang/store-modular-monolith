@@ -14,7 +14,7 @@ using VaultSharp.V1.AuthMethods.UserPass;
 
 namespace Common.Vault
 {
-    internal static class Extensions
+    public static class Extensions
     {
         private const string SectionName = "vault";
 
@@ -61,7 +61,6 @@ namespace Common.Vault
 
             return services;
         }
-
 
         private static void VerifyOptions(VaultOptions options)
         {
