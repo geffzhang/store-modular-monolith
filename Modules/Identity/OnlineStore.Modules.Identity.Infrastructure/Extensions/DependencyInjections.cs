@@ -1,8 +1,8 @@
 using System;
-using Common.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using OnlineStore.Modules.Identity.Application.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Authorization;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
@@ -11,9 +11,15 @@ using OnlineStore.Modules.Identity.Infrastructure.Search;
 
 namespace OnlineStore.Modules.Identity.Infrastructure
 {
-    public static class ServiceCollectionExtensions
+    public static class DependencyInjections
     {
-        public static IServiceCollection AddIdentityServices(this IServiceCollection services,
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+            => services.AddIdentityServices(options => { })
+                .AddScoped<IUserRepository, UserRepository>();
+
+
+
+        private static IServiceCollection AddIdentityServices(this IServiceCollection services,
             Action<AuthorizationOptions> setupAction = null)
         {
             // services.AddTransient<ISecurityRepository, SecurityRepository>();

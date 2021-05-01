@@ -7,7 +7,7 @@ namespace OnlineStore.Modules.Identity.Application.Users.Dtos
 {
     public class RegisterNewUserRequest
     {
-        public string Id { get; set; }
+        public Guid Id { get; set; }
         public string UserName { get; set; }
         public bool EmailConfirmed { get; set; }
         public string Email { get; set; }
@@ -27,8 +27,8 @@ namespace OnlineStore.Modules.Identity.Application.Users.Dtos
         public string ModifiedBy { get; set; }
         public bool LockoutEnabled { get; set; }
         public bool IsActive { get; set; }
-        public IEnumerable<Role> Roles { get; set; }
-        public IEnumerable<Permission> Permissions { get; set; }
+        public IEnumerable<string> Roles { get; set; }
+        public IEnumerable<string> Permissions { get; set; }
         public bool PasswordExpired { get; set; }
         public DateTime? LastPasswordChangedDate { get; set; }
     }

@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineStore.Modules.Identity.Domain.Permissions;
+using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Infrastructure
+namespace OnlineStore.Modules.Identity.Infrastructure.Extentions
 {
     public static class ApplicationBuilderExtensions
     {
@@ -19,10 +21,32 @@ namespace OnlineStore.Modules.Identity.Infrastructure
 
             var permissionsProvider = appBuilder.ApplicationServices.GetRequiredService<IPermissionService>();
             permissionsProvider.RegisterPermissions(SecurityConstants.Permissions.AllPermissions
-                .Select(x =>  Permission.Of(x, "admin")).ToArray());
+                .Select(x => Permission.Of(x, "admin")).ToArray());
             return appBuilder;
         }
 
+        public static async Task<IApplicationBuilder> UseDefaultRolesAsync(this IApplicationBuilder appBuilder)
+        {
+            //initializing custom roles
+            var roleManager = appBuilder.ApplicationServices.GetRequiredService<RoleManager<ApplicationRole>>();
+            var userManager = appBuilder.ApplicationServices.GetRequiredService<UserManager<ApplicationUser>>();
+
+            foreach (var role in Role.AllRoles())
+            {
+                var roleExist = await roleManager.RoleExistsAsync(role.Name);
+                if (!roleExist)
+                //create the roles and seed them to the database: Question 1
+                    await roleManager.CreateAsync(new ApplicationRole()
+                    {
+                        Description = role.Description,
+                        Name = role.Name,
+                        Id = role.Name,
+                        Permissions = role.Permissions
+                    });
+            }
+
+            return appBuilder;
+        }
 
         public static async Task<IApplicationBuilder> UseDefaultUsersAsync(this IApplicationBuilder appBuilder)
         {
