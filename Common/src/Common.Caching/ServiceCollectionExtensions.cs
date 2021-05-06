@@ -23,12 +23,12 @@ namespace Common.Caching
 
                 var redis = ConnectionMultiplexer.Connect(redisConnectionString);
                 services.AddSingleton(redis.GetSubscriber());
-                services.AddSingleton<IPlatformMemoryCache, RedisPlatformMemoryCache>();
+                services.AddSingleton<IExtendedMemoryCache, RedisMemoryCache>();
             }
             else
             {
                 //Use MemoryCache decorator to use global platform cache settings
-                services.AddSingleton<IPlatformMemoryCache, PlatformMemoryCache>();
+                services.AddSingleton<IExtendedMemoryCache, ExtendedMemoryCache>();
             }
 
             return services;

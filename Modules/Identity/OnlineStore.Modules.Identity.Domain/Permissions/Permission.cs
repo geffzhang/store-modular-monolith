@@ -92,15 +92,5 @@ namespace OnlineStore.Modules.Identity.Domain.Permissions
                     (sourceScope, targetScope) => sourceScope.Patch(targetScope));
             }
         }
-
-
-        public object Clone()
-        {
-            var result = MemberwiseClone() as Permission;
-
-            result.AssignedScopes = AssignedScopes?.Select(x => x.Clone()).OfType<PermissionScope>().ToList();
-
-            return result;
-        }
     }
 }

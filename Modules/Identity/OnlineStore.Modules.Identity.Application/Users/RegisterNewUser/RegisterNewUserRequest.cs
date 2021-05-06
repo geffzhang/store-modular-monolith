@@ -10,7 +10,6 @@ namespace OnlineStore.Modules.Identity.Application.Users.RegisterNewUser
         public string UserName { get; set; }
         public bool EmailConfirmed { get; set; }
         public string Email { get; set; }
-        public string StoreId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Name { get; set; }

@@ -12,13 +12,11 @@ namespace Common
 {
     internal sealed class CommandProcessor : ICommandProcessor
     {
-        private readonly ITransport _messageBroker;
         private readonly IServiceScopeFactory _serviceFactory;
 
-        public CommandProcessor(IServiceScopeFactory serviceFactory, ITransport messageBroker)
+        public CommandProcessor(IServiceScopeFactory serviceFactory)
         {
             _serviceFactory = serviceFactory;
-            _messageBroker = messageBroker;
         }
 
         public async Task PublishDomainEventAsync<T>(T domainEvent) where T : class, IDomainEvent
@@ -119,7 +117,10 @@ namespace Common
 
         public async Task PublishMessageAsync<T>(T message) where T : IMessage
         {
-            await _messageBroker.PublishAsync(message);
+            using var scope = _serviceFactory.CreateScope();
+            var transport = scope.ServiceProvider.GetRequiredService<ITransport>();
+
+            await transport.PublishAsync(message);
         }
     }
 }

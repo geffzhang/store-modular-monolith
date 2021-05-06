@@ -5,6 +5,7 @@ using Common.Utils.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
 {

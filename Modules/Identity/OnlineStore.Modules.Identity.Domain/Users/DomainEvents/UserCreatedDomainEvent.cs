@@ -1,4 +1,5 @@
 ﻿using Common.Domain.Types;
+using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Domain.Users.DomainEvents
 {
@@ -9,6 +10,6 @@ namespace OnlineStore.Modules.Identity.Domain.Users.DomainEvents
             Id = id;
         }
 
-        public new UserId Id { get; }
+        public UserId Id { get; }
     }
 }

@@ -18,8 +18,8 @@ namespace OnlineStore.Modules.Identity.Domain
 
         public static class Roles
         {
-            public static readonly Role Customer =
-                Role.Of(nameof(Customer), "Customer Role.",
+            public static readonly Role.Role Customer =
+                Role.Role.Of(nameof(Customer), "Customer Role.",
                     Permission.Of(Permissions.CanCreateUsers, nameof(Customer)),
                     Permission.Of(Permissions.CanDeleteUsers, nameof(Customer)),
                     Permission.Of(Permissions.CanEditUsers, nameof(Customer)),
@@ -27,17 +27,17 @@ namespace OnlineStore.Modules.Identity.Domain
                     Permission.Of(Permissions.CanViewUsers, nameof(Customer)),
                     Permission.Of(Permissions.CanSeeUsersDetail, nameof(Customer)));
 
-            public static readonly Role Admin =
-                Role.Of(nameof(Admin), "Admins Role.", Permission.Of(Permissions.CanEditAdmins, nameof(Admin)),
+            public static readonly Role.Role Admin =
+                Role.Role.Of(nameof(Admin), "Admins Role.", Permission.Of(Permissions.CanEditAdmins, nameof(Admin)),
                     Permission.Of(Permissions.CanCreateAdmins, nameof(Admin)),
                     Permission.Of(Permissions.CanDeleteAdmins, nameof(Admin)),
                     Permission.Of(Permissions.CanViewAdmins, nameof(Admin)),
                     Permission.Of(Permissions.CanSeeAdminsDetail, nameof(Admin)));
 
 
-            public static readonly IEnumerable<Role> AllRoles = new List<Role>() {Customer, Admin};
+            public static readonly IEnumerable<Role.Role> AllRoles = new List<Role.Role>() {Customer, Admin};
 
-            public static readonly IEnumerable<Role> B2BRoles = new List<Role>() {Customer};
+            public static readonly IEnumerable<Role.Role> B2BRoles = new List<Role.Role>() {Customer};
         }
 
         public static class SystemRoles

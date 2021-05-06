@@ -12,6 +12,7 @@ using OnlineStore.Modules.Identity.Api.Models;
 using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Api.Controllers
 {

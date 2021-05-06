@@ -15,12 +15,17 @@ using Common.Messaging;
 using Common.Messaging.Commands;
 using Common.Messaging.Dispatcher;
 using Common.Messaging.Events;
+using Common.Messaging.Inbox;
+using Common.Messaging.Inbox.Mongo;
+using Common.Messaging.Outbox;
+using Common.Messaging.Outbox.Mongo;
 using Common.Messaging.Queries;
 using Common.Messaging.Serialization;
 using Common.Messaging.Serialization.Newtonsoft;
 using Common.Messaging.Transport;
 using Common.Messaging.Transport.InMemory;
 using Common.Modules;
+using Common.Persistence.Mongo;
 using Common.Redis;
 using Common.Scheduling;
 using Common.Services;
@@ -99,16 +104,16 @@ namespace Common.Extensions.DependencyInjection
                 .AddSingleton<IRequestStorage, RequestStorage>()
                 .AddSingleton<IRng, Rng>()
                 .AddRedis()
+                .AddMongo()
                 .AddModuleInfo(modules)
                 .AddModuleRequests(assemblies ?? AppDomain.CurrentDomain.GetAssemblies())
-                .AddMemoryCache()
                 .AddSingleton<IIdGenerator, IdGenerator>()
                 .AddScoped<ErrorHandlerMiddleware>()
                 .AddScoped<UserMiddleware>()
                 .AddSingleton<IExceptionToResponseMapper, ExceptionToResponseMapper>()
                 .AddSingleton<IExceptionToMessageMapper, ExceptionToMessageMapper>()
                 .AddSingleton<IExceptionToMessageMapperResolver, ExceptionToMessageMapperResolver>()
-                .AddScoped<ICommandProcessor, CommandProcessor>()
+                .AddSingleton<ICommandProcessor, CommandProcessor>()
                 .AddScoped<IQueryProcessor, QueryProcessor>()
                 .AddScoped<IMessagesExecutor, MessagesExecutor>()
                 .AddSingleton<IMessageChannel, MessageChannel>()
@@ -230,11 +235,17 @@ namespace Common.Extensions.DependencyInjection
         public static IServiceCollection AddMessaging(this IServiceCollection services, string sectionName)
         {
             var messagingOptions = services.GetOptions<MessagingOptions>(sectionName);
+
+            var inboxOptions = services.GetOptions<InboxOptions>($"{sectionName}:inbox");
+            var outboxOptions = services.GetOptions<OutboxOptions>($"{sectionName}:outbox");
             services
                 .AddSingleton(messagingOptions)
+                .AddSingleton(inboxOptions)
+                .AddSingleton(outboxOptions)
+                .AddTransient<IInbox, MongoInbox>()
+                .AddTransient<IOutbox, MongoOutbox>()
                 .AddSingleton<IAsyncMessageDispatcher, InMemoryAsyncMessageDispatcher>()
                 .AddScoped<ITransport, InMemoryMessageBroker>();
-
 
             // Adding background service
             if (messagingOptions.UseBackgroundDispatcher)

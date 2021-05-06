@@ -1,6 +1,7 @@
 using System;
 using Common.Domain;
 using Common.Domain.Types;
+using OnlineStore.Modules.Identity.Domain.Users.Types;
 using static Common.Utils.DateTimeHelper;
 
 namespace OnlineStore.Modules.Identity.Domain.Users.DomainEvents

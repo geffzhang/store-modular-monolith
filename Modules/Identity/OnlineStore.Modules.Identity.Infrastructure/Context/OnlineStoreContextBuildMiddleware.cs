@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using OnlineStore.Modules.Identity.Application.Context;
 
-namespace OnlineStore.Modules.Identity.Infrastructure
+namespace OnlineStore.Modules.Identity.Infrastructure.Context
 {
     public class OnlineStoreContextBuildMiddleware : IMiddleware
     {

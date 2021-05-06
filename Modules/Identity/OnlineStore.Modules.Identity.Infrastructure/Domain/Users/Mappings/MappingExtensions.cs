@@ -3,7 +3,9 @@ using System.Linq;
 using OnlineStore.Modules.Identity.Application.Users.Dtos;
 using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
 using OnlineStore.Modules.Identity.Domain.Users;
+using OnlineStore.Modules.Identity.Domain.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
 {
@@ -33,7 +35,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
                 PhotoUrl = user.PhotoUrl,
                 UserName = user.UserName,
                 UserType = user.UserType,
-                StoreId = user.StoreId,
             };
 
             return applicationUser;

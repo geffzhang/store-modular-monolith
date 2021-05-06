@@ -2,10 +2,8 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Common.Identity;
 using Microsoft.AspNetCore.Authorization;
-using OnlineStore.Modules.Identity.Application.Permissions;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
+using OnlineStore.Modules.Identity.Infrastructure.Extensions;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
 {

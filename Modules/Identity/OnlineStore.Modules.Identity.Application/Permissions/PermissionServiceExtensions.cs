@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Common.Utils.Extensions;
+using OnlineStore.Modules.Identity.Application.Permissions.Services;
 using OnlineStore.Modules.Identity.Domain.Permissions;
 
 namespace OnlineStore.Modules.Identity.Application.Permissions

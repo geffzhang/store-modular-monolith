@@ -5,28 +5,20 @@ using Common.Domain.Types;
 using OnlineStore.Modules.Identity.Domain.Permissions;
 using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
 using OnlineStore.Modules.Identity.Domain.Users.DomainExceptions;
+using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Domain.Users
 {
     public class User : AggregateRoot<Guid, UserId>
     {
-        // DDD Patterns comment
         // Using a private collection field, better for DDD Aggregate's encapsulation
-        // so OrderItems cannot be added from "outside the AggregateRoot" directly to the collection,
-        // but only through the method UserAggregateRoot.AddAddress() which includes behaviour.
-        private readonly List<Role> _userRoles;
+        private readonly List<Role.Role> _roles;
 
         // private readonly List<ApplicationUserLogin> _logins;
         private readonly List<Permission> _permissions;
         public string UserName { get; }
         public bool EmailConfirmed { get; }
         public string Email { get; }
-
-        /// <summary>
-        /// Tenant id
-        /// </summary>
-        public string StoreId { get; }
-
         public string FirstName { get; }
         public string LastName { get; }
         public string Name { get; }
@@ -42,26 +34,12 @@ namespace OnlineStore.Modules.Identity.Domain.Users
         public string ModifiedBy { get; }
         public bool LockoutEnabled { get; }
         public bool IsActive { get; }
-        public IReadOnlyList<Role> Roles { get; }
+        public IReadOnlyList<Role.Role> Roles => _roles;
 
-        /// <summary>
-        /// External provider logins.
-        /// </summary>
         // public IReadOnlyList<ApplicationUserLogin> Logins { get; }
 
-        /// <summary>
-        /// All user permissions
-        /// </summary>
-        public IEnumerable<Permission> Permissions { get; }
-
-        /// <summary>
-        /// Indicates that the password for this user is expired and must be changed.
-        /// </summary>
+        public IReadOnlyList<Permission> Permissions => _permissions;
         public bool PasswordExpired { get; }
-
-        /// <summary>
-        /// The last date when the password was changed
-        /// </summary>
         public DateTime? LastPasswordChangedDate { get; }
 
         private User()
@@ -84,7 +62,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
 
             roles?.ToList().ForEach(role =>
             {
-                if (!Role.IsValid(role)) throw new InvalidRoleException(role);
+                if (!Role.Role.IsValid(role)) throw new InvalidRoleException(role);
             });
 
             UserName = userName;
@@ -98,8 +76,8 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             Password = password;
             CreatedDate = createdDate;
             LockoutEnabled = locked;
-            Roles = roles?.Select(x => Role.Of(x)).ToList();
-            Permissions = permissions.Select(x => Permission.Of(x, "")).ToList();
+            _roles = roles?.Select(x => Role.Role.Of(x)).ToList();
+            _permissions = permissions?.Select(x => Permission.Of(x, "")).ToList() ?? new List<Permission>();
             EmailConfirmed = emailConfirmed;
             PhotoUrl = photoUrl;
             Status = status;
@@ -112,27 +90,6 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             AddDomainEvent(new UserCreatedDomainEvent(Id));
         }
 
-
-        // public void AssignAddress(Address address)
-        // {
-        //     if (address is  null)
-        //         throw new Exception("Address can't be null.");
-        //
-        //     var exists = this._userAddresses.Contains(address);
-        //
-        //     if (!exists) this._userAddresses.Add(address);
-        // }
-
-        public void AssignRole(Role role)
-        {
-            if (role is null)
-                throw new Exception("Role can't be null.");
-
-            var exists = _userRoles.Contains(role);
-
-            if (!exists) _userRoles.Add(role);
-        }
-
         public static User Of(UserId id, string email, string firstName, string lastName,
             string name, string userName, string password, DateTime createdDate, string createdBy,
             IReadOnlyList<string> permissions, string userType, bool isAdmin = false, bool isActive = true,
@@ -140,9 +97,23 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             string photoUrl = null, string status = null, string modifiedBy = null,
             DateTime? modifiedDate = null)
         {
-            return new User(id, email, firstName, lastName, name, userName, password, createdDate, createdBy,
+            return new(id, email, firstName, lastName, name, userName, password, createdDate, createdBy,
                 permissions, userType,
                 isAdmin, isActive, roles, locked, emailConfirmed, photoUrl, status, modifiedBy, modifiedDate);
+        }
+
+        public void AssignRole(Role.Role role)
+        {
+            if (role is null)
+                throw new Exception("Role can't be null.");
+
+            var exists = _roles.Contains(role);
+
+            if (!exists) _roles.Add(role);
+        }
+
+        public virtual void Patch(User target)
+        {
         }
     }
 }

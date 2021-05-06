@@ -1,4 +1,5 @@
 using Common.Domain.Types;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events
 {

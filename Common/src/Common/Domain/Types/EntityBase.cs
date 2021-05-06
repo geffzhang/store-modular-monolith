@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Common.Domain.Types
 {
-    public abstract class EntityBase<TId, TIdentity> : IEquatable<EntityBase<TId, TIdentity>>
+    public abstract class EntityBase<TId, TIdentity> : IEntity<TIdentity>, IEquatable<EntityBase<TId, TIdentity>>
         where TIdentity : IdentityBase<TId>
     {
-        public TIdentity Id;
+        public TIdentity Id { get; protected set; }
 
         protected EntityBase(TIdentity id)
         {

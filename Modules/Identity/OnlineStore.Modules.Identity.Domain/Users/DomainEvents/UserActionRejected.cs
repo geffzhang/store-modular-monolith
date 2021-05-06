@@ -1,5 +1,6 @@
 using System;
 using Common.Messaging;
+using OnlineStore.Modules.Identity.Domain.Users.Types;
 using static Common.Utils.DateTimeHelper;
 
 namespace OnlineStore.Modules.Identity.Domain.Users.DomainEvents
