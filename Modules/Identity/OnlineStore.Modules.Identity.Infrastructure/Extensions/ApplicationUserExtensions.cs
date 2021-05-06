@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using OnlineStore.Modules.Identity.Domain;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
+namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
 {
     public static class ApplicationUserExtensions
     {
