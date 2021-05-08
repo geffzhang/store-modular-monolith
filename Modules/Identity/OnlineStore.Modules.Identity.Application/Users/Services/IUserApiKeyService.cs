@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Common.Identity;
+using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Application.Users.Services
 {

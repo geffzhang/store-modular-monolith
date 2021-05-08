@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Application.Users.RegisterNewUser
 {
@@ -16,7 +17,7 @@ namespace OnlineStore.Modules.Identity.Application.Users.RegisterNewUser
         public string MemberId { get; set; }
         public bool IsAdministrator { get; set; }
         public string PhotoUrl { get; set; }
-        public string UserType { get; set; }
+        public UserType UserType { get; set; }
         public string Status { get; set; }
         public string Password { get; set; }
         public DateTime CreatedDate { get; set; }

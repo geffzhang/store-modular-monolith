@@ -6,9 +6,10 @@ using Common.Utils.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Modules.Identity.Application.Search.Dtos;
+using OnlineStore.Modules.Identity.Application.Users.Dtos;
+using OnlineStore.Modules.Identity.Application.Users.Services;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
-using OnlineStore.Modules.Identity.Infrastructure.Search;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 {

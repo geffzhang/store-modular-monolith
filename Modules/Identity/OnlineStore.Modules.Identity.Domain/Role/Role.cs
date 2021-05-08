@@ -10,13 +10,6 @@ namespace OnlineStore.Modules.Identity.Domain.Role
     {
         public static Role User => new("User", "User role type.");
         public static Role Admin => new("Admin", "Admin role type.");
-        // public static Role Organization => SecurityConstants.Roles.Organization;
-        // public static Role Vendor => new("Vendor");
-        // public static Role Employee => new("Employee");
-        // public static Role PurchasingAgent => SecurityConstants.Roles.PurchasingAgent;
-        // public static Role StoreAdministrator => SecurityConstants.Roles.StoreAdministrator;
-        // public static Role StoreManager => SecurityConstants.Roles.StoreManager;
-        // public static Role OrganizationEmployee => SecurityConstants.Roles.OrganizationEmployee;
 
         public string Name { get; }
         public string Description { get; }

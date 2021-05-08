@@ -10,8 +10,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure
 {
     /// <summary>
     /// https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model
-    /// https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-5.0&tabs=visual-studio
-    /// https://docs.microsoft.com/en-us/dotnet/architecture/microservices/secure-net-microservices-web-applications/
+    /// https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity
+    /// https://docs.microsoft.com/en-us/dotnet/architecture/microservices/secure-net-microservices-web-applications
     /// </summary>
     public class IdentityDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
     {
@@ -34,11 +34,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure
                     .HasForeignKey(ur => ur.UserId);
             });
 
-
-            // Customize the ASP.NET Identity model and override the defaults if needed.
-            // For example, you can rename the ASP.NET Identity table names and more.
-            // Add your customizations after calling base.OnModelCreating(builder);
-            builder.Entity<ApplicationUser>().Ignore(x => x.Permissions);
+            builder.Entity<ApplicationUser>().Ignore(x => x.Permissions); // this ignored properties will handle in UserManager and RoleManager
             builder.Entity<ApplicationRole>().Ignore(x => x.Permissions);
             builder.Entity<ApplicationUser>().Ignore(x => x.Password);
             builder.Entity<ApplicationUser>().Ignore(x => x.Roles);
@@ -56,8 +52,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure
             builder.Entity<IdentityUserRole<string>>().Property(x => x.RoleId).HasMaxLength(128);
             builder.Entity<IdentityRoleClaim<string>>().Property(x => x.RoleId).HasMaxLength(128);
             builder.Entity<IdentityUserToken<string>>().Property(x => x.UserId).HasMaxLength(128);
-
-            builder.Entity<ApplicationUser>().Property(x => x.CreatedDate);
 
             MapsTables(builder);
         }

@@ -115,6 +115,13 @@ namespace Common.Utils.Extensions
             return string.Equals(str1, str2, StringComparison.OrdinalIgnoreCase);
         }
 
+        public static string Underscore(this string value)
+        {
+            return string.IsNullOrWhiteSpace(value)
+                ? string.Empty
+                : string.Concat(value.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString()))
+                    .ToLowerInvariant();
+        }
 
         public static string GetCurrencyName(this string isoCurrencySymbol)
         {

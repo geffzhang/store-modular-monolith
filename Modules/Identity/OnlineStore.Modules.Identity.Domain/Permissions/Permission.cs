@@ -9,8 +9,48 @@ using Newtonsoft.Json;
 
 namespace OnlineStore.Modules.Identity.Domain.Permissions
 {
-    public class Permission : ValueObject, ICloneable
+    public class Permission : ValueObject
     {
+        #region Permissions
+
+        public static Permission ModuleQuery = new(SecurityConstants.Permissions.ModuleQuery, "module");
+        public static Permission ModuleAccess = new(SecurityConstants.Permissions.ModuleAccess, "module");
+        public static Permission ModuleManage = new(SecurityConstants.Permissions.ModuleManage, "module");
+
+        public static Permission SettingQuery = new(SecurityConstants.Permissions.SecurityQuery, "setting");
+        public static Permission SettingAccess = new(SecurityConstants.Permissions.SecurityAccess, "setting");
+        public static Permission SettingUpdate = new(SecurityConstants.Permissions.SettingUpdate, "setting");
+
+        // Users Permissions
+        public static Permission CanSeeUsersDetail = new(SecurityConstants.Permissions.CanSeeUsersDetail, "user");
+        public static Permission CanEditUsers = new(SecurityConstants.Permissions.CanEditUsers, "user");
+        public static Permission CanInviteUsers = new(SecurityConstants.Permissions.CanInviteUsers, "user");
+        public static Permission CanCreateUsers = new(SecurityConstants.Permissions.CanCreateUsers, "user");
+        public static Permission CanDeleteUsers = new(SecurityConstants.Permissions.CanDeleteUsers, "user");
+        public static Permission CanViewUsers = new(SecurityConstants.Permissions.CanViewUsers, "user");
+
+        // Admin Permissions
+        public static Permission CanSeeAdminsDetail = new(SecurityConstants.Permissions.CanSeeAdminsDetail, "admin");
+        public static Permission CanEditAdmins = new(SecurityConstants.Permissions.CanEditAdmins, "admin");
+        public static Permission CanCreateAdmins = new(SecurityConstants.Permissions.CanCreateAdmins, "admin");
+        public static Permission CanDeleteAdmins = new(SecurityConstants.Permissions.CanDeleteAdmins, "admin");
+        public static Permission CanViewAdmins = new(SecurityConstants.Permissions.CanViewAdmins, "admin");
+
+        public static Permission SecurityQuery = new(SecurityConstants.Permissions.SecurityQuery, "security");
+        public static Permission SecurityCreate = new(SecurityConstants.Permissions.SecurityCreate, "security");
+        public static Permission SecurityAccess = new(SecurityConstants.Permissions.SecurityAccess, "security");
+        public static Permission SecurityUpdate = new(SecurityConstants.Permissions.SecurityUpdate, "security");
+        public static Permission SecurityDelete = new(SecurityConstants.Permissions.SecurityDelete, "security");
+
+        public static Permission SecurityVerifyEmail =
+            new(SecurityConstants.Permissions.SecurityVerifyEmail, "security");
+
+        public static Permission SecurityLoginOnBehalf =
+            new(SecurityConstants.Permissions.SecurityLoginOnBehalf, "security");
+
+        #endregion
+
+
         private const char _scopeCharSeparator = '|';
 
         public string Name { get; private set; }
@@ -30,8 +70,38 @@ namespace OnlineStore.Modules.Identity.Domain.Permissions
             GroupName = groupName;
         }
 
+        public static IList<Permission> GetAllPermissions()
+        {
+            return new List<Permission>()
+            {
+                ModuleQuery,
+                ModuleAccess,
+                ModuleManage,
+                SettingQuery,
+                SettingAccess,
+                SettingUpdate,
+                CanSeeUsersDetail,
+                CanEditUsers,
+                CanInviteUsers,
+                CanCreateUsers,
+                CanDeleteUsers,
+                CanViewUsers,
+                CanSeeAdminsDetail,
+                CanEditAdmins,
+                CanCreateAdmins,
+                CanDeleteAdmins,
+                CanViewAdmins,
+                SecurityQuery,
+                SecurityCreate,
+                SecurityAccess,
+                SecurityUpdate,
+                SecurityDelete,
+                SecurityVerifyEmail,
+                SecurityLoginOnBehalf
+            };
+        }
+
         public static Permission Of(string name, string groupName) => new(name, groupName);
-        
 
         public static Permission TryCreateFromClaim(Claim claim, JsonSerializerSettings jsonSettings)
         {

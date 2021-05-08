@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Common;
 using Common.Caching.Caching;
@@ -221,10 +222,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 
         public override async Task<IdentityResult> CreateAsync(ApplicationUser user)
         {
-            var changedEntries = new List<GenericChangedEntry<ApplicationUser>>
-            {
-                new GenericChangedEntry<ApplicationUser>(user, EntryState.Added)
-            };
+            var changedEntries = new List<GenericChangedEntry<ApplicationUser>> {new(user, EntryState.Added)};
 
             using var scope = _serviceScopeFactory.CreateScope();
             var commandProcessor = scope.ServiceProvider.GetRequiredService<ICommandProcessor>();
@@ -234,12 +232,24 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
             if (result.Succeeded)
             {
                 await commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
-                if (!user.Roles.IsNullOrEmpty())
+
+                if (user.Permissions.Any())
+                {
+                    //Add
+                    foreach (var permission in user.Permissions)
+                    {
+                        await AddClaimAsync(user,
+                            new Claim(SecurityConstants.Claims.PermissionClaimType, permission.Name));
+                    }
+                }
+
+                if (user.Roles.Any())
                 {
                     //Add
                     foreach (var newRole in user.Roles)
                     {
-                        await AddToRoleAsync(user, newRole.Name);
+                        if (await _roleManager.RoleExistsAsync(newRole.Name))
+                            await AddToRoleAsync(user, newRole.Name);
                     }
                 }
 
@@ -272,8 +282,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
                 }
             }
 
-            // Read claims and convert to permissions (compatibility with v2)
-            user.Permissions = user.Roles.SelectMany(x => x.Permissions).Select(x => x.Name).Distinct().ToArray();
+            user.Permissions = user.Roles.SelectMany(x => x.Permissions).ToArray();
 
             // Read associated logins (compatibility with v2)
             var logins = await base.GetLoginsAsync(user);

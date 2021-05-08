@@ -129,7 +129,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
                 var sourcePermissionClaims = updateRole.Permissions
                     .Select(x => x.ToClaim(_jsonOptions.SerializerSettings)).ToList();
                 var targetPermissionClaims = (await GetClaimsAsync(existRole))
-                    .Where(x => x.Type == Common.Identity.SecurityConstants.Claims.PermissionClaimType).ToList();
+                    .Where(x => x.Type == SecurityConstants.Claims.PermissionClaimType).ToList();
                 var comparer = AnonymousComparer.Create((Claim x) => x.Value);
                 //Add
                 foreach (var sourceClaim in sourcePermissionClaims.Except(targetPermissionClaims, comparer))

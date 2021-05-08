@@ -83,10 +83,10 @@ namespace OnlineStore.Modules.Identity.Domain
 
             public static string[] AllPermissions { get; } = new[]
             {
-                CanSeeUsersDetail, CanEditUsers, CanInviteUsers, CanCreateUsers, CanDeleteUsers,
-                CanViewUsers, CanSeeAdminsDetail, CanEditAdmins, CanCreateAdmins, CanDeleteAdmins,
-                CanViewAdmins, ModuleQuery, ModuleAccess, ModuleManage, SettingQuery, SettingAccess, SettingUpdate,
-                SecurityQuery, SecurityCreate, SecurityAccess, SecurityUpdate, SecurityDelete, SecurityVerifyEmail,
+                CanSeeUsersDetail, CanEditUsers, CanInviteUsers, CanCreateUsers, CanDeleteUsers, CanViewUsers,
+                CanSeeAdminsDetail, CanEditAdmins, CanCreateAdmins, CanDeleteAdmins, CanViewAdmins, ModuleQuery,
+                ModuleAccess, ModuleManage, SettingQuery, SettingAccess, SettingUpdate, SecurityQuery,
+                SecurityCreate, SecurityAccess, SecurityUpdate, SecurityDelete, SecurityVerifyEmail,
                 SecurityLoginOnBehalf
             };
         }

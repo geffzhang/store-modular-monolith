@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using Common.Domain.Types;
 using Microsoft.AspNetCore.Identity;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using OnlineStore.Modules.Identity.Domain.Permissions;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 
@@ -11,33 +10,26 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models
 {
     public class ApplicationUser : IdentityUser<string>, IAuditable
     {
-        public ApplicationUser()
-        {
-        }
+        public bool IsActive { get; set; }
+        public string MemberId { get; set; }
+        public bool IsAdministrator { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Name { get; set; }
+        public string PhotoUrl { get; set; }
+        public string UserType { get; set; }
+        public string Status { get; set; }
+        public AccountState UserState { get; set; }
+        public string Password { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
+        public string CreatedBy { get; set; }
+        public string ModifiedBy { get; set; }
+        public IList<Permission> Permissions { get; set; }
+        public IList<ApplicationRole> Roles { get; set; }
 
-        public virtual bool IsActive { get; set; }
-        public virtual string MemberId { get; set; }
-        public virtual bool IsAdministrator { get; set; }
-        public virtual string FirstName { get; set; }
-        public virtual string LastName { get; set; }
-        public virtual string Name { get; set; }
-        public virtual string PhotoUrl { get; set; }
-        public virtual string UserType { get; set; }
-        public virtual string Status { get; set; }
-
-        [Obsolete(
-            "Left due to compatibility issues. Will be removed. Instead of, use properties: EmailConfirmed, LockoutEnd.")]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public virtual AccountState UserState { get; set; }
-
-        public virtual string Password { get; set; }
-        public virtual DateTime CreatedDate { get; set; }
-        public virtual DateTime? ModifiedDate { get; set; }
-        public virtual string CreatedBy { get; set; }
-        public virtual string ModifiedBy { get; set; }
-        public virtual IList<ApplicationRole> Roles { get; set; }
+        // .Net identity navigations -> https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model#add-navigation-properties
         public virtual ICollection<IdentityUserRole<string>> UserRoles { get; set; }
-        public virtual string[] Permissions { get; set; }
 
         /// <summary>
         /// External provider logins.

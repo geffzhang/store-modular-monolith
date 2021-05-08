@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Common.Utils.Extensions;
 using OnlineStore.Modules.Identity.Application.Users.Dtos;
 using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
 using OnlineStore.Modules.Identity.Domain.Users;
@@ -13,8 +14,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
     {
         public static ApplicationUser ToApplicationUser(this User user)
         {
-            var permissions = user.Permissions.Select(x => x.Name).ToArray();
-
             var applicationUser = new ApplicationUser
             {
                 Name = user.UserName,
@@ -23,7 +22,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
                 Email = user.Email,
                 Password = user.Password,
                 Id = user.Id.Id.ToString(),
-                Permissions = permissions,
+                Permissions = user.Permissions.ToList(),
                 Roles = user.Roles.Select(x => x.ToApplicationRole()).ToList(),
                 CreatedDate = user.CreatedDate,
                 CreatedBy = user.CreatedBy,
@@ -34,7 +33,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
                 PasswordHash = user.Password,
                 PhotoUrl = user.PhotoUrl,
                 UserName = user.UserName,
-                UserType = user.UserType,
+                UserType = user.UserType.ToString(),
             };
 
             return applicationUser;
@@ -42,16 +41,18 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
 
         public static User ToUser(this ApplicationUser appUser)
         {
+            var userType = EnumUtility.SafeParse(appUser.UserType, UserType.Customer);
+
             return User.Of(new UserId(Guid.Parse(appUser.Id)), appUser.Email, appUser.FirstName, appUser.LastName,
                 appUser.Name, appUser.UserName, appUser.Password, appUser.CreatedDate, appUser.CreatedBy,
-                appUser.Permissions, appUser.UserType, appUser.IsAdministrator, appUser.IsActive,
+                appUser.Permissions.Select(x => x.Name).ToList(), userType, appUser.IsAdministrator, appUser.IsActive,
                 appUser.Roles.Select(x => x.Name).ToList(), appUser.LockoutEnabled, appUser.EmailConfirmed,
                 appUser.PhotoUrl, appUser.Status, appUser.ModifiedBy, appUser.ModifiedDate);
         }
 
         public static RegisterNewUserCommand ToRegisterNewUserCommand(this RegisterNewUserRequest request)
         {
-            var command = new RegisterNewUserCommand(request.Id, request.Email, request.FirstName, request.LastName,
+            var command = new RegisterNewUserCommand(request.Id.BindId(), request.Email, request.FirstName, request.LastName,
                 request.Name, request.UserName, request.Password, request.CreatedDate, request.CreatedBy,
                 request.Permissions.ToList(), request.UserType, request.IsAdministrator, request.IsActive,
                 request.Roles.ToList(), request.LockoutEnabled, request.EmailConfirmed, request.PhotoUrl,
@@ -59,6 +60,5 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
 
             return command;
         }
-
     }
 }

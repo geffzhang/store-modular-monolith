@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using Common.Caching.Caching;
-using Common.Identity;
 using Microsoft.Extensions.Primitives;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;

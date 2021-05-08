@@ -16,10 +16,12 @@ using OnlineStore.Modules.Identity.Api.Models;
 using OnlineStore.Modules.Identity.Application.Authentication.Dtos;
 using OnlineStore.Modules.Identity.Application.Permissions;
 using OnlineStore.Modules.Identity.Application.Permissions.Services;
+using OnlineStore.Modules.Identity.Application.Roles.Services;
 using OnlineStore.Modules.Identity.Application.Search;
 using OnlineStore.Modules.Identity.Application.Search.Dtos;
 using OnlineStore.Modules.Identity.Application.Users.Dtos;
 using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
+using OnlineStore.Modules.Identity.Application.Users.Services;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Domain.Permissions;
 using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
@@ -158,8 +160,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// </summary>
         /// <param name="criteria">Search criteria.</param>
         [HttpPost]
-        [Route("users/search")]
-        [Route("users")] //PT-789: Obsolete, remove later left only for backward compatibility with V2
+        [Route("search")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
         public async Task<ActionResult<UserSearchResult>> SearchUsers([FromBody] UserSearchCriteria criteria)
         {
@@ -172,7 +173,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// </summary>
         /// <param name="userName"></param>
         [HttpGet]
-        [Route("users/{userName}")]
+        [Route("{userName}")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
         public async Task<ActionResult<ApplicationUser>> GetUserByName([FromRoute] string userName)
         {
@@ -185,7 +186,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// </summary>
         /// <param name="id"></param>
         [HttpGet]
-        [Route("users/id/{id}")]
+        [Route("id/{id}")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
         public async Task<ActionResult<ApplicationUser>> GetUserById([FromRoute] string id)
         {
@@ -198,7 +199,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// </summary>
         /// <param name="email"></param>
         [HttpGet]
-        [Route("users/email/{email}")]
+        [Route("email/{email}")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
         public async Task<ActionResult<ApplicationUser>> GetUserByEmail([FromRoute] string email)
         {
@@ -213,7 +214,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("users/login/external/{loginProvider}/{providerKey}")]
+        [Route("login/external/{loginProvider}/{providerKey}")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
         public async Task<ActionResult<ApplicationUser>> GetUserByLogin([FromRoute] string loginProvider,
             [FromRoute] string providerKey)
@@ -283,9 +284,9 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// </summary>
         /// <param name="request"></param>
         [HttpPost]
-        [Route("users/create")]
-        [Authorize(SecurityConstants.Permissions.SecurityCreate)]
-        public async Task<ActionResult> Create([FromBody] RegisterNewUserRequest request)
+        [Route("create")]
+        // [Authorize(SecurityConstants.Permissions.SecurityCreate)]
+        public async Task<ActionResult> CreateAsync([FromBody] RegisterNewUserRequest request)
         {
             var command = request.ToRegisterNewUserCommand();
 
@@ -307,7 +308,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         public async Task<ActionResult<SecurityResult>> ChangeCurrentUserPassword(
             [FromBody] ChangePasswordRequest changePassword)
         {
-            return await ChangePassword(User.Identity.Name, changePassword);
+            return await ChangePassword(User.Identity?.Name, changePassword);
         }
 
         /// <summary>
@@ -316,7 +317,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="userName"></param>
         /// <param name="changePassword">Old and new passwords.</param>
         [HttpPost]
-        [Route("users/{userName}/changepassword")]
+        [Route("{userName}/changepassword")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
@@ -325,15 +326,14 @@ namespace OnlineStore.Modules.Identity.Api.Users
         {
             if (!IsUserEditable(userName))
             {
-                return BadRequest(IdentityResultExtensions.ToSecurityResult(IdentityResult
-                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."})));
+                return BadRequest(IdentityResult
+                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
             }
 
             var user = await _userManager.FindByNameAsync(userName);
             if (user == null)
             {
-                return BadRequest(IdentityResultExtensions.ToSecurityResult(
-                    IdentityResult.Failed(new IdentityError {Description = "User not found."})));
+                return BadRequest(IdentityResult.Failed(new IdentityError {Description = "User not found."}).ToSecurityResult());
             }
 
             if (changePassword.OldPassword == changePassword.NewPassword)
@@ -353,7 +353,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
                 await _userManager.UpdateAsync(user);
             }
 
-            return Ok(IdentityResultExtensions.ToSecurityResult(result));
+            return Ok(result.ToSecurityResult());
         }
 
         /// <summary>
@@ -368,7 +368,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         public async Task<ActionResult<SecurityResult>> ResetCurrentUserPassword(
             [FromBody] ResetPasswordConfirmRequest resetPassword)
         {
-            return await ResetPassword(User.Identity.Name, resetPassword);
+            return await ResetPassword(User.Identity?.Name, resetPassword);
         }
 
         /// <summary>
@@ -377,7 +377,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="userName"></param>
         /// <param name="resetPasswordConfirm">New password.</param>
         [HttpPost]
-        [Route("users/{userName}/resetpassword")]
+        [Route("{userName}/resetpassword")]
         [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
         public async Task<ActionResult<SecurityResult>> ResetPassword([FromRoute] string userName,
             [FromBody] ResetPasswordConfirmRequest resetPasswordConfirm)
@@ -386,14 +386,13 @@ namespace OnlineStore.Modules.Identity.Api.Users
             if (user == null)
             {
                 return BadRequest(
-                    IdentityResultExtensions.ToSecurityResult(
-                        IdentityResult.Failed(new IdentityError {Description = "User not found"})));
+                    IdentityResult.Failed(new IdentityError {Description = "User not found"}).ToSecurityResult());
             }
 
             if (!IsUserEditable(user.UserName))
             {
-                return BadRequest(IdentityResultExtensions.ToSecurityResult(IdentityResult
-                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."})));
+                return BadRequest(IdentityResult
+                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
             }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -410,7 +409,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
                 }
             }
 
-            return Ok(IdentityResultExtensions.ToSecurityResult(result));
+            return Ok(result.ToSecurityResult());
         }
 
         /// <summary>
@@ -419,7 +418,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="userId"></param>
         /// <param name="resetPasswordConfirm">New password.</param>
         [HttpPost]
-        [Route("users/{userId}/resetpasswordconfirm")]
+        [Route("{userId}/resetpasswordconfirm")]
         [AllowAnonymous]
         public async Task<ActionResult<SecurityResult>> ResetPasswordByToken([FromRoute] string userId,
             [FromBody] ResetPasswordConfirmRequest resetPasswordConfirm)
@@ -428,14 +427,13 @@ namespace OnlineStore.Modules.Identity.Api.Users
             if (user == null)
             {
                 return BadRequest(
-                    IdentityResultExtensions.ToSecurityResult(
-                        IdentityResult.Failed(new IdentityError {Description = "User not found"})));
+                    IdentityResult.Failed(new IdentityError {Description = "User not found"}).ToSecurityResult());
             }
 
             if (!IsUserEditable(user.UserName))
             {
-                return BadRequest(IdentityResultExtensions.ToSecurityResult(IdentityResult
-                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."})));
+                return BadRequest(IdentityResult
+                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
             }
 
             var result = await _signInManager.UserManager.ResetPasswordAsync(user, resetPasswordConfirm.Token,
@@ -447,14 +445,14 @@ namespace OnlineStore.Modules.Identity.Api.Users
                 await _userManager.UpdateAsync(user);
             }
 
-            return Ok(IdentityResultExtensions.ToSecurityResult(result));
+            return Ok(result.ToSecurityResult());
         }
 
         /// <summary>
         /// Validate password reset token
         /// </summary>
         [HttpPost]
-        [Route("users/{userId}/validatepasswordresettoken")]
+        [Route("{userId}/validatepasswordresettoken")]
         [AllowAnonymous]
         public async Task<ActionResult<bool>> ValidatePasswordResetToken(string userId,
             [FromBody] ValidatePasswordResetTokenRequest resetPasswordToken)
@@ -473,7 +471,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// Verifies provided userName and (if succeeded) sends email.
         /// </remarks>
         [HttpPost]
-        [Route("users/{loginOrEmail}/requestpasswordreset")]
+        [Route("{loginOrEmail}/requestpasswordreset")]
         [AllowAnonymous]
         public async Task<ActionResult> RequestPasswordReset(string loginOrEmail)
         {
@@ -501,7 +499,6 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// </summary>
         /// <param name="user">User details.</param>
         [HttpPut]
-        [Route("users")]
         [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
         public async Task<ActionResult<SecurityResult>> Update([FromBody] ApplicationUser user)
         {
@@ -512,8 +509,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
 
             if (!IsUserEditable(user.UserName))
             {
-                return Ok(IdentityResultExtensions.ToSecurityResult(
-                    IdentityResult.Failed(new IdentityError {Description = "It is forbidden to edit this user."})));
+                return Ok(IdentityResult.Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
             }
 
             var applicationUser = await _userManager.FindByIdAsync(user.Id);
@@ -544,7 +540,6 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// </summary>
         /// <param name="names">An array of user names.</param>
         [HttpDelete]
-        [Route("users")]
         [Authorize(SecurityConstants.Permissions.SecurityDelete)]
         public async Task<ActionResult> Delete([FromQuery] string[] names)
         {
@@ -580,7 +575,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="id">User id</param>
         /// <returns></returns>
         [HttpGet]
-        [Route("users/{id}/locked")]
+        [Route("{id}/locked")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
         public async Task<ActionResult<UserLockedResult>> IsUserLocked([FromRoute] string id)
         {
@@ -600,7 +595,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="id">>User id</param>
         /// <returns></returns>
         [HttpPost]
-        [Route("users/{id}/lock")]
+        [Route("{id}/lock")]
         [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
         public async Task<ActionResult<SecurityResult>> LockUser([FromRoute] string id)
         {
@@ -608,10 +603,10 @@ namespace OnlineStore.Modules.Identity.Api.Users
             if (user != null)
             {
                 var result = await _userManager.SetLockoutEndDateAsync(user, DateTime.MaxValue);
-                return Ok(IdentityResultExtensions.ToSecurityResult(result));
+                return Ok(result.ToSecurityResult());
             }
 
-            return Ok(IdentityResultExtensions.ToSecurityResult(IdentityResult.Failed()));
+            return Ok(IdentityResult.Failed().ToSecurityResult());
         }
 
         /// <summary>
@@ -620,7 +615,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="id">>User id</param>
         /// <returns></returns>
         [HttpPost]
-        [Route("users/{id}/unlock")]
+        [Route("{id}/unlock")]
         [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
         public async Task<ActionResult<SecurityResult>> UnlockUser([FromRoute] string id)
         {
@@ -629,10 +624,10 @@ namespace OnlineStore.Modules.Identity.Api.Users
             {
                 await _userManager.ResetAccessFailedCountAsync(user);
                 var result = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MinValue);
-                return Ok(IdentityResultExtensions.ToSecurityResult(result));
+                return Ok(result.ToSecurityResult());
             }
 
-            return Ok(IdentityResultExtensions.ToSecurityResult(IdentityResult.Failed()));
+            return Ok(IdentityResult.Failed().ToSecurityResult());
         }
 
         /// <summary>
@@ -640,20 +635,19 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// </summary>
         /// <param name="userId"></param>
         [HttpPost]
-        [Route("users/{userId}/sendVerificationEmail")]
+        [Route("{userId}/sendVerificationEmail")]
         [Authorize(SecurityConstants.Permissions.SecurityVerifyEmail)]
         public async Task<ActionResult> SendVerificationEmail([FromRoute] string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
                 return BadRequest(
-                    IdentityResultExtensions.ToSecurityResult(
-                        IdentityResult.Failed(new IdentityError {Description = "User not found"})));
+                    IdentityResult.Failed(new IdentityError {Description = "User not found"}).ToSecurityResult());
 
             if (!IsUserEditable(user.UserName))
             {
-                return BadRequest(IdentityResultExtensions.ToSecurityResult(IdentityResult
-                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."})));
+                return BadRequest(IdentityResult
+                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
             }
 
             await _commandProcessor.PublishDomainEventAsync(new UserVerifiedEmail(user.ToUser()));

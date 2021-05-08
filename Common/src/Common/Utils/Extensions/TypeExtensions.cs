@@ -45,6 +45,15 @@ namespace Common.Utils.Extensions
                 });
         }
 
+        public static string GetModuleName(this Type type)
+        {
+            if (type?.Namespace is null) return string.Empty;
+            var moduleName = type.Assembly.GetModuleName();
+            return type.Namespace.StartsWith(moduleName)
+                ? type.Namespace.Split(".")[2].ToLowerInvariant()
+                : string.Empty;
+        }
+
         private static readonly ConcurrentDictionary<Type, string> TypeCacheKeys =
             new ConcurrentDictionary<Type, string>();
 

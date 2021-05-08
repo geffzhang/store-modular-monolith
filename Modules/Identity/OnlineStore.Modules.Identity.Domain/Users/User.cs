@@ -25,7 +25,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
         public string MemberId { get; }
         public bool IsAdministrator { get; }
         public string PhotoUrl { get; }
-        public string UserType { get; }
+        public UserType UserType { get; }
         public string Status { get; }
         public string Password { get; }
         public DateTime CreatedDate { get; }
@@ -49,7 +49,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
 
         private User(UserId id, string email, string firstName, string lastName,
             string name, string userName, string password, DateTime createdDate, string createdBy,
-            IReadOnlyList<string> permissions, string userType, bool isAdmin = false, bool isActive = true,
+            IReadOnlyList<string> permissions, UserType userType, bool isAdmin = false, bool isActive = true,
             IReadOnlyList<string> roles = null, bool locked = false, bool emailConfirmed = false,
             string photoUrl = null, string status = null, string modifiedBy = null,
             DateTime? modifiedDate = null)
@@ -92,7 +92,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
 
         public static User Of(UserId id, string email, string firstName, string lastName,
             string name, string userName, string password, DateTime createdDate, string createdBy,
-            IReadOnlyList<string> permissions, string userType, bool isAdmin = false, bool isActive = true,
+            IReadOnlyList<string> permissions, UserType userType, bool isAdmin = false, bool isActive = true,
             IReadOnlyList<string> roles = null, bool locked = false, bool emailConfirmed = false,
             string photoUrl = null, string status = null, string modifiedBy = null,
             DateTime? modifiedDate = null)

@@ -10,31 +10,19 @@ namespace Common.Utils.Extensions
             return new DateTimeOffset(dateTime).ToUnixTimeMilliseconds();
         }
 
-        public static string Underscore(this string value)
-        {
-            return string.IsNullOrWhiteSpace(value)
-                ? string.Empty
-                : string.Concat(value.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString()))
-                    .ToLowerInvariant();
-        }
-
         public static string GetModuleName(this object value)
         {
             return value?.GetType().GetModuleName() ?? string.Empty;
         }
 
-        public static string GetModuleName(this Type type)
-        {
-            if (type?.Namespace is null) return string.Empty;
-            var moduleName = type.Assembly.GetModuleName();
-            return type.Namespace.StartsWith(moduleName)
-                ? type.Namespace.Split(".")[2].ToLowerInvariant()
-                : string.Empty;
-        }
-
         public static string GetExceptionCode(this Exception exception)
         {
             return exception.GetType().Name.Underscore().Replace("_exception", string.Empty);
+        }
+
+        public static Guid BindId(this Guid id)
+        {
+            return id == Guid.Empty ? Guid.NewGuid() : id;
         }
     }
 }

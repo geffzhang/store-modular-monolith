@@ -51,7 +51,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
                     IsAdministrator = true,
                     UserName = "admin",
                     PasswordExpired = true,
-                    Email = "admin@admin.com"
+                    Email = "admin@admin.com",
+                    IsActive = true,
+                    UserType = UserType.Administrator.ToString()
                 };
 
                 admin.PasswordHash = _userManager.PasswordHasher.HashPassword(admin, "admin");
@@ -84,9 +86,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
         private Task SeedPermissions(CancellationToken cancellationToken)
         {
             AbstractTypeFactory<PermissionScope>.RegisterType<PermissionScope>();
-
-            _permissionService.RegisterPermissions(Identity.Domain.SecurityConstants.Permissions.AllPermissions
-                .Select(x => Permission.Of(x, "online-store")).ToArray());
+            _permissionService.RegisterPermissions(Permission.GetAllPermissions().ToArray());
 
             return Task.CompletedTask;
         }

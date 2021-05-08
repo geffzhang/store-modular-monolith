@@ -4,9 +4,10 @@ using System.Threading.Tasks;
 using Common.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OnlineStore.Modules.Identity.Application.Roles.Services;
+using OnlineStore.Modules.Identity.Application.Search;
 using OnlineStore.Modules.Identity.Application.Search.Dtos;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
-using OnlineStore.Modules.Identity.Infrastructure.Search;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
 {

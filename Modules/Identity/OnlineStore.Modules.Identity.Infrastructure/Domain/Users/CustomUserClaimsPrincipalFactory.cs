@@ -1,9 +1,9 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Common.Identity;
 using Common.Utils.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using OnlineStore.Modules.Identity.Domain.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
