@@ -76,7 +76,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             Password = password;
             CreatedDate = createdDate;
             LockoutEnabled = locked;
-            _roles = roles?.Select(x => Role.Role.Of(x)).ToList();
+            _roles = roles?.Select(x => Role.Role.Of(x, x)).ToList();
             _permissions = permissions?.Select(x => Permission.Of(x, "")).ToList() ?? new List<Permission>();
             EmailConfirmed = emailConfirmed;
             PhotoUrl = photoUrl;

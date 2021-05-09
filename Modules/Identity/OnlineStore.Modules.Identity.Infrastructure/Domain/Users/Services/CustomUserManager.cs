@@ -232,21 +232,24 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
             if (result.Succeeded)
             {
                 await commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
+                var permissions = user.Permissions;
+                var roles = user.Roles;
 
-                if (user.Permissions.Any())
+
+                if (permissions != null && permissions.Any())
                 {
                     //Add
-                    foreach (var permission in user.Permissions)
+                    foreach (var permission in permissions)
                     {
                         await AddClaimAsync(user,
                             new Claim(SecurityConstants.Claims.PermissionClaimType, permission.Name));
                     }
                 }
 
-                if (user.Roles.Any())
+                if (roles != null && roles.Any())
                 {
                     //Add
-                    foreach (var newRole in user.Roles)
+                    foreach (var newRole in roles)
                     {
                         if (await _roleManager.RoleExistsAsync(newRole.Name))
                             await AddToRoleAsync(user, newRole.Name);

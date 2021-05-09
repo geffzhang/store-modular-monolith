@@ -5,53 +5,71 @@ using System.Security.Claims;
 using Common.Domain;
 using Common.Domain.Types;
 using Common.Utils.Extensions;
+using Common.Utils.Reflection;
 using Newtonsoft.Json;
 
 namespace OnlineStore.Modules.Identity.Domain.Permissions
 {
-    public class Permission : ValueObject
+    public sealed class Permission : ValueObject
     {
         #region Permissions
 
-        public static Permission ModuleQuery = new(SecurityConstants.Permissions.ModuleQuery, "module");
-        public static Permission ModuleAccess = new(SecurityConstants.Permissions.ModuleAccess, "module");
-        public static Permission ModuleManage = new(SecurityConstants.Permissions.ModuleManage, "module");
+        public static readonly Permission ModuleQuery = new(SecurityConstants.Permissions.MODULE_QUERY, "module");
+        public static readonly Permission ModuleAccess = new(SecurityConstants.Permissions.MODULE_ACCESS, "module");
+        public static readonly Permission ModuleManage = new(SecurityConstants.Permissions.MODULE_MANAGE, "module");
 
-        public static Permission SettingQuery = new(SecurityConstants.Permissions.SecurityQuery, "setting");
-        public static Permission SettingAccess = new(SecurityConstants.Permissions.SecurityAccess, "setting");
-        public static Permission SettingUpdate = new(SecurityConstants.Permissions.SettingUpdate, "setting");
+        public static readonly Permission SettingQuery = new(SecurityConstants.Permissions.SECURITY_QUERY, "setting");
+        public static readonly Permission SettingAccess = new(SecurityConstants.Permissions.SECURITY_ACCESS, "setting");
+        public static readonly Permission SettingUpdate = new(SecurityConstants.Permissions.SETTING_UPDATE, "setting");
 
         // Users Permissions
-        public static Permission CanSeeUsersDetail = new(SecurityConstants.Permissions.CanSeeUsersDetail, "user");
-        public static Permission CanEditUsers = new(SecurityConstants.Permissions.CanEditUsers, "user");
-        public static Permission CanInviteUsers = new(SecurityConstants.Permissions.CanInviteUsers, "user");
-        public static Permission CanCreateUsers = new(SecurityConstants.Permissions.CanCreateUsers, "user");
-        public static Permission CanDeleteUsers = new(SecurityConstants.Permissions.CanDeleteUsers, "user");
-        public static Permission CanViewUsers = new(SecurityConstants.Permissions.CanViewUsers, "user");
+        public static readonly Permission CanSeeUsersDetail =
+            new(SecurityConstants.Permissions.CAN_SEE_USERS_DETAIL, "user");
+
+        public static readonly Permission CanEditUsers = new(SecurityConstants.Permissions.CAN_EDIT_USERS, "user");
+        public static readonly Permission CanInviteUsers = new(SecurityConstants.Permissions.CAN_INVITE_USERS, "user");
+        public static readonly Permission CanCreateUsers = new(SecurityConstants.Permissions.CAN_CREATE_USERS, "user");
+        public static readonly Permission CanDeleteUsers = new(SecurityConstants.Permissions.CAN_DELETE_USERS, "user");
+        public static readonly Permission CanViewUsers = new(SecurityConstants.Permissions.CAN_VIEW_USERS, "user");
 
         // Admin Permissions
-        public static Permission CanSeeAdminsDetail = new(SecurityConstants.Permissions.CanSeeAdminsDetail, "admin");
-        public static Permission CanEditAdmins = new(SecurityConstants.Permissions.CanEditAdmins, "admin");
-        public static Permission CanCreateAdmins = new(SecurityConstants.Permissions.CanCreateAdmins, "admin");
-        public static Permission CanDeleteAdmins = new(SecurityConstants.Permissions.CanDeleteAdmins, "admin");
-        public static Permission CanViewAdmins = new(SecurityConstants.Permissions.CanViewAdmins, "admin");
+        public static readonly Permission CanSeeAdminsDetail =
+            new(SecurityConstants.Permissions.CAN_SEE_ADMINS_DETAIL, "admin");
 
-        public static Permission SecurityQuery = new(SecurityConstants.Permissions.SecurityQuery, "security");
-        public static Permission SecurityCreate = new(SecurityConstants.Permissions.SecurityCreate, "security");
-        public static Permission SecurityAccess = new(SecurityConstants.Permissions.SecurityAccess, "security");
-        public static Permission SecurityUpdate = new(SecurityConstants.Permissions.SecurityUpdate, "security");
-        public static Permission SecurityDelete = new(SecurityConstants.Permissions.SecurityDelete, "security");
+        public static readonly Permission CanEditAdmins = new(SecurityConstants.Permissions.CAN_EDIT_ADMINS, "admin");
 
-        public static Permission SecurityVerifyEmail =
-            new(SecurityConstants.Permissions.SecurityVerifyEmail, "security");
+        public static readonly Permission CanCreateAdmins =
+            new(SecurityConstants.Permissions.CAN_CREATE_ADMINS, "admin");
 
-        public static Permission SecurityLoginOnBehalf =
-            new(SecurityConstants.Permissions.SecurityLoginOnBehalf, "security");
+        public static readonly Permission CanDeleteAdmins =
+            new(SecurityConstants.Permissions.CAN_DELETE_ADMINS, "admin");
+
+        public static readonly Permission CanViewAdmins = new(SecurityConstants.Permissions.CAN_VIEW_ADMINS, "admin");
+
+        public static readonly Permission SecurityQuery = new(SecurityConstants.Permissions.SECURITY_QUERY, "security");
+
+        public static readonly Permission SecurityCreate =
+            new(SecurityConstants.Permissions.SECURITY_CREATE, "security");
+
+        public static readonly Permission SecurityAccess =
+            new(SecurityConstants.Permissions.SECURITY_ACCESS, "security");
+
+        public static readonly Permission SecurityUpdate =
+            new(SecurityConstants.Permissions.SECURITY_UPDATE, "security");
+
+        public static readonly Permission SecurityDelete =
+            new(SecurityConstants.Permissions.SECURITY_DELETE, "security");
+
+        public static readonly Permission SecurityVerifyEmail =
+            new(SecurityConstants.Permissions.SECURITY_VERIFY_EMAIL, "security");
+
+        public static readonly Permission SecurityLoginOnBehalf =
+            new(SecurityConstants.Permissions.SECURITY_LOGIN_ON_BEHALF, "security");
 
         #endregion
 
 
-        private const char _scopeCharSeparator = '|';
+        private const char SCOPE_CHAR_SEPARATOR = '|';
 
         public string Name { get; private set; }
 
@@ -64,7 +82,7 @@ namespace OnlineStore.Modules.Identity.Domain.Permissions
 
         public IList<PermissionScope> AvailableScopes { get; } = new List<PermissionScope>();
 
-        private Permission(string name, string groupName)
+        private Permission(string name, string groupName = null)
         {
             Name = name;
             GroupName = groupName;
@@ -101,18 +119,20 @@ namespace OnlineStore.Modules.Identity.Domain.Permissions
             };
         }
 
-        public static Permission Of(string name, string groupName) => new(name, groupName);
+        public static Permission Of(string name, string groupName = null)
+        {
+            return new(name, groupName);
+        }
 
         public static Permission TryCreateFromClaim(Claim claim, JsonSerializerSettings jsonSettings)
         {
             Permission result = null;
-            if (claim != null && claim.Type.EqualsInvariant(SecurityConstants.Claims.PermissionClaimType))
+            if (claim != null && claim.Type.EqualsInvariant(SecurityConstants.Claims.PERMISSION_CLAIM_TYPE))
             {
-                result = AbstractTypeFactory<Permission>.TryCreateInstance();
-                result.Name = claim.Value;
-                if (result.Name.Contains(_scopeCharSeparator))
+                result = new(claim.Value);
+                if (result.Name.Contains(SCOPE_CHAR_SEPARATOR))
                 {
-                    var parts = claim.Value.Split(_scopeCharSeparator);
+                    var parts = claim.Value.Split(SCOPE_CHAR_SEPARATOR);
                     result.Name = parts.First();
                     result.AssignedScopes =
                         JsonConvert.DeserializeObject<PermissionScope[]>(parts.Skip(1).FirstOrDefault() ?? string.Empty,
@@ -123,15 +143,15 @@ namespace OnlineStore.Modules.Identity.Domain.Permissions
             return result;
         }
 
-        public virtual Claim ToClaim(JsonSerializerSettings jsonSettings)
+        public Claim ToClaim(JsonSerializerSettings jsonSettings)
         {
             var result = Name;
             if (!AssignedScopes.IsNullOrEmpty())
             {
-                result += _scopeCharSeparator + JsonConvert.SerializeObject(AssignedScopes, jsonSettings);
+                result += SCOPE_CHAR_SEPARATOR + JsonConvert.SerializeObject(AssignedScopes, jsonSettings);
             }
 
-            return new Claim(SecurityConstants.Claims.PermissionClaimType, result);
+            return new Claim(SecurityConstants.Claims.PERMISSION_CLAIM_TYPE, result);
         }
 
         protected override IEnumerable<object> GetEqualityComponents()
@@ -146,7 +166,7 @@ namespace OnlineStore.Modules.Identity.Domain.Permissions
             }
         }
 
-        public virtual void Patch(Permission target)
+        public void Patch(Permission target)
         {
             target.Name = Name;
             target.GroupName = GroupName;

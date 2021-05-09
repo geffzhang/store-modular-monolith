@@ -43,14 +43,14 @@ namespace OnlineStore.Modules.Identity.Infrastructure
             builder.Entity<ApplicationUser>().Property(x => x.PhotoUrl).HasMaxLength(2048);
             builder.Entity<ApplicationUser>().Property(x => x.Id).HasMaxLength(128).ValueGeneratedOnAdd();
             builder.Entity<ApplicationUser>().Property(x => x.MemberId).HasMaxLength(128);
-            builder.Entity<ApplicationRole>().Property(x => x.Id).HasMaxLength(128).ValueGeneratedOnAdd();
+            builder.Entity<ApplicationRole>().Property(x => x.Id).HasColumnName("Code").HasMaxLength(50);
             builder.Entity<IdentityUserClaim<string>>().Property(x => x.UserId).HasMaxLength(128);
             builder.Entity<IdentityUserLogin<string>>().Property(x => x.UserId).HasMaxLength(128);
             builder.Entity<IdentityUserLogin<string>>().Property(x => x.LoginProvider).HasMaxLength(128);
             builder.Entity<IdentityUserLogin<string>>().Property(x => x.ProviderKey).HasMaxLength(128);
             builder.Entity<IdentityUserRole<string>>().Property(x => x.UserId).HasMaxLength(128);
-            builder.Entity<IdentityUserRole<string>>().Property(x => x.RoleId).HasMaxLength(128);
-            builder.Entity<IdentityRoleClaim<string>>().Property(x => x.RoleId).HasMaxLength(128);
+            builder.Entity<IdentityUserRole<string>>().Property(x => x.RoleId).HasColumnName("RoleCode").HasMaxLength(50);
+            builder.Entity<IdentityRoleClaim<string>>().Property(x => x.RoleId).HasColumnName("RoleCode").HasMaxLength(50);
             builder.Entity<IdentityUserToken<string>>().Property(x => x.UserId).HasMaxLength(128);
 
             MapsTables(builder);
@@ -58,39 +58,19 @@ namespace OnlineStore.Modules.Identity.Infrastructure
 
         private static void MapsTables(ModelBuilder builder)
         {
-            builder.Entity<ApplicationUser>(b => { b.ToTable("User"); });
+            builder.Entity<ApplicationUser>(b => { b.ToTable("User"); }).HasDefaultSchema("users");
 
-            builder.Entity<IdentityUserClaim<string>>(b => { b.ToTable("UserClaim"); });
+            builder.Entity<IdentityUserClaim<string>>(b => { b.ToTable("UserClaim"); }).HasDefaultSchema("users");;
 
-            builder.Entity<IdentityUserLogin<string>>(b => { b.ToTable("UserLogin"); });
+            builder.Entity<IdentityUserLogin<string>>(b => { b.ToTable("UserLogin"); }).HasDefaultSchema("users");;
 
-            builder.Entity<IdentityUserToken<string>>(b => { b.ToTable("UserToken"); });
+            builder.Entity<IdentityUserToken<string>>(b => { b.ToTable("UserToken"); }).HasDefaultSchema("users");;
 
-            builder.Entity<ApplicationRole>(b => { b.ToTable("Role"); });
+            builder.Entity<ApplicationRole>(b => { b.ToTable("Role"); }).HasDefaultSchema("users");;
 
-            builder.Entity<IdentityRoleClaim<string>>(b => { b.ToTable("RoleClaim"); });
+            builder.Entity<IdentityRoleClaim<string>>(b => { b.ToTable("RoleClaim"); }).HasDefaultSchema("users");;
 
-            builder.Entity<IdentityUserRole<string>>(b => { b.ToTable("UserRoles"); });
+            builder.Entity<IdentityUserRole<string>>(b => { b.ToTable("UserRoles"); }).HasDefaultSchema("users");;
         }
-
-        // // https://github.com/NickStrupat/EntityFramework.Triggers
-        // #region override Save*** methods to catch save events in Triggers, otherwise ApplicationUser not be catched because SecurityDbContext can't inherit DbContextWithTriggers
-        // public override int SaveChanges()
-        // {
-        //     return this.SaveChangesWithTriggers(base.SaveChanges);
-        // }
-        // public override int SaveChanges(bool acceptAllChangesOnSuccess)
-        // {
-        //     return this.SaveChangesWithTriggers(base.SaveChanges, acceptAllChangesOnSuccess);
-        // }
-        // public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        // {
-        //     return this.SaveChangesWithTriggersAsync(base.SaveChangesAsync, true, cancellationToken);
-        // }
-        // public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
-        // {
-        //     return this.SaveChangesWithTriggersAsync(base.SaveChangesAsync, acceptAllChangesOnSuccess, cancellationToken);
-        // }
-        // #endregion
     }
 }

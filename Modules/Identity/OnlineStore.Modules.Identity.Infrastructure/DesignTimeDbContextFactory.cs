@@ -11,7 +11,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure
 
             builder.UseSqlServer(
                 "Data Source=.\\sqlexpress;Initial Catalog=OnlineStore;Integrated Security=True;MultipleActiveResultSets=True;Connect Timeout=30");
-            builder.UseOpenIddict();
             return new IdentityDbContext(builder.Options);
         }
     }

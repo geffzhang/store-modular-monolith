@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Domain;
+using Common.Utils.Reflection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Modules.Identity.Application.Roles.Services;
@@ -32,7 +33,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
                 throw new NotSupportedException();
             }
 
-            var result = AbstractTypeFactory<RoleSearchResult>.TryCreateInstance();
+            var result = TypeFactory<RoleSearchResult>.TryCreateInstance();
             var query = _roleManager.Roles;
             if (criteria.Keyword != null)
             {

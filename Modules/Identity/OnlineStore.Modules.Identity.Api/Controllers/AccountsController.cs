@@ -82,7 +82,7 @@ namespace OnlineStore.Modules.Identity.Api.Controllers
                 var user = await _userManager.FindByNameAsync(request.UserName);
                 await _commandProcessor.PublishDomainEventAsync(new UserLoggedIn(user.Id));
                 //Do not allow login to admin customers and rejected users
-                if (await _signInManager.UserManager.IsInRoleAsync(user, SecurityConstants.SystemRoles.Customer))
+                if (await _signInManager.UserManager.IsInRoleAsync(user, SecurityConstants.SystemRoles.CUSTOMER))
                     loginResult = SignInResult.NotAllowed;
             }
 
@@ -114,7 +114,7 @@ namespace OnlineStore.Modules.Identity.Api.Controllers
         /// <param name="request">SearchAsync parameters.</param>
         [HttpPost]
         [Route("roles/search")]
-        [Authorize(SecurityConstants.Permissions.SecurityQuery)]
+        [Authorize(SecurityConstants.Permissions.SECURITY_QUERY)]
         public async Task<ActionResult<RoleSearchResult>> SearchRoles([FromBody] RoleSearchCriteria request)
         {
             var result = await _roleSearchService.SearchRolesAsync(request);
@@ -127,7 +127,7 @@ namespace OnlineStore.Modules.Identity.Api.Controllers
         /// <param name="roleName"></param>
         [HttpGet]
         [Route("roles/{roleName}")]
-        [Authorize(SecurityConstants.Permissions.SecurityQuery)]
+        [Authorize(SecurityConstants.Permissions.SECURITY_QUERY)]
         public async Task<ActionResult<ApplicationRole>> GetRole([FromRoute] string roleName)
         {
             var result = await _roleManager.FindByNameAsync(roleName);
@@ -140,7 +140,7 @@ namespace OnlineStore.Modules.Identity.Api.Controllers
         /// <param name="roleIds">An array of role IDs.</param>
         [HttpDelete]
         [Route("roles")]
-        [Authorize(SecurityConstants.Permissions.SecurityDelete)]
+        [Authorize(SecurityConstants.Permissions.SECURITY_DELETE)]
         [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
         public async Task<ActionResult> DeleteRoles([FromQuery(Name = "ids")] string[] roleIds)
         {
@@ -165,7 +165,7 @@ namespace OnlineStore.Modules.Identity.Api.Controllers
         /// <param name="role"></param>
         [HttpPut]
         [Route("roles")]
-        [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
+        [Authorize(SecurityConstants.Permissions.SECURITY_UPDATE)]
         public async Task<ActionResult<SecurityResult>> UpdateRole([FromBody] ApplicationRole role)
         {
             IdentityResult result;

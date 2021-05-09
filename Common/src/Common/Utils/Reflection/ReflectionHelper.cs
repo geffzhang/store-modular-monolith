@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Common.Utils
+namespace Common.Utils.Reflection
 {
     public static class ReflectionHelper
     {

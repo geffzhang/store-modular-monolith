@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Common.Domain;
+using Common.Utils.Reflection;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Permissions;
 using OnlineStore.Modules.Identity.Application.Permissions.Services;
@@ -36,9 +37,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
 
         public async Task SeedAllAsync(CancellationToken cancellationToken)
         {
+            await SeedPermissions(cancellationToken);
             await SeedRolesAsync(cancellationToken);
             await SeedUsersAsync(cancellationToken);
-            await SeedPermissions(cancellationToken);
         }
 
         private async Task SeedUsersAsync(CancellationToken cancellationToken)
@@ -85,7 +86,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
 
         private Task SeedPermissions(CancellationToken cancellationToken)
         {
-            AbstractTypeFactory<PermissionScope>.RegisterType<PermissionScope>();
+            TypeFactory<PermissionScope>.RegisterType<PermissionScope>();
             _permissionService.RegisterPermissions(Permission.GetAllPermissions().ToArray());
 
             return Task.CompletedTask;

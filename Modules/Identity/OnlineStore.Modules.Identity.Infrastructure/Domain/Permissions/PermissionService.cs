@@ -7,7 +7,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions
 {
     public class PermissionService : IPermissionService
     {
-        private readonly List<Permission> _permissions = new List<Permission>();
+        private readonly List<Permission> _permissions = new();
 
         public IEnumerable<Permission> GetAllPermissions()
         {

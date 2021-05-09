@@ -13,7 +13,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, TRequirement requirement)
         {
             var limitedPermissionsClaim =
-                context.User.FindFirstValue(Identity.Domain.SecurityConstants.Claims.LimitedPermissionsClaimType);
+                context.User.FindFirstValue(Identity.Domain.SecurityConstants.Claims.LIMITED_PERMISSIONS_CLAIM_TYPE);
 
             // LimitedPermissions claims that will be granted to the user by cookies when bearer token authentication is enabled.
             //
@@ -23,7 +23,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
             if (limitedPermissionsClaim != null)
             {
                 var limitedPermissions =
-                    limitedPermissionsClaim.Split(Identity.Domain.SecurityConstants.Claims.PermissionClaimTypeDelimiter,
+                    limitedPermissionsClaim.Split(Identity.Domain.SecurityConstants.Claims.PERMISSION_CLAIM_TYPE_DELIMITER,
                         StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
 
                 if (limitedPermissions.Contains(requirement.Permission))

@@ -16,8 +16,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings
 
         public static Role ToRole(this ApplicationRole role)
         {
-            return Role.Of(role.Name, role.Description, role.Permissions.ToArray());
+            return Role.Of(role.Name, role.Id, role.Description, role.Permissions.ToArray());
         }
-
     }
 }

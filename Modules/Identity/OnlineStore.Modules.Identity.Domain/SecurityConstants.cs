@@ -4,35 +4,25 @@ using OnlineStore.Modules.Identity.Domain.Users;
 
 namespace OnlineStore.Modules.Identity.Domain
 {
-    public class SecurityConstants
+    public static class SecurityConstants
     {
-        public const string AnonymousUsername = "Anonymous";
+        public const string ANONYMOUS_USERNAME = "Anonymous";
 
         public static class Claims
         {
-            public const string PermissionClaimType = "permission";
-            public const char PermissionClaimTypeDelimiter = ';';
-            public const string UserNameClaimType = "username";
-            public const string LimitedPermissionsClaimType = "limited_permissions";
+            public const string PERMISSION_CLAIM_TYPE = "permission";
+            public const char PERMISSION_CLAIM_TYPE_DELIMITER = ';';
+            public const string USER_NAME_CLAIM_TYPE = "username";
+            public const string LIMITED_PERMISSIONS_CLAIM_TYPE = "limited_permissions";
         }
 
         public static class Roles
         {
             public static readonly Role.Role Customer =
-                Role.Role.Of(nameof(Customer), "Customer Role.",
-                    Permission.Of(Permissions.CanCreateUsers, nameof(Customer)),
-                    Permission.Of(Permissions.CanDeleteUsers, nameof(Customer)),
-                    Permission.Of(Permissions.CanEditUsers, nameof(Customer)),
-                    Permission.Of(Permissions.CanInviteUsers, nameof(Customer)),
-                    Permission.Of(Permissions.CanViewUsers, nameof(Customer)),
-                    Permission.Of(Permissions.CanSeeUsersDetail, nameof(Customer)));
+                Role.Role.Of(nameof(Customer), nameof(Customer), "Customer Role.");
 
             public static readonly Role.Role Admin =
-                Role.Role.Of(nameof(Admin), "Admins Role.", Permission.Of(Permissions.CanEditAdmins, nameof(Admin)),
-                    Permission.Of(Permissions.CanCreateAdmins, nameof(Admin)),
-                    Permission.Of(Permissions.CanDeleteAdmins, nameof(Admin)),
-                    Permission.Of(Permissions.CanViewAdmins, nameof(Admin)),
-                    Permission.Of(Permissions.CanSeeAdminsDetail, nameof(Admin)));
+                Role.Role.Of(nameof(Admin), nameof(Admin), "Admins Role.");
 
 
             public static readonly IEnumerable<Role.Role> AllRoles = new List<Role.Role>() {Customer, Admin};
@@ -42,61 +32,61 @@ namespace OnlineStore.Modules.Identity.Domain
 
         public static class SystemRoles
         {
-            public const string Customer = "__customer";
-            public const string Manager = "__manager";
-            public const string Administrator = "__administrator";
+            public const string CUSTOMER = "__customer";
+            public const string MANAGER = "__manager";
+            public const string ADMINISTRATOR = "__administrator";
         }
 
         public static class Permissions
         {
-            public const string ModuleQuery = "module:read";
-            public const string ModuleAccess = "module:access";
-            public const string ModuleManage = "module:manage";
+            public const string MODULE_QUERY = "module:read";
+            public const string MODULE_ACCESS = "module:access";
+            public const string MODULE_MANAGE = "module:manage";
 
-            public const string SettingQuery = "setting:read";
-            public const string SettingAccess = "setting:access";
-            public const string SettingUpdate = "setting:update";
+            public const string SETTING_QUERY = "setting:read";
+            public const string SETTING_ACCESS = "setting:access";
+            public const string SETTING_UPDATE = "setting:update";
 
             // Users Permissions
-            public const string CanSeeUsersDetail = "user:view";
-            public const string CanEditUsers = "user:edit";
-            public const string CanInviteUsers = "user:invite";
-            public const string CanCreateUsers = "user:create";
-            public const string CanDeleteUsers = "user:delete";
-            public const string CanViewUsers = "user:view";
+            public const string CAN_SEE_USERS_DETAIL = "user:view";
+            public const string CAN_EDIT_USERS = "user:edit";
+            public const string CAN_INVITE_USERS = "user:invite";
+            public const string CAN_CREATE_USERS = "user:create";
+            public const string CAN_DELETE_USERS = "user:delete";
+            public const string CAN_VIEW_USERS = "user:view";
 
             // Admin Permissions
-            public const string CanSeeAdminsDetail = "admin:view";
-            public const string CanEditAdmins = "admin:edit";
-            public const string CanCreateAdmins = "admin:create";
-            public const string CanDeleteAdmins = "admin:delete";
-            public const string CanViewAdmins = "admin:view";
+            public const string CAN_SEE_ADMINS_DETAIL = "admin:view";
+            public const string CAN_EDIT_ADMINS = "admin:edit";
+            public const string CAN_CREATE_ADMINS = "admin:create";
+            public const string CAN_DELETE_ADMINS = "admin:delete";
+            public const string CAN_VIEW_ADMINS = "admin:view";
 
-            //
-            public const string SecurityQuery = "security:read";
-            public const string SecurityCreate = "security:create";
-            public const string SecurityAccess = "security:access";
-            public const string SecurityUpdate = "security:update";
-            public const string SecurityDelete = "security:delete";
-            public const string SecurityVerifyEmail = "security:verifyEmail";
-            public const string SecurityLoginOnBehalf = "security:loginOnBehalf";
+            // Security
+            public const string SECURITY_QUERY = "security:read";
+            public const string SECURITY_CREATE = "security:create";
+            public const string SECURITY_ACCESS = "security:access";
+            public const string SECURITY_UPDATE = "security:update";
+            public const string SECURITY_DELETE = "security:delete";
+            public const string SECURITY_VERIFY_EMAIL = "security:verifyEmail";
+            public const string SECURITY_LOGIN_ON_BEHALF = "security:loginOnBehalf";
 
             public static string[] AllPermissions { get; } = new[]
             {
-                CanSeeUsersDetail, CanEditUsers, CanInviteUsers, CanCreateUsers, CanDeleteUsers, CanViewUsers,
-                CanSeeAdminsDetail, CanEditAdmins, CanCreateAdmins, CanDeleteAdmins, CanViewAdmins, ModuleQuery,
-                ModuleAccess, ModuleManage, SettingQuery, SettingAccess, SettingUpdate, SecurityQuery,
-                SecurityCreate, SecurityAccess, SecurityUpdate, SecurityDelete, SecurityVerifyEmail,
-                SecurityLoginOnBehalf
+                CAN_SEE_USERS_DETAIL, CAN_EDIT_USERS, CAN_INVITE_USERS, CAN_CREATE_USERS, CAN_DELETE_USERS, CAN_VIEW_USERS,
+                CAN_SEE_ADMINS_DETAIL, CAN_EDIT_ADMINS, CAN_CREATE_ADMINS, CAN_DELETE_ADMINS, CAN_VIEW_ADMINS, MODULE_QUERY,
+                MODULE_ACCESS, MODULE_MANAGE, SETTING_QUERY, SETTING_ACCESS, SETTING_UPDATE, SECURITY_QUERY,
+                SECURITY_CREATE, SECURITY_ACCESS, SECURITY_UPDATE, SECURITY_DELETE, SECURITY_VERIFY_EMAIL,
+                SECURITY_LOGIN_ON_BEHALF
             };
         }
 
         public static class Changes
         {
-            public const string UserUpdated = "UserUpdated";
-            public const string UserPasswordChanged = "UserPasswordChanged";
-            public const string RoleAdded = "RoleAdded";
-            public const string RoleRemoved = "RoleRemoved";
+            public const string USER_UPDATED = "UserUpdated";
+            public const string USER_PASSWORD_CHANGED = "UserPasswordChanged";
+            public const string ROLE_ADDED = "RoleAdded";
+            public const string ROLE_REMOVED = "RoleRemoved";
         }
     }
 }

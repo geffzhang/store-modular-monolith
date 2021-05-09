@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common.Domain;
 using Common.Utils.Extensions;
+using Common.Utils.Reflection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Modules.Identity.Application.Search.Dtos;
@@ -36,7 +37,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
                     throw new NotSupportedException();
                 }
 
-                var result = AbstractTypeFactory<UserSearchResult>.TryCreateInstance();
+                var result = TypeFactory<UserSearchResult>.TryCreateInstance();
                 var query = userManager.Users;
                 if (criteria.Keyword != null)
                 {

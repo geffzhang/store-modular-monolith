@@ -173,11 +173,11 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
                 //Load role claims and convert it to the permissions and assign to role
                 var storedPermissions = (await GetClaimsAsync(role))
                     .Select(x => Permission.TryCreateFromClaim(x, _jsonOptions.SerializerSettings)).ToList();
-                var knownPermissionsDict = _knownPermissions.GetAllPermissions().Select(x => x.Clone() as Permission)
+                var knownPermissionsDict = _knownPermissions.GetAllPermissions().Distinct()
                     .ToDictionary(x => x.Name, x => x);
                 foreach (var storedPermission in storedPermissions)
                 {
-                    //Copy all meta information from registered to stored (for particular role) permission
+                    //Copy all meta information (like GroupName) from registered to stored (for particular role) permission
                     var knownPermission = knownPermissionsDict[storedPermission.Name];
                     if (knownPermission != null)
                     {

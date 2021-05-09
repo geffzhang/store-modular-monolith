@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Common.Utils.Extensions;
 
-namespace Common.Domain
+namespace Common.Utils.Reflection
 {
+    //https://cephas.net/blog/2004/01/14/net-reflection-and-multiple-assemblies/
     /// <summary>
     /// Abstract static type factory. With supports of type overriding and sets special factories.
     /// </summary>
     /// <typeparam name="BaseType"></typeparam>
-    public static class AbstractTypeFactory<BaseType>
+    public static class TypeFactory<BaseType>
     {
         private static readonly List<TypeInfo<BaseType>> _typeInfos = new List<TypeInfo<BaseType>>();
 
@@ -47,7 +48,7 @@ namespace Common.Domain
         }
 
         /// <summary>
-        /// Override already registered  type to new 
+        /// Override already registered  type to new
         /// </summary>
         /// <returns>TypeInfo instance to continue configuration through fluent syntax</returns>
         public static TypeInfo<BaseType> OverrideType<OldType, NewType>() where NewType : BaseType
@@ -204,7 +205,7 @@ namespace Common.Domain
 
         public bool IsAssignableTo(string typeName)
         {
-            return Type.GetTypeInheritanceChainTo(typeof(BaseType)).Concat(new[] {typeof(BaseType)})
+            return TypeExtensions.GetTypeInheritanceChainTo(Type, typeof(BaseType)).Concat(new[] {typeof(BaseType)})
                 .Any(t => typeName.EqualsInvariant(t.Name));
         }
 
@@ -212,7 +213,7 @@ namespace Common.Domain
         {
             get
             {
-                return Type.GetTypeInheritanceChainTo(typeof(BaseType)).ToArray();
+                return TypeExtensions.GetTypeInheritanceChainTo(Type, typeof(BaseType)).ToArray();
             }
         }
     }
