@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace OnlineStore.Modules.Identity.Api.Models
+namespace OnlineStore.Modules.Identity.Application.Users.Dtos
 {
-    public class UserDetail 
+    public class UserDetailDto
     {
         public string Id { get; set; }
         public IList<string> Permissions { get; set; } = new List<string>();

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Identity.Application.Search.Dtos
+namespace OnlineStore.Modules.Identity.Api.Users.Models
 {
-    public class UserSearchCriteria : SearchCriteriaBase
+    public class UserSearchRequest : SearchCriteriaBase
     {
         public string MemberId { get; set; }
         public IList<string> MemberIds { get; set; }
