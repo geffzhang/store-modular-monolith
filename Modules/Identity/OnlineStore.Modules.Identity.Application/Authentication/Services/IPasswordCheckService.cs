@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using OnlineStore.Modules.Identity.Application.Authentication.Dtos;
 
-namespace OnlineStore.Modules.Identity.Application.Authentication
+namespace OnlineStore.Modules.Identity.Application.Authentication.Services
 {
     /// <summary>
     /// Service for checking password against password security policies.

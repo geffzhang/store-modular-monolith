@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using OnlineStore.Modules.Identity.Domain.Users;
+﻿using System.Collections.Generic;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Application.Users.Dtos
 {
     public class CreateUserResponse
     {
-        public UserId Id { get; }
-        public bool Success { get; }
-        public IEnumerable<string> Errors { get; }
-
-        public CreateUserResponse(UserId id, bool success = false, IEnumerable<string> errors = null)
-        {
-            Id = id;
-            Success = success;
-            Errors = errors;
-        }
+        public UserId Id { get; set; }
+        public bool Success { get; set; }
+        public IEnumerable<string> Errors { get; set; }
     }
 }

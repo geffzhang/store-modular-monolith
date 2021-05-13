@@ -49,16 +49,30 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
                 appUser.Roles.Select(x => x.Name).ToList(), appUser.LockoutEnabled, appUser.EmailConfirmed,
                 appUser.PhotoUrl, appUser.Status, appUser.ModifiedBy, appUser.ModifiedDate);
         }
-
-        public static RegisterNewUserCommand ToRegisterNewUserCommand(this RegisterNewUserRequest request)
+        public static UserDto ToUserDto(this ApplicationUser appUser)
         {
-            var command = new RegisterNewUserCommand(request.Id.BindId(), request.Email, request.FirstName, request.LastName,
-                request.Name, request.UserName, request.Password, request.CreatedDate, request.CreatedBy,
-                request.Permissions.ToList(), request.UserType, request.IsAdministrator, request.IsActive,
-                request.Roles.ToList(), request.LockoutEnabled, request.EmailConfirmed, request.PhotoUrl,
-                request.Status, request.ModifiedBy, request.ModifiedDate);
+            var userType = EnumUtility.SafeParse(appUser.UserType, UserType.Customer);
 
-            return command;
+            return new UserDto()
+                {
+                    Id = Guid.Parse(appUser.Id),
+                    Name = appUser.UserName,
+                    FirstName = appUser.FirstName,
+                    LastName = appUser.LastName,
+                    Email = appUser.Email,
+                    Password = appUser.Password,
+                    Permissions = appUser.Permissions.Select(x => x.Name).ToList(),
+                    Roles = appUser.Roles.Select(x => x.Name).ToList(),
+                    CreatedDate = appUser.CreatedDate,
+                    CreatedBy = appUser.CreatedBy,
+                    EmailConfirmed = appUser.EmailConfirmed,
+                    IsActive = appUser.IsActive,
+                    IsAdministrator = appUser.IsAdministrator,
+                    MemberId = appUser.MemberId,
+                    PhotoUrl = appUser.PhotoUrl,
+                    UserName = appUser.UserName,
+                    UserType = userType,
+                };
         }
     }
 }

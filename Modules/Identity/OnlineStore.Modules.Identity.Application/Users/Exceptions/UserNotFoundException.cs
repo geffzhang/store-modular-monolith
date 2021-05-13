@@ -1,11 +1,14 @@
 using System;
-using Trill.Shared.Abstractions;
+using Common.Exceptions;
 
-namespace Trill.Modules.Stories.Application.Exceptions
+namespace OnlineStore.Modules.Identity.Application.Users.Exceptions
 {
-    internal class UserNotFoundException : AppException
+    public class UserNotFoundException : AppException
     {
         public UserNotFoundException(Guid userId) : base($"User with ID: '{userId}' was not found.")
+        {
+        }
+        public UserNotFoundException(string userName) : base($"UserName: '{userName}' was not found.")
         {
         }
     }

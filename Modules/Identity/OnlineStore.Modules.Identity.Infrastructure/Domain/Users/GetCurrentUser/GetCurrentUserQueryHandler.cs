@@ -1,24 +1,43 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Common.Messaging.Queries;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Application.Users.Dtos;
+using OnlineStore.Modules.Identity.Application.Users.Exceptions;
+using OnlineStore.Modules.Identity.Application.Users.GetCurrentUser;
+using OnlineStore.Modules.Identity.Application.Users.Services;
+using OnlineStore.Modules.Identity.Domain.Users.Types;
+using OnlineStore.Modules.Identity.Infrastructure.Authentication;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Application.Users.GetCurrentUser
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.GetCurrentUser
 {
-    public class GetCurrentUserQueryHandler: IQueryHandler<GetCurrentUserQuery,UserDetailDto>
+    public class GetCurrentUserQueryHandler : IQueryHandler<GetCurrentUserQuery, UserDetailDto>
     {
-        public GetCurrentUserQueryHandler(Usermana)
-        {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserNameResolver _userNameResolver;
+        private readonly UserOptionsExtended _userOptionsExtended;
 
-        }
-        public Task<UserDetailDto> HandleAsync(GetCurrentUserQuery query)
+        public GetCurrentUserQueryHandler(UserManager<ApplicationUser> userManager,
+            IUserNameResolver userNameResolver,
+            IOptions<UserOptionsExtended> userOptionsExtended)
         {
-            var user = await _userManager.FindByNameAsync(User?.Identity?.Name);
-            if (user == null)
+            _userManager = userManager;
+            _userNameResolver = userNameResolver;
+            _userOptionsExtended = userOptionsExtended.Value;
+        }
+
+        public async Task<UserDetailDto> HandleAsync(GetCurrentUserQuery query)
+        {
+            var userName = _userNameResolver.GetCurrentUserName();
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user is null)
             {
-                return NotFound();
+                throw new UserNotFoundException(userName);
             }
 
-            var result = new UserDetailResponse
+            var result = new UserDetailDto()
             {
                 Id = user.Id,
                 IsAdministrator = user.IsAdministrator,
@@ -29,6 +48,7 @@ namespace OnlineStore.Modules.Identity.Application.Users.GetCurrentUser
                 Permissions = user.Roles.SelectMany(x => x.Permissions).Select(x => x.Name).Distinct().ToArray()
             };
 
+            return result;
         }
     }
 }

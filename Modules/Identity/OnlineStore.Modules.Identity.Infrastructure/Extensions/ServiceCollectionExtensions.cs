@@ -45,17 +45,10 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
                 });
             });
 
-            services.TryAddScoped<IUserNameResolver, HttpContextUserResolver>();
+            services.TryAddScoped<IUserNameResolver, UserNameResolver>();
             services.TryAddScoped<IPermissionService, PermissionService>();
             services.TryAddScoped<IRoleSearchService, RoleSearchService>();
             services.TryAddTransient<IUserRepository, UserRepository>();
-
-            //Register as singleton because this abstraction can be used as dependency in singleton services
-            services.TryAddSingleton<IUserSearchService>(provider =>
-            {
-                return new UserSearchService(provider.CreateScope().ServiceProvider
-                    .GetService<Func<UserManager<ApplicationUser>>>());
-            });
 
             //Identity dependencies override
             services.TryAddScoped<RoleManager<ApplicationRole>, CustomRoleManager>();

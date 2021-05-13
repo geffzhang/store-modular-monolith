@@ -17,7 +17,7 @@
 //             _repositoryFactory = repositoryFactory;
 //         }
 //
-//         public async Task<UserApiKeySearchResult> SearchUserApiKeysAsync(UserApiKeySearchCriteria criteria)
+//         public async Task<UserApiKeySearchResponse> SearchUserApiKeysAsync(UserApiKeySearchCriteria criteria)
 //         {
 //             var repository = _repositoryFactory();
 //             
@@ -26,7 +26,7 @@
 //                     throw new ArgumentNullException(nameof(criteria));
 //                 }
 //
-//                 var result = AbstractTypeFactory<UserApiKeySearchResult>.TryCreateInstance();
+//                 var result = AbstractTypeFactory<UserApiKeySearchResponse>.TryCreateInstance();
 //
 //                 var query = repository.UserApiKeys.AsNoTracking();
 //                 result.TotalCount = await query.CountAsync();

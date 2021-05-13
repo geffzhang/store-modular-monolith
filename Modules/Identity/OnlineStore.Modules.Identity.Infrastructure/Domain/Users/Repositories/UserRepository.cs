@@ -12,12 +12,10 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly IdentityDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public UserRepository(IdentityDbContext userAccessContext, UserManager<ApplicationUser> userManager)
+        public UserRepository(UserManager<ApplicationUser> userManager)
         {
-            _context = userAccessContext;
             _userManager = userManager;
         }
 
@@ -29,20 +27,37 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Repositories
                 identityResult = await _userManager.CreateAsync(appUser);
             else
                 identityResult = await _userManager.CreateAsync(appUser, appUser.Password);
-            return new CreateUserResponse(Guid.Parse(appUser.Id), identityResult.Succeeded,
-                identityResult.Succeeded ? null : identityResult.Errors.Select(e => e.Description));
+
+            return new CreateUserResponse
+            {
+                Id = Guid.Parse(appUser.Id),
+                Errors = identityResult.Succeeded ? null : identityResult.Errors.Select(e => e.Description),
+                Success = identityResult.Succeeded
+            };
         }
 
-        public async Task<User> FindByNameAsync(string userName)
+        public async Task<UserDto> FindByNameAsync(string userName)
         {
-           var appUser = await _userManager.FindByNameAsync(userName);
-           return appUser.ToUser();
+            var appUser = await _userManager.FindByNameAsync(userName);
+            return appUser.ToUserDto();
         }
 
-        public async Task<User> FindByIdAsync(string id)
+        public async Task<UserDto> FindByIdAsync(string id)
         {
             var appUser = await _userManager.FindByIdAsync(id);
-            return appUser.ToUser();
+            return appUser.ToUserDto();
+        }
+
+        public async Task<UserDto> FindByEmailAsync(string email)
+        {
+            var appUser = await _userManager.FindByEmailAsync(email);
+            return appUser.ToUserDto();
+        }
+
+        public async Task<UserDto> FindByLoginAsync(string loginProvider, string providerKey)
+        {
+            var appUser = await _userManager.FindByLoginAsync(loginProvider, providerKey);
+            return appUser.ToUserDto();
         }
 
         public async Task<bool> CheckPassword(User user, string password)

@@ -35,14 +35,13 @@ namespace OnlineStore.Modules.Identity.Api.Controllers
 
         private readonly UserOptionsExtended _userOptionsExtended;
         private readonly IPermissionService _permissionsProvider;
-        private readonly IUserSearchService _userSearchService;
         private readonly IRoleSearchService _roleSearchService;
         private readonly IPasswordValidator<ApplicationUser> _passwordCheckService;
         private readonly ICommandProcessor _commandProcessor;
 
         public AccountsController(SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
-            IPermissionService permissionsProvider, IUserSearchService userSearchService,
+            IPermissionService permissionsProvider,
             IRoleSearchService roleSearchService,
             IOptions<Infrastructure.Authorization.AuthorizationOptions> securityOptions,
             IOptions<UserOptionsExtended> userOptionsExtended,
@@ -57,7 +56,6 @@ namespace OnlineStore.Modules.Identity.Api.Controllers
             _passwordCheckService = passwordCheckService;
             _permissionsProvider = permissionsProvider;
             _roleManager = roleManager;
-            _userSearchService = userSearchService;
             _roleSearchService = roleSearchService;
             _commandProcessor = commandProcessor;
             _authorizationService = authorizationService;

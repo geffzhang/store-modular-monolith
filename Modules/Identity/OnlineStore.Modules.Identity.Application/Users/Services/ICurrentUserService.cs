@@ -1,7 +1,13 @@
-﻿namespace OnlineStore.Modules.Identity.Application.Users.Services
+﻿using System.Collections.Generic;
+
+namespace OnlineStore.Modules.Identity.Application.Users.Services
 {
-    public interface ICurrentUser
+    public interface ICurrentUserService
     {
-        string UserName { get; set; }
+        public string UserId { get; }
+
+        public bool IsAuthenticated { get; }
+
+        public List<KeyValuePair<string, string>> Claims { get; }
     }
 }

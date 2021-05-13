@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using OnlineStore.Modules.Identity.Application.Users.Services;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 {
     public class UserNameResolver : IUserNameResolver
     {
@@ -17,20 +17,16 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users
             string result = "unknown";
 
             var context = _httpContextAccessor.HttpContext;
-            if (context != null && context.Request != null && context.User != null)
+            var identity = context?.User.Identity;
+            if (identity is {IsAuthenticated: true})
             {
-                var identity = context.User.Identity;
-                if (identity != null && identity.IsAuthenticated)
+                result = context.Request.Headers["User-Name"];
+                if (string.IsNullOrEmpty(result))
                 {
-                    result = context.Request.Headers["User-Name"];
-                    if (string.IsNullOrEmpty(result))
-                    {
-                        result = identity.Name;
-                    }
+                    result = identity.Name;
                 }
             }
             return result;
-
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
-namespace OnlineStore.Modules.Identity.Application.Authentication
+namespace OnlineStore.Modules.Identity.Application.Authentication.Services
 {
     public class PasswordManager
     {

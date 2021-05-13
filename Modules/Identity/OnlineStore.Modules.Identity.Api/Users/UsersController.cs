@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OAuth.Validation;
 using AspNet.Security.OpenIdConnect.Primitives;
+using AutoMapper;
 using Common;
+using Common.Messaging;
 using Common.Utils.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -13,14 +16,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using OnlineStore.Modules.Identity.Api.Models;
+using OnlineStore.Modules.Identity.Api.Users.Models;
 using OnlineStore.Modules.Identity.Application.Authentication.Dtos;
-using OnlineStore.Modules.Identity.Application.Permissions;
 using OnlineStore.Modules.Identity.Application.Permissions.Services;
 using OnlineStore.Modules.Identity.Application.Roles.Services;
-using OnlineStore.Modules.Identity.Application.Search;
-using OnlineStore.Modules.Identity.Application.Search.Dtos;
 using OnlineStore.Modules.Identity.Application.Users.Dtos;
+using OnlineStore.Modules.Identity.Application.Users.GetCurrentUser;
+using OnlineStore.Modules.Identity.Application.Users.GetUserByEmail;
+using OnlineStore.Modules.Identity.Application.Users.GetUserById;
+using OnlineStore.Modules.Identity.Application.Users.GetUserByLogin;
+using OnlineStore.Modules.Identity.Application.Users.GetUserByName;
+using OnlineStore.Modules.Identity.Application.Users.GetUserInfo;
 using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
+using OnlineStore.Modules.Identity.Application.Users.SearchUsers;
 using OnlineStore.Modules.Identity.Application.Users.Services;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Domain.Permissions;
@@ -28,9 +36,7 @@ using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure;
 using OnlineStore.Modules.Identity.Infrastructure.Authentication;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 using OnlineStore.Modules.Identity.Infrastructure.Extensions;
 using OpenIddict.Abstractions;
@@ -51,20 +57,23 @@ namespace OnlineStore.Modules.Identity.Api.Users
 
         private readonly UserOptionsExtended _userOptionsExtended;
         private readonly IPermissionService _permissionsProvider;
-        private readonly IUserSearchService _userSearchService;
         private readonly IRoleSearchService _roleSearchService;
         private readonly IPasswordValidator<ApplicationUser> _passwordCheckService;
         private readonly ICommandProcessor _commandProcessor;
+        private readonly IQueryProcessor _queryProcessor;
+        private readonly IMapper _mapper;
 
         public UsersController(SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
-            IPermissionService permissionsProvider, IUserSearchService userSearchService,
+            IPermissionService permissionsProvider,
             IRoleSearchService roleSearchService,
             IOptions<Infrastructure.Authorization.AuthorizationOptions> securityOptions,
             IOptions<UserOptionsExtended> userOptionsExtended,
             IPasswordValidator<ApplicationUser> passwordCheckService,
             IAuthorizationService authorizationService,
-            ICommandProcessor commandProcessor)
+            ICommandProcessor commandProcessor,
+            IQueryProcessor queryProcessor,
+            IMapper mapper)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -73,9 +82,10 @@ namespace OnlineStore.Modules.Identity.Api.Users
             _passwordCheckService = passwordCheckService;
             _permissionsProvider = permissionsProvider;
             _roleManager = roleManager;
-            _userSearchService = userSearchService;
             _roleSearchService = roleSearchService;
             _commandProcessor = commandProcessor;
+            _queryProcessor = queryProcessor;
+            _mapper = mapper;
             _authorizationService = authorizationService;
         }
 
@@ -86,24 +96,11 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [HttpGet]
         [Authorize]
         [Route("currentuser")]
-        public async Task<ActionResult<UserDetail>> GetCurrentUser()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UserDetailDto>> GetCurrentUser()
         {
-            var user = await _userManager.FindByNameAsync(User?.Identity?.Name);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            var result = new UserDetail
-            {
-                Id = user.Id,
-                IsAdministrator = user.IsAdministrator,
-                UserName = user.UserName,
-                PasswordExpired = user.PasswordExpired,
-                DaysTillPasswordExpiry =
-                    PasswordExpiryHelper.ContDaysTillPasswordExpiry(user, _userOptionsExtended),
-                Permissions = user.Roles.SelectMany(x => x.Permissions).Select(x => x.Name).Distinct().ToArray()
-            };
+            var result = await _queryProcessor.QueryAsync(new GetCurrentUserQuery());
 
             return Ok(result);
         }
@@ -111,60 +108,29 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [HttpGet]
         [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
         [Route("userinfo")]
-        public async Task<ActionResult<Claim[]>> Userinfo()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IList<Claim>>> Userinfo()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return BadRequest(new OpenIdConnectResponse
-                {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "The user profile is no longer available."
-                });
-            }
+            var result = await _queryProcessor.QueryAsync(new GetUserInfoQuery());
 
-            var claims = new JObject
-            {
-                //TODO: replace to PrinciplaClaims
-
-                // Note: the "sub" claim is a mandatory claim and must be included in the JSON response.
-                [OpenIdConnectConstants.Claims.Subject] = await _userManager.GetUserIdAsync(user)
-            };
-
-            if (User.HasClaim(OpenIdConnectConstants.Claims.Scope, OpenIdConnectConstants.Scopes.Email))
-            {
-                claims[OpenIdConnectConstants.Claims.Email] = await _userManager.GetEmailAsync(user);
-                claims[OpenIdConnectConstants.Claims.EmailVerified] = await _userManager.IsEmailConfirmedAsync(user);
-            }
-
-            if (User.HasClaim(OpenIdConnectConstants.Claims.Scope, OpenIdConnectConstants.Scopes.Phone))
-            {
-                claims[OpenIdConnectConstants.Claims.PhoneNumber] = await _userManager.GetPhoneNumberAsync(user);
-                claims[OpenIdConnectConstants.Claims.PhoneNumberVerified] =
-                    await _userManager.IsPhoneNumberConfirmedAsync(user);
-            }
-
-            if (User.HasClaim(OpenIdConnectConstants.Claims.Scope, OpenIddictConstants.Scopes.Roles))
-            {
-                claims["roles"] = JArray.FromObject(await _userManager.GetRolesAsync(user));
-            }
-
-            // Note: the complete list of standard claims supported by the OpenID Connect specification
-            // can be found here: http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
-
-            return new JsonResult(claims);
+            return Ok(result);
         }
 
         /// <summary>
         /// SearchAsync users by keyword
         /// </summary>
-        /// <param name="criteria">Search criteria.</param>
+        /// <param name="userSearchRequest"></param>
         [HttpPost]
         [Route("search")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
-        public async Task<ActionResult<UserSearchResult>> SearchUsers([FromBody] UserSearchCriteria criteria)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UserSearchResponse>> SearchUsers([FromBody] UserSearchRequest userSearchRequest)
         {
-            var result = await _userSearchService.SearchUsersAsync(criteria);
+            var searchQuery = _mapper.Map<SearchUsersQuery>(userSearchRequest);
+            var result = await _queryProcessor.QueryAsync(searchQuery);
+
             return Ok(result);
         }
 
@@ -175,10 +141,13 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [HttpGet]
         [Route("{userName}")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
-        public async Task<ActionResult<ApplicationUser>> GetUserByName([FromRoute] string userName)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UserDto>> GetUserByName([FromRoute] string userName)
         {
-            var retVal = await _userManager.FindByNameAsync(userName);
-            return Ok(retVal);
+            var result = await _queryProcessor.QueryAsync(new GetUserByNameQuery(userName));
+
+            return Ok(result);
         }
 
         /// <summary>
@@ -188,10 +157,13 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [HttpGet]
         [Route("id/{id}")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
-        public async Task<ActionResult<ApplicationUser>> GetUserById([FromRoute] string id)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UserDto>> GetUserById([FromRoute] Guid id)
         {
-            var retVal = await _userManager.FindByIdAsync(id);
-            return Ok(retVal);
+            var result = await _queryProcessor.QueryAsync(new GetUserByIdQuery(id));
+
+            return Ok(result);
         }
 
         /// <summary>
@@ -201,9 +173,12 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [HttpGet]
         [Route("email/{email}")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
-        public async Task<ActionResult<ApplicationUser>> GetUserByEmail([FromRoute] string email)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UserDto>> GetUserByEmail([FromRoute] string email)
         {
-            var result = await _userManager.FindByEmailAsync(email);
+            var result = await _queryProcessor.QueryAsync(new GetUserByEmailQuery(email));
+
             return Ok(result);
         }
 
@@ -216,10 +191,13 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [HttpGet]
         [Route("login/external/{loginProvider}/{providerKey}")]
         [Authorize(SecurityConstants.Permissions.SecurityQuery)]
-        public async Task<ActionResult<ApplicationUser>> GetUserByLogin([FromRoute] string loginProvider,
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UserDto>> GetUserByLogin([FromRoute] string loginProvider,
             [FromRoute] string providerKey)
         {
-            var result = await _userManager.FindByLoginAsync(loginProvider, providerKey);
+            var result = await _queryProcessor.QueryAsync(new GetUserByLoginQuery(loginProvider,providerKey));
+
             return Ok(result);
         }
 
@@ -288,7 +266,12 @@ namespace OnlineStore.Modules.Identity.Api.Users
         // [Authorize(SecurityConstants.Permissions.SecurityCreate)]
         public async Task<ActionResult> CreateAsync([FromBody] RegisterNewUserRequest request)
         {
-            var command = request.ToRegisterNewUserCommand();
+            var command = new RegisterNewUserCommand(request.Id.BindId(), request.Email, request.FirstName,
+                request.LastName,
+                request.Name, request.UserName, request.Password, request.CreatedDate, request.CreatedBy,
+                request.Permissions.ToList(), request.UserType, request.IsAdministrator, request.IsActive,
+                request.Roles.ToList(), request.LockoutEnabled, request.EmailConfirmed, request.PhotoUrl,
+                request.Status, request.ModifiedBy, request.ModifiedDate);
 
             await _commandProcessor.SendCommandAsync(command);
 
@@ -333,7 +316,8 @@ namespace OnlineStore.Modules.Identity.Api.Users
             var user = await _userManager.FindByNameAsync(userName);
             if (user == null)
             {
-                return BadRequest(IdentityResult.Failed(new IdentityError {Description = "User not found."}).ToSecurityResult());
+                return BadRequest(IdentityResult.Failed(new IdentityError {Description = "User not found."})
+                    .ToSecurityResult());
             }
 
             if (changePassword.OldPassword == changePassword.NewPassword)
@@ -509,7 +493,8 @@ namespace OnlineStore.Modules.Identity.Api.Users
 
             if (!IsUserEditable(user.UserName))
             {
-                return Ok(IdentityResult.Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
+                return Ok(IdentityResult.Failed(new IdentityError {Description = "It is forbidden to edit this user."})
+                    .ToSecurityResult());
             }
 
             var applicationUser = await _userManager.FindByIdAsync(user.Id);

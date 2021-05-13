@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
-using OnlineStore.Modules.Identity.Application.Search.Dtos;
+using OnlineStore.Modules.Identity.Application.Users.Dtos;
 
-namespace OnlineStore.Modules.Identity.Application.Search
+namespace OnlineStore.Modules.Identity.Application.Users.Services
 {
     public interface IUserApiKeySearchService
     {
-        Task<UserApiKeySearchResult> SearchUserApiKeysAsync(UserApiKeySearchCriteria criteria);
+        Task<UserApiKeySearchResponse> SearchUserApiKeysAsync(UserApiKeySearchCriteriaDto criteria);
     }
 }
