@@ -6,7 +6,9 @@
 
 
 # Online Store Modular Monolith
-Implementing an online store Modular Monolith application with Domain-Driven Design and CQRS in .Net Core.
+> Implementing an online store Modular Monolith application with Domain-Driven Design and CQRS in .Net Core.
+
+🌀 Keep in mind this repository is work in progress and will be complete over time 🚀
 
 ## Support ⭐
 If you like my work, feel free to:
