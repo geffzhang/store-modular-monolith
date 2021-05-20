@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OAuth.Validation;
-using AspNet.Security.OpenIdConnect.Primitives;
 using AutoMapper;
 using Common;
 using Common.Messaging;
@@ -14,12 +13,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
-using OnlineStore.Modules.Identity.Api.Models;
 using OnlineStore.Modules.Identity.Api.Users.Models;
 using OnlineStore.Modules.Identity.Application.Authentication.Dtos;
 using OnlineStore.Modules.Identity.Application.Permissions.Services;
 using OnlineStore.Modules.Identity.Application.Roles.Services;
+using OnlineStore.Modules.Identity.Application.Users.ChangeUserPassword;
 using OnlineStore.Modules.Identity.Application.Users.Dtos;
 using OnlineStore.Modules.Identity.Application.Users.GetCurrentUser;
 using OnlineStore.Modules.Identity.Application.Users.GetUserByEmail;
@@ -28,23 +26,22 @@ using OnlineStore.Modules.Identity.Application.Users.GetUserByLogin;
 using OnlineStore.Modules.Identity.Application.Users.GetUserByName;
 using OnlineStore.Modules.Identity.Application.Users.GetUserInfo;
 using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
+using OnlineStore.Modules.Identity.Application.Users.ResetUserPassword;
 using OnlineStore.Modules.Identity.Application.Users.SearchUsers;
-using OnlineStore.Modules.Identity.Application.Users.Services;
+using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
-using OnlineStore.Modules.Identity.Domain.Permissions;
 using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure;
-using OnlineStore.Modules.Identity.Infrastructure.Authentication;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 using OnlineStore.Modules.Identity.Infrastructure.Extensions;
-using OpenIddict.Abstractions;
+using AuthorizationOptions = OnlineStore.Modules.Identity.Application.Contracts.AuthorizationOptions;
 
 namespace OnlineStore.Modules.Identity.Api.Users
 {
     [ApiController]
-    [Route("users")]
+    [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -52,7 +49,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IAuthorizationService _authorizationService;
 
-        private readonly Infrastructure.Authorization.AuthorizationOptions
+        private readonly AuthorizationOptions
             _securityOptions;
 
         private readonly UserOptionsExtended _userOptionsExtended;
@@ -63,11 +60,11 @@ namespace OnlineStore.Modules.Identity.Api.Users
         private readonly IQueryProcessor _queryProcessor;
         private readonly IMapper _mapper;
 
-        public UsersController(SignInManager<ApplicationUser> signInManager,
+        public AccountsController(SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
             IPermissionService permissionsProvider,
             IRoleSearchService roleSearchService,
-            IOptions<Infrastructure.Authorization.AuthorizationOptions> securityOptions,
+            IOptions<AuthorizationOptions> securityOptions,
             IOptions<UserOptionsExtended> userOptionsExtended,
             IPasswordValidator<ApplicationUser> passwordCheckService,
             IAuthorizationService authorizationService,
@@ -105,6 +102,10 @@ namespace OnlineStore.Modules.Identity.Api.Users
             return Ok(result);
         }
 
+        /// <summary>
+        /// Get user info
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
         [Route("userinfo")]
@@ -196,66 +197,10 @@ namespace OnlineStore.Modules.Identity.Api.Users
         public async Task<ActionResult<UserDto>> GetUserByLogin([FromRoute] string loginProvider,
             [FromRoute] string providerKey)
         {
-            var result = await _queryProcessor.QueryAsync(new GetUserByLoginQuery(loginProvider,providerKey));
+            var result = await _queryProcessor.QueryAsync(new GetUserByLoginQuery(loginProvider, providerKey));
 
             return Ok(result);
         }
-
-
-        // // POST: api/account/user
-        // [HttpPost("user")]
-        // [Authorize(SecurityConstants.Permissions.CanCreateUsers)]
-        // [ValidateAntiForgeryToken]
-        // public async Task<ActionResult<UserActionIdentityResult>> RegisterUser(
-        //     [FromBody] RegisterNewUserRequest registration)
-        // {
-        //     UserActionIdentityResult result;
-        //
-        //     TryValidateModel(registration);
-        //
-        //     if (ModelState.IsValid)
-        //     {
-        //         //Allow to register new users only within own organization
-        //         var authorizationResult = await _authorizationService.AuthorizeAsync(User,
-        //             registration,
-        //             CanEditOrganizationResourceAuthorizeRequirement.PolicyName);
-        //         if (!authorizationResult.Succeeded)
-        //         {
-        //             return Unauthorized();
-        //         }
-        //
-        //         var contact = registration.ToContact();
-        //         contact.OrganizationId = registration.OrganizationId;
-        //
-        //         var user = registration.ToUser();
-        //         user.Contact = contact;
-        //         user.StoreId = string.Empty;
-        //
-        //         // user.Roles = new[]
-        //         // {
-        //         //     SecurityConstants.Roles.Customer
-        //         // };
-        //
-        //         var creatingResult = await _userManager.CreateAsync(user, registration.Password);
-        //         result = UserActionIdentityResult.Instance(creatingResult);
-        //         if (result.Succeeded)
-        //         {
-        //             user = await _userManager.FindByNameAsync(user.UserName);
-        //             await _commandProcessor.PublishDomainEventAsync(new UserRegisteredEvent(WorkContext, user,
-        //                 registration));
-        //             result.MemberId = user.Id;
-        //         }
-        //     }
-        //     else
-        //     {
-        //         result = UserActionIdentityResult
-        //             .Failed(ModelState.Values.SelectMany(x => x.Errors)
-        //                 .Select(x => new IdentityError {Description = x.ErrorMessage})
-        //                 .ToArray());
-        //     }
-        //
-        //     return result;
-        // }
 
         /// <summary>
         /// Create new user
@@ -263,7 +208,9 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="request"></param>
         [HttpPost]
         [Route("create")]
-        // [Authorize(SecurityConstants.Permissions.SecurityCreate)]
+        [Authorize(SecurityConstants.Permissions.SecurityCreate)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult> CreateAsync([FromBody] RegisterNewUserRequest request)
         {
             var command = new RegisterNewUserCommand(request.Id.BindId(), request.Email, request.FirstName,
@@ -275,7 +222,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
 
             await _commandProcessor.SendCommandAsync(command);
 
-            return Ok();
+            return CreatedAtAction(nameof(GetUserById), new {id = command.Id}, command);
         }
 
         /// <summary>
@@ -285,13 +232,17 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <returns>Result of password change</returns>
         [HttpPost]
         [Route("currentuser/changepassword")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Authorize]
-        public async Task<ActionResult<SecurityResult>> ChangeCurrentUserPassword(
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesDefaultResponseType]
+        public async Task<ActionResult> ChangeCurrentUserPassword(
             [FromBody] ChangePasswordRequest changePassword)
         {
-            return await ChangePassword(User.Identity?.Name, changePassword);
+            var command = new ChangeUserPasswordCommand(User.Identity?.Name, changePassword.OldPassword,
+                changePassword.NewPassword);
+            await _commandProcessor.SendCommandAsync(command);
+
+            return NoContent();
         }
 
         /// <summary>
@@ -301,43 +252,17 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="changePassword">Old and new passwords.</param>
         [HttpPost]
         [Route("{userName}/changepassword")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
-        public async Task<ActionResult<SecurityResult>> ChangePassword([FromRoute] string userName,
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesDefaultResponseType]
+        public async Task<ActionResult> ChangePassword([FromRoute] string userName,
             [FromBody] ChangePasswordRequest changePassword)
         {
-            if (!IsUserEditable(userName))
-            {
-                return BadRequest(IdentityResult
-                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
-            }
+            var command =
+                new ChangeUserPasswordCommand(userName, changePassword.OldPassword, changePassword.NewPassword);
+            await _commandProcessor.SendCommandAsync(command);
 
-            var user = await _userManager.FindByNameAsync(userName);
-            if (user == null)
-            {
-                return BadRequest(IdentityResult.Failed(new IdentityError {Description = "User not found."})
-                    .ToSecurityResult());
-            }
-
-            if (changePassword.OldPassword == changePassword.NewPassword)
-            {
-                return BadRequest(new SecurityResult
-                {
-                    Errors = new[] {"You have used this password in the past. Choose another one."}
-                });
-            }
-
-            var result =
-                await _signInManager.UserManager.ChangePasswordAsync(user, changePassword.OldPassword,
-                    changePassword.NewPassword);
-            if (result.Succeeded && user.PasswordExpired)
-            {
-                user.PasswordExpired = false;
-                await _userManager.UpdateAsync(user);
-            }
-
-            return Ok(result.ToSecurityResult());
+            return NoContent();
         }
 
         /// <summary>
@@ -348,52 +273,38 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [HttpPost]
         [Route("currentuser/resetpassword")]
         [AllowAnonymous]
-        [Obsolete("use /currentuser/changepassword instead")]
-        public async Task<ActionResult<SecurityResult>> ResetCurrentUserPassword(
-            [FromBody] ResetPasswordConfirmRequest resetPassword)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesDefaultResponseType]
+        public async Task<ActionResult> ResetCurrentUserPassword(
+            [FromBody] ResetPasswordRequest resetPassword)
         {
-            return await ResetPassword(User.Identity?.Name, resetPassword);
+            var command = new ResetUserPasswordCommand(User.Identity?.Name, resetPassword.Token, resetPassword.NewPassword,
+                resetPassword.ForcePasswordChangeOnNextSignIn);
+
+            await _commandProcessor.SendCommandAsync(command);
+
+            return NoContent();
         }
 
         /// <summary>
         /// Reset password confirmation
         /// </summary>
         /// <param name="userName"></param>
-        /// <param name="resetPasswordConfirm">New password.</param>
+        /// <param name="resetPassword">New password.</param>
         [HttpPost]
         [Route("{userName}/resetpassword")]
         [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
-        public async Task<ActionResult<SecurityResult>> ResetPassword([FromRoute] string userName,
-            [FromBody] ResetPasswordConfirmRequest resetPasswordConfirm)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesDefaultResponseType]
+        public async Task<ActionResult> ResetPassword([FromRoute] string userName,
+            [FromBody] ResetPasswordRequest resetPassword)
         {
-            var user = await _userManager.FindByNameAsync(userName);
-            if (user == null)
-            {
-                return BadRequest(
-                    IdentityResult.Failed(new IdentityError {Description = "User not found"}).ToSecurityResult());
-            }
+            var command = new ResetUserPasswordCommand(userName, resetPassword.Token, resetPassword.NewPassword,
+                resetPassword.ForcePasswordChangeOnNextSignIn);
 
-            if (!IsUserEditable(user.UserName))
-            {
-                return BadRequest(IdentityResult
-                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
-            }
+            await _commandProcessor.SendCommandAsync(command);
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, resetPasswordConfirm.NewPassword);
-            if (result.Succeeded)
-            {
-                user = await _userManager.FindByNameAsync(userName);
-
-                if (user.PasswordExpired != resetPasswordConfirm.ForcePasswordChangeOnNextSignIn)
-                {
-                    user.PasswordExpired = resetPasswordConfirm.ForcePasswordChangeOnNextSignIn;
-
-                    await _userManager.UpdateAsync(user);
-                }
-            }
-
-            return Ok(result.ToSecurityResult());
+            return NoContent();
         }
 
         /// <summary>
@@ -402,9 +313,9 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="userId"></param>
         /// <param name="resetPasswordConfirm">New password.</param>
         [HttpPost]
-        [Route("{userId}/resetpasswordconfirm")]
+        [Route("id/{userId}/resetpassword")]
         [AllowAnonymous]
-        public async Task<ActionResult<SecurityResult>> ResetPasswordByToken([FromRoute] string userId,
+        public async Task<ActionResult> ResetPasswordByToken([FromRoute] string userId,
             [FromBody] ResetPasswordConfirmRequest resetPasswordConfirm)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -640,11 +551,6 @@ namespace OnlineStore.Modules.Identity.Api.Users
             return Ok();
         }
 
-
-        private bool IsUserEditable(string userName)
-        {
-            return _securityOptions.NonEditableUsers?.FirstOrDefault(x => x.EqualsInvariant(userName)) == null;
-        }
 
         /// <summary>
         /// Get all registered permissions
