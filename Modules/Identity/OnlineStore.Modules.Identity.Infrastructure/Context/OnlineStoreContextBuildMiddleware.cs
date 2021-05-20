@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using OnlineStore.Modules.Identity.Application.Context;
+using OnlineStore.Modules.Identity.Application.Contracts;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Context
 {

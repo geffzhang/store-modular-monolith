@@ -2,11 +2,11 @@
 using System.Threading.Tasks;
 using Ardalis.GuardClauses;
 using Common.Messaging.Commands;
-using OnlineStore.Modules.Identity.Application.Users.Contracts;
+using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Domain.Users.Services;
 
-namespace OnlineStore.Modules.Identity.Application.Users.RegisterNewUser
+namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser
 {
     public class RegisterNewUserCommandHandler : ICommandHandler<RegisterNewUserCommand>
     {

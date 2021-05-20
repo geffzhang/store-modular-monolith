@@ -13,21 +13,22 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using OnlineStore.Modules.Identity.Api.Users.Models;
-using OnlineStore.Modules.Identity.Application.Authentication.Dtos;
-using OnlineStore.Modules.Identity.Application.Permissions.Services;
-using OnlineStore.Modules.Identity.Application.Roles.Services;
-using OnlineStore.Modules.Identity.Application.Users.ChangeUserPassword;
-using OnlineStore.Modules.Identity.Application.Users.Dtos;
-using OnlineStore.Modules.Identity.Application.Users.GetCurrentUser;
-using OnlineStore.Modules.Identity.Application.Users.GetUserByEmail;
-using OnlineStore.Modules.Identity.Application.Users.GetUserById;
-using OnlineStore.Modules.Identity.Application.Users.GetUserByLogin;
-using OnlineStore.Modules.Identity.Application.Users.GetUserByName;
-using OnlineStore.Modules.Identity.Application.Users.GetUserInfo;
-using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
-using OnlineStore.Modules.Identity.Application.Users.ResetUserPassword;
-using OnlineStore.Modules.Identity.Application.Users.SearchUsers;
+using OnlineStore.Modules.Identity.Api.Users.Models.Requests;
+using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
+using OnlineStore.Modules.Identity.Application.Features.Roles.Services;
+using OnlineStore.Modules.Identity.Application.Features.Users.ChangeUserPassword;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineStore.Modules.Identity.Application.Features.Users.GetUserByEmail;
+using OnlineStore.Modules.Identity.Application.Features.Users.GetUserById;
+using OnlineStore.Modules.Identity.Application.Features.Users.GetUserByLogin;
+using OnlineStore.Modules.Identity.Application.Features.Users.GetUserByName;
+using OnlineStore.Modules.Identity.Application.Features.Users.GetUserInfo;
+using OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser;
+using OnlineStore.Modules.Identity.Application.Features.Users.RequestPasswordReset;
+using OnlineStore.Modules.Identity.Application.Features.Users.ResetUserPassword;
+using OnlineStore.Modules.Identity.Application.Features.Users.SearchUsers;
+using OnlineStore.Modules.Identity.Application.Features.Users.ValidatePasswordResetToken;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
@@ -36,7 +37,7 @@ using OnlineStore.Modules.Identity.Infrastructure;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 using OnlineStore.Modules.Identity.Infrastructure.Extensions;
-using AuthorizationOptions = OnlineStore.Modules.Identity.Application.Contracts.AuthorizationOptions;
+using AuthorizationOptions = OnlineStore.Modules.Identity.Domain.Configurations.Options.AuthorizationOptions;
 
 namespace OnlineStore.Modules.Identity.Api.Users
 {
@@ -60,7 +61,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         private readonly IQueryProcessor _queryProcessor;
         private readonly IMapper _mapper;
 
-        public AccountsController(SignInManager<ApplicationUser> signInManager,
+        public UsersController(SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
             IPermissionService permissionsProvider,
             IRoleSearchService roleSearchService,
@@ -278,7 +279,8 @@ namespace OnlineStore.Modules.Identity.Api.Users
         public async Task<ActionResult> ResetCurrentUserPassword(
             [FromBody] ResetPasswordRequest resetPassword)
         {
-            var command = new ResetUserPasswordCommand(User.Identity?.Name, resetPassword.Token, resetPassword.NewPassword,
+            var command = new ResetUserPasswordCommand(User.Identity?.Name, null, resetPassword.Token,
+                resetPassword.NewPassword,
                 resetPassword.ForcePasswordChangeOnNextSignIn);
 
             await _commandProcessor.SendCommandAsync(command);
@@ -299,7 +301,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         public async Task<ActionResult> ResetPassword([FromRoute] string userName,
             [FromBody] ResetPasswordRequest resetPassword)
         {
-            var command = new ResetUserPasswordCommand(userName, resetPassword.Token, resetPassword.NewPassword,
+            var command = new ResetUserPasswordCommand(userName, null, resetPassword.Token, resetPassword.NewPassword,
                 resetPassword.ForcePasswordChangeOnNextSignIn);
 
             await _commandProcessor.SendCommandAsync(command);
@@ -311,36 +313,21 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// Reset password confirmation
         /// </summary>
         /// <param name="userId"></param>
-        /// <param name="resetPasswordConfirm">New password.</param>
+        /// <param name="resetPassword">New password.</param>
         [HttpPost]
         [Route("id/{userId}/resetpassword")]
         [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult> ResetPasswordByToken([FromRoute] string userId,
-            [FromBody] ResetPasswordConfirmRequest resetPasswordConfirm)
+            [FromBody] ResetPasswordRequest resetPassword)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                return BadRequest(
-                    IdentityResult.Failed(new IdentityError {Description = "User not found"}).ToSecurityResult());
-            }
+            var command = new ResetUserPasswordCommand(null, userId, resetPassword.Token, resetPassword.NewPassword,
+                resetPassword.ForcePasswordChangeOnNextSignIn);
 
-            if (!IsUserEditable(user.UserName))
-            {
-                return BadRequest(IdentityResult
-                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
-            }
+            await _commandProcessor.SendCommandAsync(command);
 
-            var result = await _signInManager.UserManager.ResetPasswordAsync(user, resetPasswordConfirm.Token,
-                resetPasswordConfirm.NewPassword);
-            if (result.Succeeded && user.PasswordExpired)
-            {
-                user.PasswordExpired = false;
-
-                await _userManager.UpdateAsync(user);
-            }
-
-            return Ok(result.ToSecurityResult());
+            return NoContent();
         }
 
         /// <summary>
@@ -349,14 +336,15 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [HttpPost]
         [Route("{userId}/validatepasswordresettoken")]
         [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult<bool>> ValidatePasswordResetToken(string userId,
             [FromBody] ValidatePasswordResetTokenRequest resetPasswordToken)
         {
-            var applicationUser = await _userManager.FindByIdAsync(userId);
-            var tokenProvider = _userManager.Options.Tokens.PasswordResetTokenProvider;
-            var result = await _userManager.VerifyUserTokenAsync(applicationUser, tokenProvider, "ResetPassword",
-                resetPasswordToken.Token);
-            return Ok(result);
+            var command = new ValidatePasswordResetTokenCommand(userId, resetPasswordToken.Token);
+            await _commandProcessor.SendCommandAsync(command);
+
+            return NoContent();
         }
 
         /// <summary>
@@ -368,25 +356,14 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [HttpPost]
         [Route("{loginOrEmail}/requestpasswordreset")]
         [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult> RequestPasswordReset(string loginOrEmail)
         {
-            var user = await _userManager.FindByNameAsync(loginOrEmail);
-            if (user == null)
-            {
-                user = await _userManager.FindByEmailAsync(loginOrEmail);
-            }
+            var command = new RequestPasswordResetCommand(loginOrEmail, Request.Scheme, Request.Host.Host);
+            await _commandProcessor.SendCommandAsync(command);
 
-            //Do not permit rejected users and customers
-            if (user?.Email != null && IsUserEditable(user.UserName) &&
-                !(await _userManager.IsInRoleAsync(user, SecurityConstants.SystemRoles.Customer)))
-            {
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = $"{Request.Scheme}://{Request.Host}/#/resetpassword/{user.Id}/{token}";
-
-                // await _emailSender.SendEmailAsync(user.Email, "Reset password", callbackUrl.ToString());
-            }
-
-            return Ok();
+            return NoContent();
         }
 
         /// <summary>
@@ -395,75 +372,45 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="user">User details.</param>
         [HttpPut]
         [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
-        public async Task<ActionResult<SecurityResult>> Update([FromBody] ApplicationUser user)
+        public async Task<ActionResult> Update([FromBody] UpdateUserRequest user)
         {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
 
-            if (!IsUserEditable(user.UserName))
-            {
-                return Ok(IdentityResult.Failed(new IdentityError {Description = "It is forbidden to edit this user."})
-                    .ToSecurityResult());
-            }
-
-            var applicationUser = await _userManager.FindByIdAsync(user.Id);
-            if (applicationUser.EmailConfirmed != user.EmailConfirmed
-                && !Request.HttpContext.User.HasGlobalPermission(SecurityConstants.Permissions.SecurityVerifyEmail))
-            {
-                return Unauthorized();
-            }
-
-            if (!applicationUser.Email.EqualsInvariant(user.Email))
-            {
-                // SetEmailAsync also: sets EmailConfirmed to false and updates the SecurityStamp
-                await _userManager.SetEmailAsync(user, user.Email);
-            }
-
-            if (user.LastPasswordChangedDate != applicationUser.LastPasswordChangedDate)
-            {
-                user.LastPasswordChangedDate = applicationUser.LastPasswordChangedDate;
-            }
-
-            var result = await _userManager.UpdateAsync(user);
-
-            return Ok(IdentityResultExtensions.ToSecurityResult(result));
+            return NoContent();
         }
 
-        /// <summary>
-        /// Delete users by name
-        /// </summary>
-        /// <param name="names">An array of user names.</param>
-        [HttpDelete]
-        [Authorize(SecurityConstants.Permissions.SecurityDelete)]
-        public async Task<ActionResult> Delete([FromQuery] string[] names)
-        {
-            if (names == null)
-            {
-                throw new ArgumentNullException(nameof(names));
-            }
-
-            if (names.Any(x => !IsUserEditable(x)))
-            {
-                return BadRequest(new IdentityError() {Description = "It is forbidden to edit these users."});
-            }
-
-            foreach (var userName in names)
-            {
-                var user = await _userManager.FindByNameAsync(userName);
-                if (user != null)
-                {
-                    var result = await _userManager.DeleteAsync(user);
-                    if (!result.Succeeded)
-                    {
-                        return BadRequest(result);
-                    }
-                }
-            }
-
-            return Ok(IdentityResult.Success);
-        }
+        // /// <summary>
+        // /// Delete users by name
+        // /// </summary>
+        // /// <param name="names">An array of user names.</param>
+        // [HttpDelete]
+        // [Authorize(SecurityConstants.Permissions.SecurityDelete)]
+        // public async Task<ActionResult> Delete([FromQuery] string[] names)
+        // {
+        //     if (names == null)
+        //     {
+        //         throw new ArgumentNullException(nameof(names));
+        //     }
+        //
+        //     if (names.Any(x => !IsUserEditable(x)))
+        //     {
+        //         return BadRequest(new IdentityError() {Description = "It is forbidden to edit these users."});
+        //     }
+        //
+        //     foreach (var userName in names)
+        //     {
+        //         var user = await _userManager.FindByNameAsync(userName);
+        //         if (user != null)
+        //         {
+        //             var result = await _userManager.DeleteAsync(user);
+        //             if (!result.Succeeded)
+        //             {
+        //                 return BadRequest(result);
+        //             }
+        //         }
+        //     }
+        //
+        //     return Ok(IdentityResult.Success);
+        // }
 
         /// <summary>
         /// Checks if user locked
@@ -485,83 +432,83 @@ namespace OnlineStore.Modules.Identity.Api.Users
             return Ok(result);
         }
 
-        /// <summary>
-        /// Lock user
-        /// </summary>
-        /// <param name="id">>User id</param>
-        /// <returns></returns>
-        [HttpPost]
-        [Route("{id}/lock")]
-        [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
-        public async Task<ActionResult<SecurityResult>> LockUser([FromRoute] string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user != null)
-            {
-                var result = await _userManager.SetLockoutEndDateAsync(user, DateTime.MaxValue);
-                return Ok(result.ToSecurityResult());
-            }
-
-            return Ok(IdentityResult.Failed().ToSecurityResult());
-        }
-
-        /// <summary>
-        /// Unlock user
-        /// </summary>
-        /// <param name="id">>User id</param>
-        /// <returns></returns>
-        [HttpPost]
-        [Route("{id}/unlock")]
-        [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
-        public async Task<ActionResult<SecurityResult>> UnlockUser([FromRoute] string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user != null)
-            {
-                await _userManager.ResetAccessFailedCountAsync(user);
-                var result = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MinValue);
-                return Ok(result.ToSecurityResult());
-            }
-
-            return Ok(IdentityResult.Failed().ToSecurityResult());
-        }
-
-        /// <summary>
-        /// Verify user email
-        /// </summary>
-        /// <param name="userId"></param>
-        [HttpPost]
-        [Route("{userId}/sendVerificationEmail")]
-        [Authorize(SecurityConstants.Permissions.SecurityVerifyEmail)]
-        public async Task<ActionResult> SendVerificationEmail([FromRoute] string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return BadRequest(
-                    IdentityResult.Failed(new IdentityError {Description = "User not found"}).ToSecurityResult());
-
-            if (!IsUserEditable(user.UserName))
-            {
-                return BadRequest(IdentityResult
-                    .Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
-            }
-
-            await _commandProcessor.PublishDomainEventAsync(new UserVerifiedEmail(user.ToUser()));
-
-            return Ok();
-        }
-
-
-        /// <summary>
-        /// Get all registered permissions
-        /// </summary>
-        [HttpGet]
-        [Route("permissions")]
-        [Authorize(SecurityConstants.Permissions.SecurityQuery)]
-        public ActionResult<Permission[]> GetAllRegisteredPermissions()
-        {
-            var result = _permissionsProvider.GetAllPermissions().ToArray();
-            return Ok(result);
-        }
+        // /// <summary>
+        // /// Lock user
+        // /// </summary>
+        // /// <param name="id">>User id</param>
+        // /// <returns></returns>
+        // [HttpPost]
+        // [Route("{id}/lock")]
+        // [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
+        // public async Task<ActionResult<SecurityResult>> LockUser([FromRoute] string id)
+        // {
+        //     var user = await _userManager.FindByIdAsync(id);
+        //     if (user != null)
+        //     {
+        //         var result = await _userManager.SetLockoutEndDateAsync(user, DateTime.MaxValue);
+        //         return Ok(result.ToSecurityResult());
+        //     }
+        //
+        //     return Ok(IdentityResult.Failed().ToSecurityResult());
+        // }
+        //
+        // /// <summary>
+        // /// Unlock user
+        // /// </summary>
+        // /// <param name="id">>User id</param>
+        // /// <returns></returns>
+        // [HttpPost]
+        // [Route("{id}/unlock")]
+        // [Authorize(SecurityConstants.Permissions.SecurityUpdate)]
+        // public async Task<ActionResult<SecurityResult>> UnlockUser([FromRoute] string id)
+        // {
+        //     var user = await _userManager.FindByIdAsync(id);
+        //     if (user != null)
+        //     {
+        //         await _userManager.ResetAccessFailedCountAsync(user);
+        //         var result = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MinValue);
+        //         return Ok(result.ToSecurityResult());
+        //     }
+        //
+        //     return Ok(IdentityResult.Failed().ToSecurityResult());
+        // }
+        //
+        // /// <summary>
+        // /// Verify user email
+        // /// </summary>
+        // /// <param name="userId"></param>
+        // [HttpPost]
+        // [Route("{userId}/sendVerificationEmail")]
+        // [Authorize(SecurityConstants.Permissions.SecurityVerifyEmail)]
+        // public async Task<ActionResult> SendVerificationEmail([FromRoute] string userId)
+        // {
+        //     var user = await _userManager.FindByIdAsync(userId);
+        //     if (user == null)
+        //         return BadRequest(
+        //             IdentityResult.Failed(new IdentityError {Description = "User not found"}).ToSecurityResult());
+        //
+        //     if (!IsUserEditable(user.UserName))
+        //     {
+        //         return BadRequest(IdentityResult
+        //             .Failed(new IdentityError {Description = "It is forbidden to edit this user."}).ToSecurityResult());
+        //     }
+        //
+        //     await _commandProcessor.PublishDomainEventAsync(new UserVerifiedEmail(user.ToUser()));
+        //
+        //     return Ok();
+        // }
+        //
+        //
+        // /// <summary>
+        // /// Get all registered permissions
+        // /// </summary>
+        // [HttpGet]
+        // [Route("permissions")]
+        // [Authorize(SecurityConstants.Permissions.SecurityQuery)]
+        // public ActionResult<Permission[]> GetAllRegisteredPermissions()
+        // {
+        //     var result = _permissionsProvider.GetAllPermissions().ToArray();
+        //     return Ok(result);
+        // }
     }
 }

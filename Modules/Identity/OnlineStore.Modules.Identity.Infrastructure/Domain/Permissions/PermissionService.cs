@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using OnlineStore.Modules.Identity.Application.Permissions;
-using OnlineStore.Modules.Identity.Application.Permissions.Services;
-using OnlineStore.Modules.Identity.Domain.Permissions;
+using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
+using OnlineStore.Modules.Identity.Domain.Users;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions
 {

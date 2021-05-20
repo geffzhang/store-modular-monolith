@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Identity.Domain.Permissions
+namespace OnlineStore.Modules.Identity.Domain.Users
 {
     public sealed class PermissionScope : ValueObject
     {

@@ -1,14 +1,15 @@
 ﻿using Common.Domain.Types;
+using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events
 {
-    public class UserResetPasswordEvent : DomainEventBase
+    public class UserResetPasswordDomainEvent : DomainEventBase
     {
-        public UserResetPasswordEvent(string userId)
+        public UserResetPasswordDomainEvent(UserId userId)
         {
             UserId = userId;
         }
 
-        public string UserId { get; set; }
+        public UserId UserId { get; }
     }
 }

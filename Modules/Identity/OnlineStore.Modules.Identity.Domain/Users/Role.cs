@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using Common.Domain.Types;
-using OnlineStore.Modules.Identity.Domain.Permissions;
 
-namespace OnlineStore.Modules.Identity.Domain.Role
+namespace OnlineStore.Modules.Identity.Domain.Users
 {
     //https://ardalis.com/enum-alternatives-in-c/
     //https://ardalis.com/listing-strongly-typed-enum-options-in-c/

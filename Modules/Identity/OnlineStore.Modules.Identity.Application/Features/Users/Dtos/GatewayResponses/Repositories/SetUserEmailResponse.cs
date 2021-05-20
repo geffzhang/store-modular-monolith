@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Identity.Application.Users.Dtos.GatewayResponses.Repositories
+namespace OnlineStore.Modules.Identity.Application.Features.Users.Dtos.GatewayResponses.Repositories
 {
     public class SetUserEmailResponse: BaseGatewayResponse
     {

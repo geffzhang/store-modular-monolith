@@ -2,7 +2,7 @@
 using System.Linq;
 using Microsoft.AspNetCore.Identity;
 
-namespace OnlineStore.Modules.Identity.Application.Roles.Dtos
+namespace OnlineStore.Modules.Identity.Application.Features.Roles.Dtos
 {
     public class RoleActionIdentityResult
     {

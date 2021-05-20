@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using Common.Messaging.Queries;
-using OnlineStore.Modules.Identity.Application.Users.Contracts;
-using OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 
-namespace OnlineStore.Modules.Identity.Application.Users.GetUserByEmail
+namespace OnlineStore.Modules.Identity.Application.Features.Users.GetUserByEmail
 {
     public class GetUserByEmailQueryHandler : IQueryHandler<GetUserByEmailQuery, UserDto>
     {
@@ -19,7 +19,9 @@ namespace OnlineStore.Modules.Identity.Application.Users.GetUserByEmail
 
         public async Task<UserDto> HandleAsync(GetUserByEmailQuery query)
         {
-          return  await _userRepository.FindByEmailAsync(query.Email);
+            var user = await _userRepository.FindByEmailAsync(query.Email);
+
+            return _mapper.Map<UserDto>(user);
         }
     }
 }

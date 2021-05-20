@@ -6,9 +6,9 @@ using Common.Utils.Extensions;
 using Common.Utils.Reflection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using OnlineStore.Modules.Identity.Application.Users.Exceptions;
-using OnlineStore.Modules.Identity.Application.Users.SearchUsers;
-using OnlineStore.Modules.Identity.Application.Users.SearchUsers.Exceptions;
+using OnlineStore.Modules.Identity.Application.Features.Users.Exceptions;
+using OnlineStore.Modules.Identity.Application.Features.Users.SearchUsers;
+using OnlineStore.Modules.Identity.Application.Features.Users.SearchUsers.Exceptions;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 

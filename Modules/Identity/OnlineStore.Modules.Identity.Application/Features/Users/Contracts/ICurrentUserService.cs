@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace OnlineStore.Modules.Identity.Application.Users.Contracts
+namespace OnlineStore.Modules.Identity.Application.Features.Users.Contracts
 {
     public interface ICurrentUserService
     {

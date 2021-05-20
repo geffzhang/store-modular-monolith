@@ -1,6 +1,6 @@
 using Common.Exceptions;
 
-namespace OnlineStore.Modules.Identity.Application.Users.Exceptions
+namespace OnlineStore.Modules.Identity.Application.Features.Users.Exceptions
 {
     public class UserCanNotEditException : AppException
     {

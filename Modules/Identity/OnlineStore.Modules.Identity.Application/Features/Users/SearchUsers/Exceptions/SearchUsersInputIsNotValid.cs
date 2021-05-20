@@ -1,6 +1,6 @@
 using Common.Exceptions;
 
-namespace OnlineStore.Modules.Identity.Application.Users.SearchUsers.Exceptions
+namespace OnlineStore.Modules.Identity.Application.Features.Users.SearchUsers.Exceptions
 {
     public class SearchUsersInputIsNotValid : AppException
     {

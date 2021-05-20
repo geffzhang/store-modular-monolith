@@ -8,11 +8,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using OnlineStore.Modules.Identity.Api.Authentication.Models;
+using OnlineStore.Modules.Identity.Api.Authentications.Models;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Api.Authentication
+namespace OnlineStore.Modules.Identity.Api.Authentications
 {
     [ApiController]
     [Route("externalsignin")]
@@ -117,7 +118,7 @@ namespace OnlineStore.Modules.Identity.Api.Authentication
 
             if (user == null) user = await _userManager.FindByNameAsync(userName);
 
-            await _commandProcessor.PublishDomainEventAsync(new UserLoginEvent(user));
+            await _commandProcessor.PublishDomainEventAsync(new UserLoggedInDomainEvent(user.ToUser()));
 
             return Redirect(returnUrl);
         }

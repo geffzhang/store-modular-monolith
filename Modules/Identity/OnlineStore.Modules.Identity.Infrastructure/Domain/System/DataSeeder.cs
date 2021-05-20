@@ -1,22 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Common.Domain;
 using Common.Utils.Reflection;
 using Microsoft.AspNetCore.Identity;
-using OnlineStore.Modules.Identity.Application.Permissions;
-using OnlineStore.Modules.Identity.Application.Permissions.Services;
-using OnlineStore.Modules.Identity.Application.Roles;
-using OnlineStore.Modules.Identity.Application.Users;
-using OnlineStore.Modules.Identity.Domain.Permissions;
-using OnlineStore.Modules.Identity.Domain.Role;
+using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System

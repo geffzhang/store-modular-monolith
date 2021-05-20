@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Common.Messaging.Commands;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
-namespace OnlineStore.Modules.Identity.Application.Users.UpdateUser
+namespace OnlineStore.Modules.Identity.Application.Features.Users.UpdateUser
 {
     public class UpdateUserCommand : ICommand
     {

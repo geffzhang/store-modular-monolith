@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace OnlineStore.Modules.Identity.Domain.Options
+namespace OnlineStore.Modules.Identity.Domain.Configurations.Options
 {
     public class AuthorizationOptions
     {

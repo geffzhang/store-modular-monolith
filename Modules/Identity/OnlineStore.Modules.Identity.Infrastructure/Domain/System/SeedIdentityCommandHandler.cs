@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Common.Messaging.Commands;
-using OnlineStore.Modules.Identity.Application.System;
+using OnlineStore.Modules.Identity.Application.Features.System;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
 {

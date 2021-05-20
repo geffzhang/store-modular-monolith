@@ -5,9 +5,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Common;
 using Common.Caching.Caching;
-using Common.Domain.Types;
-using Common.Messaging.Events;
-using Common.Utils.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +13,7 @@ using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Infrastructure.Caching;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
@@ -139,19 +137,14 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 
         public override async Task<IdentityResult> DeleteAsync(ApplicationUser user)
         {
-            var changedEntries = new List<GenericChangedEntry<ApplicationUser>>
-            {
-                new GenericChangedEntry<ApplicationUser>(user, EntryState.Deleted)
-            };
-
             using var scope = _serviceScopeFactory.CreateScope();
             var commandProcessor = scope.ServiceProvider.GetRequiredService<ICommandProcessor>();
 
-            await commandProcessor.PublishDomainEventAsync(new UserChangingEvent(changedEntries));
+            await commandProcessor.PublishDomainEventAsync(new UserChangingDomainEvent(user.ToUser()));
             var result = await base.DeleteAsync(user);
             if (result.Succeeded)
             {
-                await commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
+                await commandProcessor.PublishDomainEventAsync(new UserChangedDomainEvent(user.ToUser()));
                 SecurityCacheRegion.ExpireUser(user);
             }
 
@@ -181,26 +174,19 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 
             await LoadUserDetailsAsync(existUser);
 
-            var changedEntries = new List<GenericChangedEntry<ApplicationUser>>
-            {
-                new GenericChangedEntry<ApplicationUser>(user, existUser, EntryState.Modified)
-            };
-
             using var scope = _serviceScopeFactory.CreateScope();
             var commandProcessor = scope.ServiceProvider.GetRequiredService<ICommandProcessor>();
 
-            await commandProcessor.PublishDomainEventAsync(new UserChangingEvent(changedEntries));
-            //We need to use Patch method to update already tracked by DbContent entity, unless the UpdateAsync for passed user will throw exception
-            //"The instance of entity type 'ApplicationUser' cannot be tracked because another instance with the same key value for {'Id'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached"
+            await commandProcessor.PublishDomainEventAsync(new UserChangingDomainEvent(user.ToUser()));
             user.Patch(existUser);
             var result = await base.UpdateAsync(existUser);
             if (result.Succeeded)
             {
-                await commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
+                await commandProcessor.PublishDomainEventAsync(new UserChangedDomainEvent(user.ToUser()));
                 if (user.Roles != null)
                 {
                     var targetRoles = (await GetRolesAsync(existUser));
-                    var sourceRoles = user.Roles.Select(x => x.Name);
+                    var sourceRoles = user.Roles.Select(x => x.Name).ToList();
                     //Add
                     foreach (var newRole in sourceRoles.Except(targetRoles))
                     {
@@ -222,16 +208,14 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 
         public override async Task<IdentityResult> CreateAsync(ApplicationUser user)
         {
-            var changedEntries = new List<GenericChangedEntry<ApplicationUser>> {new(user, EntryState.Added)};
-
             using var scope = _serviceScopeFactory.CreateScope();
             var commandProcessor = scope.ServiceProvider.GetRequiredService<ICommandProcessor>();
 
-            await commandProcessor.PublishDomainEventAsync(new UserChangingEvent(changedEntries));
+            await commandProcessor.PublishDomainEventAsync(new UserChangingDomainEvent(user.ToUser()));
             var result = await base.CreateAsync(user);
             if (result.Succeeded)
             {
-                await commandProcessor.PublishDomainEventAsync(new UserChangedEvent(changedEntries));
+                await commandProcessor.PublishDomainEventAsync(new UserChangedDomainEvent(user.ToUser()));
                 var permissions = user.Permissions;
                 var roles = user.Roles;
 

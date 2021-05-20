@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace Common.Web
+namespace Common.Web.Middelwares
 {
     internal class UserMiddleware : IMiddleware
     {

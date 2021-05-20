@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using OnlineStore.Modules.Identity.Application.Context;
+using OnlineStore.Modules.Identity.Application.Contracts;
 using OnlineStore.Modules.Identity.Domain.Users;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
@@ -10,9 +10,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
         public const string PolicyName = "CanEditOrganizationResource";
     }
 
-    public class
-        CanEditUserResourceAuthorizationHandler : AuthorizationHandler<CanEditOrganizationResourceAuthorizeRequirement,
-            User>
+    public class CanEditUserResourceAuthorizationHandler : AuthorizationHandler<CanEditOrganizationResourceAuthorizeRequirement, User>
     {
         private readonly IOnlineStoreContextAccessor _onlineStoreContextAccessor;
 

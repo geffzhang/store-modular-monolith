@@ -1,15 +1,15 @@
 using Common.Domain.Types;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
+using OnlineStore.Modules.Identity.Domain.Users;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events
 {
-    public class UserLogoutEvent : DomainEventBase
+    public class UserLoggedOutDomainEvent : DomainEventBase
     {
-        public UserLogoutEvent(ApplicationUser user)
+        public UserLoggedOutDomainEvent(User user)
         {
             User = user;
         }
 
-        public ApplicationUser User { get; set; }
+        public User User { get; set; }
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using Common.Messaging.Commands;
 
-namespace OnlineStore.Modules.Identity.Application.Users.RequestPasswordReset
+namespace OnlineStore.Modules.Identity.Application.Features.Users.RequestPasswordReset
 {
     public class RequestPasswordResetCommand : ICommand
     {

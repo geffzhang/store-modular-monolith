@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using OnlineStore.Modules.Identity.Application.Users.Services;
+using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 {

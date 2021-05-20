@@ -1,10 +1,8 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
-using OnlineStore.Modules.Identity.Application.Roles;
-using OnlineStore.Modules.Identity.Application.Roles.Dtos;
-using OnlineStore.Modules.Identity.Application.Roles.Repositories;
-using OnlineStore.Modules.Identity.Domain.Role;
+using OnlineStore.Modules.Identity.Application.Features.Roles.Dtos;
+using OnlineStore.Modules.Identity.Application.Features.Roles.Repositories;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
 

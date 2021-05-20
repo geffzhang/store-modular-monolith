@@ -26,4 +26,9 @@
     <None Remove="RegisterNewUser\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Authorization" />
+    <Folder Include="Features" />
+  </ItemGroup>
+
 </Project>

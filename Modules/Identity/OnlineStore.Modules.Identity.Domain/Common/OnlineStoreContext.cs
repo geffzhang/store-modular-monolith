@@ -4,14 +4,14 @@ using System.Collections.Specialized;
 using OnlineStore.Modules.Identity.Domain.Users;
 using Role = VaultSharp.V1.SecretsEngines.Database.Role;
 
-namespace OnlineStore.Modules.Identity.Application.Contracts
+namespace OnlineStore.Modules.Identity.Domain.Common
 {
     public class StoreContext
     {
          /// <summary>
     /// Main working context contains all data which could be used in presentation logic
     /// </summary>
-    public partial class OnlineStoreContext : IDisposable, ICloneable
+    public  class OnlineStoreContext : IDisposable, ICloneable
     {
         public OnlineStoreContext()
         {

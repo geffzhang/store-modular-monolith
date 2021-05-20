@@ -1,4 +1,4 @@
-namespace OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses
+namespace OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses
 {
     /// <summary>
     /// Result of password security validation.

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
-namespace OnlineStore.Modules.Identity.Api.Users.Requests
+namespace OnlineStore.Modules.Identity.Api.Users.Models.Requests
 {
     public class UpdateUserRequest
     {

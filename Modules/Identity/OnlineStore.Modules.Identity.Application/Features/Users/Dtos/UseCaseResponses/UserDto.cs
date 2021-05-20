@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
-namespace OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses
+namespace OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses
 {
     public class UserDto
     {

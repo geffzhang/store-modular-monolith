@@ -1,7 +1,7 @@
 using Common.Messaging.Queries;
-using OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 
-namespace OnlineStore.Modules.Identity.Application.Users.GetCurrentUser
+namespace OnlineStore.Modules.Identity.Application.Features.Users.GetCurrentUser
 {
     public class GetCurrentUserQuery : IQuery<UserDetailDto>
     {

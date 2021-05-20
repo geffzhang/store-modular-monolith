@@ -1,6 +1,6 @@
 ﻿using Common.Domain.Types;
 
-namespace OnlineStore.Modules.Identity.Application.Roles.Dtos
+namespace OnlineStore.Modules.Identity.Application.Features.Roles.Dtos
 {
     public class RoleSearchCriteria : SearchCriteriaBase
     {

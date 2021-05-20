@@ -1,7 +1,7 @@
 using Common.Messaging.Queries;
-using OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 
-namespace OnlineStore.Modules.Identity.Application.Users.GetUserByEmail
+namespace OnlineStore.Modules.Identity.Application.Features.Users.GetUserByEmail
 {
     public class GetUserByEmailQuery : IQuery<UserDto>
     {

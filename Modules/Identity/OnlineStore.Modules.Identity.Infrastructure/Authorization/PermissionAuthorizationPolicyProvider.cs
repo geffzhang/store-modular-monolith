@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using OnlineStore.Modules.Identity.Application.Permissions;
-using OnlineStore.Modules.Identity.Application.Permissions.Services;
+using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
 using OnlineStore.Modules.Identity.Infrastructure.Authentication;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
 

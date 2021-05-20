@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
-using OnlineStore.Modules.Identity.Application.Users.Services;
+using OnlineStore.Modules.Identity.Domain.Users;
+using OnlineStore.Modules.Identity.Domain.Users.Services;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 {

@@ -1,6 +1,6 @@
 using Common.Exceptions;
 
-namespace OnlineStore.Modules.Identity.Application.Users.ChangeUserPassword
+namespace OnlineStore.Modules.Identity.Application.Features.Users.ChangeUserPassword
 {
     public class PasswordShouldNotEqualOldException : AppException
     {

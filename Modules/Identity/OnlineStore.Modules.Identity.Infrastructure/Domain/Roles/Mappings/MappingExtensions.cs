@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using OnlineStore.Modules.Identity.Domain.Role;
 using OnlineStore.Modules.Identity.Domain.Users;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings

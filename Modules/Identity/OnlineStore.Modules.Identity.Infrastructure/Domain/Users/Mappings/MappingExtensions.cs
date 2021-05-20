@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq;
 using Common.Utils.Extensions;
-using OnlineStore.Modules.Identity.Application.Users.Dtos;
-using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Features.Users.Services;
+using OnlineStore.Modules.Identity.Domain.Configurations.Options;
 using OnlineStore.Modules.Identity.Domain.Users;
+using OnlineStore.Modules.Identity.Domain.Users.Services;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
@@ -39,13 +41,13 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
             return applicationUser;
         }
 
-        public static User ToUser(this ApplicationUser appUser)
+        public static User ToUser(this ApplicationUser appUser,IUserEditable userEditable = null)
         {
             var userType = EnumUtility.SafeParse(appUser.UserType, UserType.Customer);
 
             return User.Of(new UserId(Guid.Parse(appUser.Id)), appUser.Email, appUser.FirstName, appUser.LastName,
                 appUser.Name, appUser.UserName, appUser.Password, appUser.CreatedDate, appUser.CreatedBy,
-                appUser.Permissions.Select(x => x.Name).ToList(), userType, appUser.IsAdministrator, appUser.IsActive,
+                appUser.Permissions.Select(x => x.Name).ToList(), userType, userEditable ,appUser.IsAdministrator, appUser.IsActive,
                 appUser.Roles.Select(x => x.Name).ToList(), appUser.LockoutEnabled, appUser.EmailConfirmed,
                 appUser.PhotoUrl, appUser.Status, appUser.ModifiedBy, appUser.ModifiedDate);
         }

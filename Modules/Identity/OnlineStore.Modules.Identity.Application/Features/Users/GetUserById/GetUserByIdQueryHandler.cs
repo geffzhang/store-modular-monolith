@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using Common.Messaging.Queries;
-using OnlineStore.Modules.Identity.Application.Users.Contracts;
-using OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 
-namespace OnlineStore.Modules.Identity.Application.Users.GetUserById
+namespace OnlineStore.Modules.Identity.Application.Features.Users.GetUserById
 {
     public class GetUserByIdQueryHandler:IQueryHandler<GetUserByIdQuery,UserDto>
     {
@@ -20,7 +20,7 @@ namespace OnlineStore.Modules.Identity.Application.Users.GetUserById
         {
             var user = await _userRepository.FindByIdAsync(query.Id.ToString());
 
-            return user;
+            return _mapper.Map<UserDto>(user);
         }
     }
 }

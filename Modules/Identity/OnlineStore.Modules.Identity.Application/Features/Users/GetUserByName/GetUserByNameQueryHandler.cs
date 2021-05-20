@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using Common.Messaging.Queries;
-using OnlineStore.Modules.Identity.Application.Users.Contracts;
-using OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 
-namespace OnlineStore.Modules.Identity.Application.Users.GetUserByName
+namespace OnlineStore.Modules.Identity.Application.Features.Users.GetUserByName
 {
     public class GetUserByNameQueryHandler : IQueryHandler<GetUserByNameQuery, UserDto>
     {
@@ -21,7 +21,7 @@ namespace OnlineStore.Modules.Identity.Application.Users.GetUserByName
         {
             var user = await _userRepository.FindByNameAsync(query.UserName);
 
-            return user;
+            return _mapper.Map<UserDto>(user);
         }
     }
 }

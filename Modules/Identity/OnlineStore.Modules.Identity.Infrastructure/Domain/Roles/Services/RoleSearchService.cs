@@ -5,9 +5,8 @@ using Common.Domain;
 using Common.Utils.Reflection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using OnlineStore.Modules.Identity.Application.Roles.Services;
-using OnlineStore.Modules.Identity.Application.Search;
-using OnlineStore.Modules.Identity.Application.Search.Dtos;
+using OnlineStore.Modules.Identity.Application.Features.Roles.Dtos;
+using OnlineStore.Modules.Identity.Application.Features.Roles.Services;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services

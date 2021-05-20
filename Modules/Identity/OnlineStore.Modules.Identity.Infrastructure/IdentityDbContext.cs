@@ -58,19 +58,19 @@ namespace OnlineStore.Modules.Identity.Infrastructure
 
         private static void MapsTables(ModelBuilder builder)
         {
-            builder.Entity<ApplicationUser>(b => { b.ToTable("User"); }).HasDefaultSchema("users");
+            builder.Entity<ApplicationUser>(b => { b.ToTable("User"); }).HasDefaultSchema("identities");
 
-            builder.Entity<IdentityUserClaim<string>>(b => { b.ToTable("UserClaim"); }).HasDefaultSchema("users");;
+            builder.Entity<IdentityUserClaim<string>>(b => { b.ToTable("UserClaim"); }).HasDefaultSchema("identities");;
 
-            builder.Entity<IdentityUserLogin<string>>(b => { b.ToTable("UserLogin"); }).HasDefaultSchema("users");;
+            builder.Entity<IdentityUserLogin<string>>(b => { b.ToTable("UserLogin"); }).HasDefaultSchema("identities");;
 
-            builder.Entity<IdentityUserToken<string>>(b => { b.ToTable("UserToken"); }).HasDefaultSchema("users");;
+            builder.Entity<IdentityUserToken<string>>(b => { b.ToTable("UserToken"); }).HasDefaultSchema("identities");;
 
-            builder.Entity<ApplicationRole>(b => { b.ToTable("Role"); }).HasDefaultSchema("users");;
+            builder.Entity<ApplicationRole>(b => { b.ToTable("Role"); }).HasDefaultSchema("identities");;
 
-            builder.Entity<IdentityRoleClaim<string>>(b => { b.ToTable("RoleClaim"); }).HasDefaultSchema("users");;
+            builder.Entity<IdentityRoleClaim<string>>(b => { b.ToTable("RoleClaim"); }).HasDefaultSchema("identities");;
 
-            builder.Entity<IdentityUserRole<string>>(b => { b.ToTable("UserRoles"); }).HasDefaultSchema("users");;
+            builder.Entity<IdentityUserRole<string>>(b => { b.ToTable("UserRoles"); }).HasDefaultSchema("identities");;
         }
     }
 }

@@ -3,6 +3,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using OnlineStore.Modules.Identity.Application.Features.Users;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Extensions;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
@@ -13,7 +15,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, TRequirement requirement)
         {
             var limitedPermissionsClaim =
-                context.User.FindFirstValue(Identity.Domain.SecurityConstants.Claims.LIMITED_PERMISSIONS_CLAIM_TYPE);
+                context.User.FindFirstValue(Identity.Domain.SecurityConstants.Claims.LimitedPermissionsClaimType);
 
             // LimitedPermissions claims that will be granted to the user by cookies when bearer token authentication is enabled.
             //
@@ -23,7 +25,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
             if (limitedPermissionsClaim != null)
             {
                 var limitedPermissions =
-                    limitedPermissionsClaim.Split(Identity.Domain.SecurityConstants.Claims.PERMISSION_CLAIM_TYPE_DELIMITER,
+                    limitedPermissionsClaim.Split(Identity.Domain.SecurityConstants.Claims.PermissionClaimTypeDelimiter,
                         StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
 
                 if (limitedPermissions.Contains(requirement.Permission))

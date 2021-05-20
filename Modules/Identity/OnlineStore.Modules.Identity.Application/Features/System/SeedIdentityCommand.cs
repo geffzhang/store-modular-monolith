@@ -1,7 +1,7 @@
 ﻿using System;
 using Common.Messaging.Commands;
 
-namespace OnlineStore.Modules.Identity.Application.System
+namespace OnlineStore.Modules.Identity.Application.Features.System
 {
     public class SeedIdentityCommand : ICommand
     {

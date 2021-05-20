@@ -1,4 +1,4 @@
-﻿namespace OnlineStore.Modules.Identity.Api.Users.Requests
+﻿namespace OnlineStore.Modules.Identity.Api.Users.Models.Requests
 {
     public class ResetPasswordRequest
     {

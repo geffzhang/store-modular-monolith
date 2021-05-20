@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using OnlineStore.Modules.Identity.Application.Roles.Dtos;
+using OnlineStore.Modules.Identity.Application.Features.Roles.Dtos;
 
-namespace OnlineStore.Modules.Identity.Application.Roles.Services
+namespace OnlineStore.Modules.Identity.Application.Features.Roles.Services
 {
     public interface IRoleSearchService
     {

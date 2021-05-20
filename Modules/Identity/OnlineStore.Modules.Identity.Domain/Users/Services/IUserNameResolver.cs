@@ -1,4 +1,4 @@
-namespace OnlineStore.Modules.Identity.Domain.Users
+namespace OnlineStore.Modules.Identity.Domain.Users.Services
 {
     public interface IUserNameResolver
     {

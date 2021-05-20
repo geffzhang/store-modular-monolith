@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
-using OnlineStore.Modules.Identity.Application.Context;
+using OnlineStore.Modules.Identity.Application.Contracts;
+using OnlineStore.Modules.Identity.Domain.Common;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Context
 {

@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Common.Domain.Types;
-using OnlineStore.Modules.Identity.Domain.Permissions;
 using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
 using OnlineStore.Modules.Identity.Domain.Users.DomainExceptions;
+using OnlineStore.Modules.Identity.Domain.Users.Rules;
+using OnlineStore.Modules.Identity.Domain.Users.Services;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Domain.Users
@@ -12,7 +13,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
     public class User : AggregateRoot<Guid, UserId>
     {
         // Using a private collection field, better for DDD Aggregate's encapsulation
-        private readonly List<Role.Role> _roles;
+        private readonly List<Role> _roles;
 
         // private readonly List<ApplicationUserLogin> _logins;
         private readonly List<Permission> _permissions;
@@ -34,13 +35,15 @@ namespace OnlineStore.Modules.Identity.Domain.Users
         public string ModifiedBy { get; }
         public bool LockoutEnabled { get; }
         public bool IsActive { get; }
-        public IReadOnlyList<Role.Role> Roles => _roles;
+        public IReadOnlyList<Role> Roles => _roles;
 
         // public IReadOnlyList<ApplicationUserLogin> Logins { get; }
 
         public IReadOnlyList<Permission> Permissions => _permissions;
         public bool PasswordExpired { get; }
         public DateTime? LastPasswordChangedDate { get; }
+
+        private IUserEditable _userEditable;
 
         private User()
         {
@@ -49,7 +52,8 @@ namespace OnlineStore.Modules.Identity.Domain.Users
 
         private User(UserId id, string email, string firstName, string lastName,
             string name, string userName, string password, DateTime createdDate, string createdBy,
-            IReadOnlyList<string> permissions, UserType userType, bool isAdmin = false, bool isActive = true,
+            IReadOnlyList<string> permissions, UserType userType, IUserEditable userEditable, bool isAdmin = false,
+            bool isActive = true,
             IReadOnlyList<string> roles = null, bool locked = false, bool emailConfirmed = false,
             string photoUrl = null, string status = null, string modifiedBy = null,
             DateTime? modifiedDate = null)
@@ -62,7 +66,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
 
             roles?.ToList().ForEach(role =>
             {
-                if (!Role.Role.IsValid(role)) throw new InvalidRoleException(role);
+                if (!Role.IsValid(role)) throw new InvalidRoleException(role);
             });
 
             UserName = userName;
@@ -76,7 +80,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             Password = password;
             CreatedDate = createdDate;
             LockoutEnabled = locked;
-            _roles = roles?.Select(x => Role.Role.Of(x, x)).ToList();
+            _roles = roles?.Select(x => Role.Of(x, x)).ToList();
             _permissions = permissions?.Select(x => Permission.Of(x, "")).ToList() ?? new List<Permission>();
             EmailConfirmed = emailConfirmed;
             PhotoUrl = photoUrl;
@@ -86,23 +90,25 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             ModifiedDate = modifiedDate;
             IsAdministrator = isAdmin;
             IsActive = isActive;
+            _userEditable = userEditable;
 
             AddDomainEvent(new UserCreatedDomainEvent(Id));
         }
 
         public static User Of(UserId id, string email, string firstName, string lastName,
             string name, string userName, string password, DateTime createdDate, string createdBy,
-            IReadOnlyList<string> permissions, UserType userType, bool isAdmin = false, bool isActive = true,
+            IReadOnlyList<string> permissions, UserType userType, IUserEditable userEditable, bool isAdmin = false,
+            bool isActive = true,
             IReadOnlyList<string> roles = null, bool locked = false, bool emailConfirmed = false,
             string photoUrl = null, string status = null, string modifiedBy = null,
             DateTime? modifiedDate = null)
         {
             return new(id, email, firstName, lastName, name, userName, password, createdDate, createdBy,
-                permissions, userType,
+                permissions, userType, userEditable,
                 isAdmin, isActive, roles, locked, emailConfirmed, photoUrl, status, modifiedBy, modifiedDate);
         }
 
-        public void AssignRole(Role.Role role)
+        public void AssignRole(Role role)
         {
             if (role is null)
                 throw new Exception("Role can't be null.");
@@ -114,6 +120,11 @@ namespace OnlineStore.Modules.Identity.Domain.Users
 
         public virtual void Patch(User target)
         {
+        }
+
+        public void CheckUserEditable()
+        {
+            CheckRule(new UserEditableRule(UserName, _userEditable));
         }
     }
 }

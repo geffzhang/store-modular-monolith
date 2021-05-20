@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +8,6 @@ using Common.Dependency.ServiceLocator;
 using Common.Dispatcher;
 using Common.Domain;
 using Common.Exceptions;
-using Common.Generators;
 using Common.Logging.Serilog;
 using Common.Messaging;
 using Common.Messaging.Commands;
@@ -28,9 +26,9 @@ using Common.Modules;
 using Common.Persistence.Mongo;
 using Common.Redis;
 using Common.Scheduling;
-using Common.Services;
 using Common.Storage;
 using Common.Web;
+using Common.Web.Middelwares;
 using Figgle;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -100,14 +98,11 @@ namespace Common.Extensions.DependencyInjection
             services.AddSingleton<IInProcessDispatcher, InProcessDispatcher>();
 
             services
-                .AddSingleton<IDateTimeProvider, DateTimeProvider>()
                 .AddSingleton<IRequestStorage, RequestStorage>()
-                .AddSingleton<IRng, Rng>()
                 .AddRedis()
                 .AddMongo()
                 .AddModuleInfo(modules)
                 .AddModuleRequests(assemblies ?? AppDomain.CurrentDomain.GetAssemblies())
-                .AddSingleton<IIdGenerator, IdGenerator>()
                 .AddScoped<ErrorHandlerMiddleware>()
                 .AddScoped<UserMiddleware>()
                 .AddSingleton<IExceptionToResponseMapper, ExceptionToResponseMapper>()

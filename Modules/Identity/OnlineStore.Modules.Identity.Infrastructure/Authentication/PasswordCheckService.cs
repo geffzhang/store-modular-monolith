@@ -2,8 +2,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Authentication;
-using OnlineStore.Modules.Identity.Application.Authentication.Dtos;
 using OnlineStore.Modules.Identity.Application.Authentication.Services;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Authentication

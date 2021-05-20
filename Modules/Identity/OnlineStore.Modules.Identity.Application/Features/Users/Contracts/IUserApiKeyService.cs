@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
-namespace OnlineStore.Modules.Identity.Application.Users.Contracts
+namespace OnlineStore.Modules.Identity.Application.Features.Users.Contracts
 {
     public interface IUserApiKeyService
     {

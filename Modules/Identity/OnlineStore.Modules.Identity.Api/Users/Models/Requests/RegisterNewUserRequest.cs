@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
-namespace OnlineStore.Modules.Identity.Api.Users.Requests
+namespace OnlineStore.Modules.Identity.Api.Users.Models.Requests
 {
     //https://enterprisecraftsmanship.com/posts/cqrs-commands-part-domain-model/
     public class RegisterNewUserRequest

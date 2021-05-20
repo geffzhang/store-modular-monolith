@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
-using OnlineStore.Modules.Identity.Application.Roles.Dtos;
+using OnlineStore.Modules.Identity.Application.Features.Roles.Dtos;
 using OnlineStore.Modules.Identity.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Application.Roles.Repositories
+namespace OnlineStore.Modules.Identity.Application.Features.Roles.Repositories
 {
     public interface IRoleRepository
     {

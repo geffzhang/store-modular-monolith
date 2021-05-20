@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
-using OnlineStore.Modules.Identity.Application.Users.Dtos.GatewayResponses.Repositories;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.GatewayResponses.Repositories;
 using OnlineStore.Modules.Identity.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Application.Users.Contracts
+namespace OnlineStore.Modules.Identity.Application.Features.Users.Contracts
 {
     public interface IUserRepository
     {

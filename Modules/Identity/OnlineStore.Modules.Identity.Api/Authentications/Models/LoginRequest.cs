@@ -1,4 +1,4 @@
-﻿namespace OnlineStore.Modules.Identity.Api.Authentication.Models
+﻿namespace OnlineStore.Modules.Identity.Api.Authentications.Models
 {
     public class LoginRequest 
     {

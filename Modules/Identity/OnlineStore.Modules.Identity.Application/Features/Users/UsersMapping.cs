@@ -1,9 +1,9 @@
 using System.Linq;
 using AutoMapper;
-using OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 using OnlineStore.Modules.Identity.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Application.Users
+namespace OnlineStore.Modules.Identity.Application.Features.Users
 {
     public class UsersMapping : Profile
     {

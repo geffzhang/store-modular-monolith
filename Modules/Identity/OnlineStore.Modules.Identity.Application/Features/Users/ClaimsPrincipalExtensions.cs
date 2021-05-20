@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using OnlineStore.Modules.Identity.Domain;
 using OnlineStore.Modules.Identity.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Application.Users
+namespace OnlineStore.Modules.Identity.Application.Features.Users
 {
     public static class ClaimsPrincipalExtensions
     {

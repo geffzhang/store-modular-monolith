@@ -1,7 +1,7 @@
 using System;
 using Common.Messaging.Commands;
 
-namespace OnlineStore.Modules.Identity.Application.Users.ValidatePasswordResetToken
+namespace OnlineStore.Modules.Identity.Application.Features.Users.ValidatePasswordResetToken
 {
     public class ValidatePasswordResetTokenCommand: ICommand
     {

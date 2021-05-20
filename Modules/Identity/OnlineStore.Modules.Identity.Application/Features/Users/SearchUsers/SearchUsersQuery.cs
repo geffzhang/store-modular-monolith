@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using Common.Domain.Types;
 using Common.Messaging.Queries;
 
-namespace OnlineStore.Modules.Identity.Application.Users.SearchUsers
+namespace OnlineStore.Modules.Identity.Application.Features.Users.SearchUsers
 {
     public class SearchUsersQuery : SearchCriteriaBase, IQuery<UserSearchResponse>
     {

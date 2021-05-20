@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace OnlineStore.Modules.Identity.Application.Roles.Dtos
+namespace OnlineStore.Modules.Identity.Application.Features.Roles.Dtos
 {
     public class CreateRoleResponse
     {

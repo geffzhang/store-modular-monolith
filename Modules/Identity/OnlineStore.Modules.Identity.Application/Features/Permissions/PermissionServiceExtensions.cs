@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
 using Common.Utils.Extensions;
-using OnlineStore.Modules.Identity.Application.Permissions.Services;
+using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
 using OnlineStore.Modules.Identity.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Application.Permissions
+namespace OnlineStore.Modules.Identity.Application.Features.Permissions
 {
     public static class PermissionServiceExtensions
     {

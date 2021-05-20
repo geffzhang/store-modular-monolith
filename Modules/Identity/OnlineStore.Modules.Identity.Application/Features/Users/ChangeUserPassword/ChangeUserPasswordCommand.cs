@@ -1,7 +1,7 @@
 using System;
 using Common.Messaging.Commands;
 
-namespace OnlineStore.Modules.Identity.Application.Users.ChangeUserPassword
+namespace OnlineStore.Modules.Identity.Application.Features.Users.ChangeUserPassword
 {
     public class ChangeUserPasswordCommand : ICommand
     {

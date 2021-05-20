@@ -1,46 +1,50 @@
 using System.Threading.Tasks;
 using Common.Messaging.Commands;
 using Microsoft.AspNetCore.Identity;
-using OnlineStore.Modules.Identity.Application.Users;
-using OnlineStore.Modules.Identity.Application.Users.Exceptions;
-using OnlineStore.Modules.Identity.Infrastructure.Extensions;
+using OnlineStore.Modules.Identity.Application.Features.Users.ChangeUserPassword;
+using OnlineStore.Modules.Identity.Application.Features.Users.Exceptions;
+using OnlineStore.Modules.Identity.Domain.Users;
+using OnlineStore.Modules.Identity.Domain.Users.Services;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.ChangeCurrentUserPassword
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.ChangeUserPassword
 {
-    public class ChangeCurrentUserPasswordCommandHandler : ICommandHandler<ChangeCurrentUserPasswordCommand>
+    public class ChangeCurrentUserPasswordCommandHandler : ICommandHandler<ChangeUserPasswordCommand>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserEditable _userEditable;
 
-        public ChangeCurrentUserPasswordCommandHandler(IUserRepository userRepository)
+        public ChangeCurrentUserPasswordCommandHandler(UserManager<ApplicationUser> userManager,
+            IUserEditable userEditable)
         {
-            _userRepository = userRepository;
+            _userManager = userManager;
+            _userEditable = userEditable;
         }
-        public async Task HandleAsync(ChangeCurrentUserPasswordCommand command)
-        {
-            var user = await _userRepository.FindByNameAsync(command.UserName);
 
-            if (user == null)
+        public async Task HandleAsync(ChangeUserPasswordCommand command)
+        {
+            var appuser = await _userManager.FindByNameAsync(command.UserName);
+            if (appuser == null)
             {
                 throw new UserNotFoundException(command.UserName);
             }
 
-            user.CheckUserEditable();
+            if (_userEditable.IsUserEditable(command.UserName) == false)
+            {
+                throw new UserCanNotEditException(command.UserName);
+            }
 
             if (command.OldPassword == command.NewPassword)
             {
-                return BadRequest(new ChangePasswordResult
-                {
-                    Errors = new[] {"You have used this password in the past. Choose another one."}
-                });
+                throw new PasswordShouldNotEqualOldException();
             }
 
-            var result =
-                await _signInManager.UserManager.ChangePasswordAsync(user, changePassword.OldPassword,
-                    changePassword.NewPassword);
-            if (result.Succeeded && user.PasswordExpired)
+            var result = await _userManager.ChangePasswordAsync(appuser, command.OldPassword,
+                command.NewPassword);
+            if (result.Succeeded && appuser.PasswordExpired)
             {
-                user.PasswordExpired = false;
-                await _userManager.UpdateAsync(user);
+                appuser.PasswordExpired = false;
+                await _userManager.UpdateAsync(appuser);
             }
         }
     }

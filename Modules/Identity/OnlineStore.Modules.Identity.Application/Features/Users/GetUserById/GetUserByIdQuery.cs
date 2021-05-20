@@ -1,8 +1,8 @@
 using System;
 using Common.Messaging.Queries;
-using OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 
-namespace OnlineStore.Modules.Identity.Application.Users.GetUserById
+namespace OnlineStore.Modules.Identity.Application.Features.Users.GetUserById
 {
     public class GetUserByIdQuery : IQuery<UserDto>
     {

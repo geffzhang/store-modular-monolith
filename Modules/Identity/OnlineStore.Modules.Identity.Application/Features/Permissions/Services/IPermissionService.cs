@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using OnlineStore.Modules.Identity.Domain.Users;
 
-namespace OnlineStore.Modules.Identity.Application.Permissions.Services
+namespace OnlineStore.Modules.Identity.Application.Features.Permissions.Services
 {
     public interface IPermissionService
     {
