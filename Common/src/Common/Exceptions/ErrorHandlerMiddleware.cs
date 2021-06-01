@@ -10,24 +10,15 @@ using Newtonsoft.Json.Serialization;
 
 namespace Common.Exceptions
 {
-    internal sealed class ErrorHandlerMiddleware : IMiddleware
+    internal class ErrorHandlerMiddleware : IMiddleware
     {
-        private static readonly JsonSerializerSettings SerializerSettings = new()
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            Converters = new List<JsonConverter>
-            {
-                new StringEnumConverter(new CamelCaseNamingStrategy())
-            }
-        };
-
-        private readonly IExceptionToResponseMapper _exceptionToResponseMapper;
+        private readonly IExceptionCompositionRoot _exceptionCompositionRoot;
         private readonly ILogger<ErrorHandlerMiddleware> _logger;
 
-        public ErrorHandlerMiddleware(IExceptionToResponseMapper exceptionToResponseMapper,
+        public ErrorHandlerMiddleware(IExceptionCompositionRoot exceptionCompositionRoot,
             ILogger<ErrorHandlerMiddleware> logger)
         {
-            _exceptionToResponseMapper = exceptionToResponseMapper;
+            _exceptionCompositionRoot = exceptionCompositionRoot;
             _logger = logger;
         }
 
@@ -46,18 +37,15 @@ namespace Common.Exceptions
 
         private async Task HandleErrorAsync(HttpContext context, Exception exception)
         {
-            var exceptionResponse = _exceptionToResponseMapper.Map(exception);
-            context.Response.StatusCode = (int) (exceptionResponse?.StatusCode ?? HttpStatusCode.InternalServerError);
-            var response = exceptionResponse?.Response;
+            var errorResponse = _exceptionCompositionRoot.Map(exception);
+            context.Response.StatusCode = (int) (errorResponse?.StatusCode ?? HttpStatusCode.InternalServerError);
+            var response = errorResponse?.Response;
             if (response is null)
             {
-                await context.Response.WriteAsync(string.Empty);
                 return;
             }
 
-            context.Response.ContentType = "application/json";
-            var payload = JsonConvert.SerializeObject(exceptionResponse.Response, SerializerSettings);
-            await context.Response.WriteAsync(payload);
+            await context.Response.WriteAsJsonAsync(response);
         }
     }
 }

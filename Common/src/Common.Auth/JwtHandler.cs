@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Common.Auth
 {
-    internal sealed class JwtHandler : IJwtHandler
+    public sealed class JwtHandler : IJwtHandler
     {
         private static readonly IDictionary<string, IEnumerable<string>> EmptyClaims =
             new Dictionary<string, IEnumerable<string>>();

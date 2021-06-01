@@ -3,13 +3,14 @@ using Common.Messaging.Events;
 
 namespace Common.Domain
 {
-    public interface IDomainNotificationEvent<out TEventType> : IDomainNotificationEvent
+    public interface IDomainNotificationEvent<TEventType> : IDomainNotificationEvent
     {
-        TEventType DomainEvent { get; }
+        TEventType DomainEvent { get; set; }
     }
 
-    public interface IDomainNotificationEvent : IEvent
+    public interface IDomainNotificationEvent
     {
+        Guid Id { get; set; }
     }
     
 }

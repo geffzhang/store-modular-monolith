@@ -1,31 +1,27 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Common.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Common.Persistence.Postgres
 {
     public abstract class PostgresUnitOfWork<T> : IUnitOfWork where T : DbContext
     {
-        private readonly T _dbContext;
+        private readonly DbContext _dbContext;
+        private readonly IDomainEventDispatcher _domainEventDispatcher;
 
-        protected PostgresUnitOfWork(T dbContext)
+        public PostgresUnitOfWork(DbContext dbContext, IDomainEventDispatcher domainEventDispatcher)
         {
             _dbContext = dbContext;
+            _domainEventDispatcher = domainEventDispatcher;
         }
-        
-        public async Task ExecuteAsync(Func<Task> action)
+
+        public async Task<int> CommitAsync(CancellationToken cancellationToken = default,
+            Guid? internalCommandId = null)
         {
-            await using var transaction = await _dbContext.Database.BeginTransactionAsync();
-            try
-            {
-                await action();
-                await transaction.CommitAsync();
-            }
-            catch (Exception)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+            await _domainEventDispatcher.DispatchAsync();
+            return await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

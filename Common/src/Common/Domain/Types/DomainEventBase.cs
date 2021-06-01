@@ -10,5 +10,6 @@ namespace Common.Domain.Types
         }
         public int Version { get; set; }
         public DateTime OccurredOn { get; }
+        public Guid Id { get; } = Guid.NewGuid();
     }
 }

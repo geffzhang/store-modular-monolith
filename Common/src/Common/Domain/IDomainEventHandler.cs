@@ -2,7 +2,7 @@
 
 namespace Common.Domain
 {
-    public interface IDomainEventHandler<in TEvent> where TEvent : class, IDomainEvent
+    public interface IDomainEventHandler<in TEvent> where TEvent : IDomainEvent
     {
         Task HandleAsync(TEvent message);
     }

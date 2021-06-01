@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="5.0.4" />
+    <PackageReference Include="OpenIddict.Abstractions" Version="3.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Common\src\Common.csproj" />
+    <ProjectReference Include="..\OnlineStore.Modules.Identity.Domain\OnlineStore.Modules.Identity.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="RegisterNewUser\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="RegisterNewUser\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="RegisterNewUser\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Authorization" />
+    <Folder Include="Features" />
+    <Folder Include="Features\Users\ToggleUserStatus" />
+  </ItemGroup>
+
+</Project>

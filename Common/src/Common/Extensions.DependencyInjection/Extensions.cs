@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Common.Contexts;
 using Common.Dependency.ServiceLocator;
-using Common.Dispatcher;
 using Common.Domain;
 using Common.Exceptions;
 using Common.Logging.Serilog;
+using Common.Mail;
 using Common.Messaging;
 using Common.Messaging.Commands;
-using Common.Messaging.Dispatcher;
 using Common.Messaging.Events;
 using Common.Messaging.Inbox;
 using Common.Messaging.Inbox.Mongo;
@@ -28,7 +26,8 @@ using Common.Redis;
 using Common.Scheduling;
 using Common.Storage;
 using Common.Web;
-using Common.Web.Middelwares;
+using Common.Web.Contexts;
+using Common.Web.Middlewares;
 using Figgle;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -38,6 +37,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using IMailService = Common.Mail.IMailService;
 
 [assembly: InternalsVisibleTo("OnlineStore.API")]
 [assembly: InternalsVisibleTo("OnlineStore.Tests.Benchmarks")]
@@ -50,16 +50,18 @@ namespace Common.Extensions.DependencyInjection
         private const string CorsPolicy = "cors";
         private const string AppSectionName = "app";
 
-        public static IServiceCollection AddCommon(this IServiceCollection services, IList<Assembly> assemblies = null,
+        public static IServiceCollection AddCommon(this IServiceCollection services,
+            IList<Assembly> assemblies = null,
             IList<IModule> modules = null,
             string sectionName = AppSectionName)
         {
             if (string.IsNullOrWhiteSpace(sectionName)) sectionName = AppSectionName;
 
             var disabledModules = new List<string>();
+            IConfiguration configuration;
             using (var serviceProvider = services.BuildServiceProvider())
             {
-                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 foreach (var (key, value) in configuration.AsEnumerable())
                 {
                     if (!key.Contains(":module:enabled"))
@@ -74,6 +76,10 @@ namespace Common.Extensions.DependencyInjection
                 }
             }
 
+
+            services.Configure<MailConfiguration>(configuration.GetSection("MailConfiguration"));
+            services.AddSingleton<IMailService, SmtpMailService>();
+
             services.AddNewtonsoftMessageSerializer(options =>
             {
                 options.Converters = new List<JsonConverter> {new StringEnumConverter(new CamelCaseNamingStrategy())};
@@ -84,18 +90,20 @@ namespace Common.Extensions.DependencyInjection
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             services.TryDecorate(typeof(ICommandHandler<>), typeof(UnitOfWorkCommandHandlerDecorator<>));
+            services.TryDecorate(typeof(IDomainEventHandler<>), typeof(DomainEventsDispatcherNotificationHandlerDecorator<>));
             services.TryDecorate(typeof(IIntegrationEventHandler<>), typeof(UnitOfWorkEventHandlerDecorator<>));
+
+            services.TryDecorate(typeof(IIntegrationEventHandler<>), typeof(LoggingIntegrationEventHandlerDecorator<>));
             services.TryDecorate(typeof(IQueryHandler<,>), typeof(LoggingQueryHandlerDecorator<,>));
             services.TryDecorate(typeof(ICommandHandler<>), typeof(LoggingCommandHandlerDecorator<>));
-            services.TryDecorate(typeof(IIntegrationEventHandler<>), typeof(LoggingIntegrationEventHandlerDecorator<>));
+            services.TryDecorate(typeof(IEventHandler<>), typeof(LoggingEventHandlerDecorator<>));
+            services.TryDecorate(typeof(IDomainEventHandler<>), typeof(LoggingDomainEventHandlerDecorator<>));
 
             services.AddCommand(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
-            services.AddEvent(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
             services.AddQuery(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
             services.AddDomainEvents(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
-
-            services.AddSingleton<IOutOfProcessDispatcher, OutOfProcessDispatcher>();
-            services.AddSingleton<IInProcessDispatcher, InProcessDispatcher>();
+            services.AddIntegrationEvent(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
+            services.AddDomainNotificationEvents(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
 
             services
                 .AddSingleton<IRequestStorage, RequestStorage>()
@@ -107,6 +115,7 @@ namespace Common.Extensions.DependencyInjection
                 .AddScoped<UserMiddleware>()
                 .AddSingleton<IExceptionToResponseMapper, ExceptionToResponseMapper>()
                 .AddSingleton<IExceptionToMessageMapper, ExceptionToMessageMapper>()
+                .AddSingleton<IExceptionCompositionRoot, ExceptionCompositionRoot>()
                 .AddSingleton<IExceptionToMessageMapperResolver, ExceptionToMessageMapperResolver>()
                 .AddSingleton<ICommandProcessor, CommandProcessor>()
                 .AddScoped<IQueryProcessor, QueryProcessor>()
@@ -115,6 +124,7 @@ namespace Common.Extensions.DependencyInjection
                 .AddSingleton<IContextFactory, ContextFactory>()
                 .AddScoped(ctx => ctx.GetRequiredService<IContextFactory>().Create())
                 .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
+                .AddSingleton<IExecutionContextAccessor, ExecutionContextAccessor>()
                 .AddSingleton<IDependencyResolver, DefaultDependencyResolver>()
                 .AddCors(cors =>
                 {
@@ -186,6 +196,17 @@ namespace Common.Extensions.DependencyInjection
             return services;
         }
 
+        public static IServiceCollection AddDomainNotificationEvents(this IServiceCollection services,
+            IEnumerable<Assembly> assemblies)
+        {
+            services.AddSingleton<IDomainNotificationEventDispatcher, DomainNotificationEventDispatcher>();
+            services.Scan(s => s.FromAssemblies(assemblies)
+                .AddClasses(c => c.AssignableTo(typeof(IDomainNotificationEventHandler<>)))
+                .AsImplementedInterfaces()
+                .WithScopedLifetime());
+            return services;
+        }
+
         private static IServiceCollection AddCommand(this IServiceCollection services,
             IList<Assembly> assemblies)
         {
@@ -213,9 +234,9 @@ namespace Common.Extensions.DependencyInjection
         }
 
 
-        private static IServiceCollection AddEvent(this IServiceCollection services, IList<Assembly> assemblies)
+        private static IServiceCollection AddIntegrationEvent(this IServiceCollection services, IList<Assembly> assemblies)
         {
-            services.AddSingleton<IEventDispatcher, EventDispatcher>();
+            services.AddSingleton<IIntegrationEventDispatcher, IntegrationEventDispatcher>();
 
             services.Scan(s => s.FromAssemblies(assemblies)
                 .AddClasses(c => c.AssignableTo(typeof(IEventHandler<>))
@@ -263,6 +284,7 @@ namespace Common.Extensions.DependencyInjection
         {
             app.UseCors(CorsPolicy);
             app.UseMiddleware<UserMiddleware>();
+            app.UseMiddleware<CorrelationMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
 
             return app;

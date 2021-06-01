@@ -24,11 +24,14 @@ namespace Common.Logging.Serilog
         {
             using (LogContext.PushProperty("CorrelationId", $"{command.CorrelationId:N}"))
             {
-                var module = command.GetModuleName();
-                var name = command.GetType().Name.Underscore();
-                _logger.LogInformation($"Handling a command: '{name}' ('{module}')...");
-                await _handler.HandleAsync(command);
-                _logger.LogInformation($"Completed handling a command: '{name}' ('{module}').");
+                using (LogContext.PushProperty("RequestId", $"{command.Id:N}"))
+                {
+                    var module = command.GetModuleName();
+                    var name = command.GetType().Name.Underscore();
+                    _logger.LogInformation($"Handling a command: '{name}' ('{module}')...");
+                    await _handler.HandleAsync(command);
+                    _logger.LogInformation($"Completed handling a command: '{name}' ('{module}').");
+                }
             }
         }
     }

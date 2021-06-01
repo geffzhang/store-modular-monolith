@@ -19,7 +19,7 @@ namespace Common.Persistence.Postgres.Decorators
             _serviceProvider = serviceProvider;
             _unitOfWorkTypeRegistry = unitOfWorkTypeRegistry;
         }
-        
+
         public async Task HandleAsync(T command)
         {
             var unitOfWorkType = _unitOfWorkTypeRegistry.Resolve<T>();
@@ -30,7 +30,8 @@ namespace Common.Persistence.Postgres.Decorators
             }
 
             var unitOfWork = (IUnitOfWork) _serviceProvider.GetRequiredService(unitOfWorkType);
-            await unitOfWork.ExecuteAsync(() => _handler.HandleAsync(command));
+            await _handler.HandleAsync(command);
+            await unitOfWork.CommitAsync();
         }
     }
 }

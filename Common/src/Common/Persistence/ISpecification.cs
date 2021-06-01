@@ -8,5 +8,6 @@ namespace Common.Persistence
     {
         Expression<Func<T, bool>> Expression { get; }
         List<Expression<Func<T, object>>> Includes { get; }
+        List<string> IncludeStrings { get; }
     }
 }

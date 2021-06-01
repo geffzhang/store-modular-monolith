@@ -25,11 +25,14 @@ namespace Common.Logging.Serilog
         {
             using (LogContext.PushProperty("CorrelationId", $"{@event.CorrelationId:N}"))
             {
-                var module = @event.GetModuleName();
-                var name = @event.GetType().Name.Underscore();
-                _logger.LogInformation($"Handling an event: '{name}' ('{module}')...");
-                await _handler.HandleAsync(@event);
-                _logger.LogInformation($"Completed handling an event: '{name}' ('{module}').");
+                using (LogContext.PushProperty("RequestId", $"{@event.Id:N}"))
+                {
+                    var module = @event.GetModuleName();
+                    var name = @event.GetType().Name.Underscore();
+                    _logger.LogInformation($"Handling an integration event: '{name}' ('{module}')...");
+                    await _handler.HandleAsync(@event);
+                    _logger.LogInformation($"Completed handling an integration event: '{name}' ('{module}').");
+                }
             }
         }
     }

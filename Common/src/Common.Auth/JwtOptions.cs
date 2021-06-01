@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Common.Auth
 {
-    internal class JwtOptions
+    public class JwtOptions
     {
         public bool AuthenticationDisabled { get; set; }
         public IEnumerable<string> AllowAnonymousEndpoints { get; set; }

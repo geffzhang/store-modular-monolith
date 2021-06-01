@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Common.Auth
 {
-    internal class AccessTokenValidatorMiddleware : IMiddleware
+    public class AccessTokenValidatorMiddleware : IMiddleware
     {
         private readonly IAccessTokenService _accessTokenService;
         private readonly IEnumerable<string> _endpoints;
