@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Common.Domain;
+using Common.Domain.Dispatching;
 using Microsoft.EntityFrameworkCore;
 
 namespace Common.Persistence.Postgres

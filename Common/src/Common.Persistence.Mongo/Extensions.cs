@@ -30,13 +30,15 @@ namespace Common.Persistence.Mongo
             return services;
         }
 
-        public static IServiceCollection AddMongo(this IServiceCollection services, string sectionName = SectionName,
+        public static IServiceCollection AddMongoPersistence(this IServiceCollection services, string sectionName = SectionName,
             Type seederType = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
 
             var mongoOptions = services.GetOptions<MongoOptions>(sectionName);
             services.AddSingleton(mongoOptions);
+
+            services.AddScoped<IMongoDbContext, MongoDbContext>();
             services.AddSingleton<IMongoClient>(sp =>
             {
                 var options = sp.GetService<MongoOptions>();

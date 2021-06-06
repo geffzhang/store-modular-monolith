@@ -6,8 +6,10 @@ using OnlineStore.Modules.Identity.Application.Features.Users.SendVerificationEm
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser
 {
-    public class NewUserRegisteredSendEmailConfirmationHandler :
-        IDomainNotificationEventHandler<NewUserRegisteredNotification>
+    //http://www.kamilgrzybek.com/design/the-outbox-pattern/
+    //http://www.kamilgrzybek.com/design/how-to-publish-and-handle-domain-events/
+    //http://www.kamilgrzybek.com/design/handling-domain-events-missing-part/
+    public class NewUserRegisteredSendEmailConfirmationHandler : IDomainEventNotificationHandler<NewUserRegisteredNotification>
     {
         private readonly IMessagesScheduler _messagesScheduler;
         private readonly IHttpContextAccessor _httpContextAccessor;

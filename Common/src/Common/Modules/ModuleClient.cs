@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Common.Messaging;
 using Common.Messaging.Commands;
+using Common.Messaging.Events;
 using Common.Utils;
 using Common.Utils.Extensions;
 
@@ -32,7 +33,7 @@ namespace Common.Modules
                 throw new InvalidOperationException($"No action has been defined for path: '{path}'.");
             }
 
-            if (request is IMessage message)
+            if (request is IIntegrationEvent message)
             {
                 // A synchronous request
                 message.Id = Guid.Empty;

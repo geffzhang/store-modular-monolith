@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Common.Messaging.Events;
 using Common.Messaging.Outbox;
 using Common.Modules;
 using Common.Utils;
@@ -17,20 +18,18 @@ namespace Common.Messaging.Transport.InMemory
         private readonly IAsyncMessageDispatcher _messageDispatcher;
         private readonly MessagingOptions _messagingOptions;
         private readonly IModuleClient _moduleClient;
-        private readonly IOutbox _outbox;
-
+        
         public InMemoryMessageBroker(IModuleClient moduleClient, IAsyncMessageDispatcher messageDispatcher,
-            IContext context, IOutbox outbox, MessagingOptions messagingOptions, ILogger<InMemoryMessageBroker> logger)
+            IContext context,  MessagingOptions messagingOptions, ILogger<InMemoryMessageBroker> logger)
         {
             _moduleClient = moduleClient;
             _messageDispatcher = messageDispatcher;
             _context = context;
-            _outbox = outbox;
             _messagingOptions = messagingOptions;
             _logger = logger;
         }
 
-        public async Task PublishAsync(params IMessage[] messages)
+        public async Task PublishAsync(params IMessage [] messages)
         {
             if (messages is null) return;
 
@@ -41,12 +40,6 @@ namespace Common.Messaging.Transport.InMemory
                 if (message.CorrelationId == Guid.Empty)
                     message.CorrelationId = _context.CorrelationId;
 
-            if (_outbox.Enabled)
-            {
-                _logger.LogInformation("Messages will be saved to the outbox...");
-                await _outbox.SaveAsync(messages);
-                return;
-            }
 
             foreach (var message in messages)
             {

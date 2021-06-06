@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 namespace Common.Domain
 {
-    public interface IDomainEventHandler<in T> where T : class, IDomainEvent
+    public interface IDomainEventNotificationHandler<in T> where T : class, IDomainEventNotification
     {
         Task HandleAsync(T domainEvent);
     }

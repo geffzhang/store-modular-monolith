@@ -1,16 +1,17 @@
 using System.Threading.Tasks;
+using Common.Messaging.Events;
 
-namespace Common.Domain
+namespace Common.Domain.Dispatching
 {
-    public class DomainEventsDispatcherNotificationHandlerDecorator<T> : IDomainEventHandler<T>
-        where T : IDomainEvent
+    public class DomainEventsDispatcherEventHandlerDecorator<T> : IEventHandler<T>
+        where T : IEvent
     {
-        private readonly IDomainEventHandler<T> _decorated;
+        private readonly IEventHandler<T> _decorated;
         private readonly IDomainEventDispatcher _domainEventsDispatcher;
 
-        public DomainEventsDispatcherNotificationHandlerDecorator(
+        public DomainEventsDispatcherEventHandlerDecorator(
             IDomainEventDispatcher domainEventsDispatcher,
-            IDomainEventHandler<T> decorated)
+            IEventHandler<T> decorated)
         {
             _domainEventsDispatcher = domainEventsDispatcher;
             _decorated = decorated;

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Common.Messaging;
+using Common.Messaging.Events;
 
 namespace Common.Modules
 {

@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Common.Messaging.Events;
 
 namespace Common.Messaging.Transport.InMemory
 {

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Common.Messaging.Events;
 
 namespace Common.Messaging.Transport
 {

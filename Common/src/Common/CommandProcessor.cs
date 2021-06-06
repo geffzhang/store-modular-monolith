@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Domain;
+using Common.Domain.Dispatching;
 using Common.Messaging;
 using Common.Messaging.Commands;
 using Common.Messaging.Events;
@@ -29,6 +30,18 @@ namespace Common
             using var scope = _serviceProvider.CreateScope();
             var dispatcher = scope.ServiceProvider.GetRequiredService<IDomainEventDispatcher>();
             await dispatcher.DispatchAsync(domainEvents);
+        }
+
+        public async Task PublishDomainEventNotificationAsync(params IDomainEventNotification[] events)
+        {
+            if (events is null || !events.Any())
+            {
+                return;
+            }
+            
+            using var scope = _serviceProvider.CreateScope();
+            var dispatcher = scope.ServiceProvider.GetRequiredService<IDomainEventNotificationDispatcher>();
+            await dispatcher.DispatchAsync(events);
         }
 
         public async Task PublishIntegrationEventAsync<T>(T integrationEvent) where T : class, IIntegrationEvent

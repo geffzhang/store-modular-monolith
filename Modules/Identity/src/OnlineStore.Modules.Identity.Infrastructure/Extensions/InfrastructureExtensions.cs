@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Common.Caching;
 using Common.Extensions.DependencyInjection;
+using Common.Messaging.Outbox.EFCore;
 using Common.Messaging.Scheduling.Hangfire.MessagesScheduler;
 using Common.Scheduling;
 using Microsoft.AspNetCore.Builder;
@@ -24,7 +25,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
             services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddCommon();
-
+            services.AddEntityFrameworkOutbox<IdentityDbContext>();
             AddScopeServices(services);
             AddTransientServices(services);
             AddSingletonServices(services);
@@ -44,12 +45,12 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
         private static void AddTransientServices(IServiceCollection services)
         {
         }
-        
+
         private static void AddSingletonServices(IServiceCollection services)
         {
             services.AddSingleton<IMessagesScheduler, HangfireMessagesScheduler>();
         }
-        
+
         public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app,
             IWebHostEnvironment env)
         {

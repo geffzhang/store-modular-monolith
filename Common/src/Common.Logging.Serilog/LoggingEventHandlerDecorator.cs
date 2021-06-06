@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Common.Domain;
 using Common.Messaging.Events;
 using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
@@ -21,16 +22,13 @@ namespace Common.Logging.Serilog
 
         public async Task HandleAsync(T @event)
         {
-            using (LogContext.PushProperty("CorrelationId", $"{@event.CorrelationId:N}"))
+            using (LogContext.PushProperty("RequestId", $"{@event.Id:N}"))
             {
-                using (LogContext.PushProperty("RequestId", $"{@event.Id:N}"))
-                {
-                    var module = @event.GetModuleName();
-                    var name = @event.GetType().Name.Underscore();
-                    _logger.LogInformation($"Handling an event: '{name}' ('{module}')...");
-                    await _handler.HandleAsync(@event);
-                    _logger.LogInformation($"Completed handling an event: '{name}' ('{module}').");
-                }
+                var module = @event.GetModuleName();
+                var name = @event.GetType().Name.Underscore();
+                _logger.LogInformation($"Handling an event: '{name}' ('{module}')...");
+                await _handler.HandleAsync(@event);
+                _logger.LogInformation($"Completed handling an event: '{name}' ('{module}').");
             }
         }
     }

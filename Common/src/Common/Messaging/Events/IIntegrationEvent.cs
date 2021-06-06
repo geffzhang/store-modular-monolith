@@ -1,10 +1,12 @@
 using System;
+using Common.Domain;
 
 namespace Common.Messaging.Events
 {
-    //Marker
     public interface IIntegrationEvent : IEvent
     {
         DateTime OccurredOn { get; }
+        Guid Id { get; set;}
+        Guid CorrelationId { get; set; }
     }
 }

@@ -1,19 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Common.Domain;
-using Common.Exceptions;
-using Microsoft.EntityFrameworkCore;
+using Common.Domain.Dispatching;
 
-namespace Common.Persistence.EFCore
+namespace Common.Persistence.MSSQL
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly DbContext _dbContext;
+        private readonly ISqlDbContext _dbContext;
         private readonly IDomainEventDispatcher _domainEventDispatcher;
 
-        public UnitOfWork(DbContext dbContext, IDomainEventDispatcher domainEventDispatcher)
+        public UnitOfWork(ISqlDbContext dbContext, IDomainEventDispatcher domainEventDispatcher)
         {
             _dbContext = dbContext;
             _domainEventDispatcher = domainEventDispatcher;

@@ -21,8 +21,9 @@ namespace Common.Messaging.Inbox
 
         public Task HandleAsync(T command)
         {
+            var message = new InboxMessage();
             return _inbox.Enabled
-                ? _inbox.HandleAsync(command, () => _handler.HandleAsync(command), _module)
+                ? _inbox.HandleAsync(message, () => _handler.HandleAsync(command), _module)
                 : _handler.HandleAsync(command);
         }
     }

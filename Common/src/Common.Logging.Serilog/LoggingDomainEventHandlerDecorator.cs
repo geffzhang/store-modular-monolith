@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Common.Domain;
+using Common.Messaging.Events;
 using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;

@@ -18,7 +18,7 @@ namespace Common.Messaging.Events
             _logger = logger;
         }
 
-        public async Task PublishAsync<T>(T @event) where T : class, IEvent
+        public async Task PublishAsync<T>(T @event) where T : class, IIntegrationEvent
         {
             if (@event is null)
             {
@@ -32,12 +32,12 @@ namespace Common.Messaging.Events
                 @event.CorrelationId = context.CorrelationId;
             }
 
-            if (typeof(T) == typeof(IEvent))
+            if (typeof(T) == typeof(IIntegrationEvent))
             {
-                var handlerType = typeof(IEventHandler<>).MakeGenericType(@event.GetType());
+                var handlerType = typeof(IIntegrationEventHandler<>).MakeGenericType(@event.GetType());
                 var eventHandlers = scope.ServiceProvider.GetServices(handlerType);
                 var handlerTasks = eventHandlers.Select(x => (Task) handlerType
-                    .GetMethod(nameof(IEventHandler<IEvent>.HandleAsync))
+                    .GetMethod(nameof(IIntegrationEventHandler<IIntegrationEvent>.HandleAsync))
                     ?.Invoke(x, new[] {@event}));
                 
                 await Task.WhenAll(handlerTasks);
@@ -45,7 +45,7 @@ namespace Common.Messaging.Events
                 return;
             }
 
-            var handlers = scope.ServiceProvider.GetServices<IEventHandler<T>>();
+            var handlers = scope.ServiceProvider.GetServices<IIntegrationEventHandler<T>>();
             var tasks = handlers.Select(x => x.HandleAsync(@event));
             await Task.WhenAll(tasks);
         }

@@ -5,7 +5,7 @@ using Common.Domain.Types;
 using Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Common.Persistence.EFCore
+namespace Common.Persistence.MSSQL
 {
     public abstract class RepositoryBase<T, TDbContext> : IRepository<T>
         where T : class, IAggregateRoot

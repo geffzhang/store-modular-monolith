@@ -35,7 +35,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.SendVerificat
             
             string link = $"<a href='{callbackUrl}'>link</a>";
             string content = $"Welcome to Online Shopping application! Please confirm your registration using this {link}.";
-
+            
             // Send Email
             await _mailService.SendAsync(new MailRequest(applicationUser.Email, "Confirmation Email", content));
         }

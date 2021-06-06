@@ -2,7 +2,7 @@ using System;
 
 namespace Common.Domain.Types
 {
-    public abstract class DomainNotificationEventBase<TEventType> : IDomainNotificationEvent<TEventType>
+    public abstract class DomainNotificationEventBase<TEventType> : IDomainEventNotification<TEventType>
         where TEventType : IDomainEvent
     {
         protected DomainNotificationEventBase()

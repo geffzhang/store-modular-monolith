@@ -1,47 +1,63 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Common.Domain;
+using Common.Domain.Dispatching;
+using Common.Messaging.Events;
 using Common.Messaging.Serialization;
 using Common.Messaging.Transport;
 using Common.Modules;
+using Common.Persistence.Mongo;
 using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Serilog.Context;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace Common.Messaging.Outbox.Mongo
 {
     internal sealed class MongoOutbox : IOutbox
     {
-        private readonly string _collectionName;
         private readonly IMessageSerializer _messageSerializer;
-        private readonly IMongoDatabase _database;
         private readonly ILogger<MongoOutbox> _logger;
+        private readonly IMongoDbContext _mongoDbContext;
         private readonly IModuleClient _moduleClient;
+        private readonly ICommandProcessor _commandProcessor;
+        private readonly IDomainNotificationsMapper _domainNotificationsMapper;
         private readonly IAsyncMessageDispatcher _messageDispatcher;
         private readonly string[] _modules;
         private readonly bool _useBackgroundDispatcher;
 
-        public MongoOutbox(IMongoDatabase database, IModuleRegistry moduleRegistry, OutboxOptions outboxOptions,
-            MessagingOptions messagingOptions, IModuleClient moduleClient, IAsyncMessageDispatcher messageDispatcher,
-            IMessageSerializer messageSerializer, ILogger<MongoOutbox> logger)
+        public MongoOutbox(IMongoDbContext mongoDbContext,
+            IModuleRegistry moduleRegistry,
+            OutboxOptions outboxOptions,
+            MessagingOptions messagingOptions,
+            IModuleClient moduleClient,
+            ICommandProcessor commandProcessor,
+            IAsyncMessageDispatcher messageDispatcher,
+            IMessageSerializer messageSerializer,
+            IDomainNotificationsMapper domainNotificationsMapper,
+            ILogger<MongoOutbox> logger)
         {
-            _database = database;
+            _mongoDbContext = mongoDbContext;
             _moduleClient = moduleClient;
+            _commandProcessor = commandProcessor;
             _messageDispatcher = messageDispatcher;
             _messageSerializer = messageSerializer;
+            _domainNotificationsMapper = domainNotificationsMapper;
             _logger = logger;
             Enabled = outboxOptions.Enabled;
             _modules = moduleRegistry.Modules.ToArray();
             _useBackgroundDispatcher = messagingOptions.UseBackgroundDispatcher;
-            _collectionName = string.IsNullOrWhiteSpace(outboxOptions.CollectionName)
-                ? "outbox"
-                : outboxOptions.CollectionName;
         }
 
         public bool Enabled { get; }
 
-        public async Task SaveAsync(params IMessage[] messages)
+        public async Task SaveAsync(IList<OutboxMessage> outboxMessages, CancellationToken cancellationToken = default)
         {
             if (!Enabled)
             {
@@ -49,29 +65,22 @@ namespace Common.Messaging.Outbox.Mongo
                 return;
             }
 
-            if (messages is null || !messages.Any())
+            if (outboxMessages is null || !outboxMessages.Any())
             {
                 _logger.LogWarning("No messages have been provided to be saved to the outbox.");
                 return;
             }
 
-            var outboxMessages = messages.Where(x => x is { })
-                .Select(x => new OutboxMessage
-                {
-                    Id = x.Id,
-                    CorrelationId = x.CorrelationId,
-                    Name = x.GetType().Name.Underscore(),
-                    Payload = _messageSerializer.Serialize(x),
-                    Type = x.GetType().AssemblyQualifiedName,
-                    ReceivedAt = DateTime.UtcNow.ToUnixTimeMilliseconds()
-                }).ToArray();
+            var module = outboxMessages[0].GetModuleName();
+            _logger.LogInformation($"Saved {outboxMessages.Count} messages to the outbox ('{module}').");
 
-            if (!outboxMessages.Any()) _logger.LogWarning("No messages have been provided to be saved to the outbox.");
-
-            var module = messages[0].GetModuleName();
-            await _database.GetCollection<OutboxMessage>($"{module}-module.{_collectionName}")
-                .InsertManyAsync(outboxMessages);
-            _logger.LogInformation($"Saved {outboxMessages.Length} messages to the outbox ('{module}').");
+            if (_mongoDbContext.Transaction?.Session != null)
+                await _mongoDbContext.OutboxMessages
+                    .InsertManyAsync(_mongoDbContext.Transaction.Session, outboxMessages, null, cancellationToken)
+                    .ConfigureAwait(false);
+            else
+                await _mongoDbContext.OutboxMessages.InsertManyAsync(outboxMessages, null, cancellationToken)
+                    .ConfigureAwait(false);
         }
 
         public Task PublishUnsentAsync()
@@ -81,8 +90,7 @@ namespace Common.Messaging.Outbox.Mongo
 
         private async Task PublishUnsentAsync(string module)
         {
-            var collection = _database.GetCollection<OutboxMessage>($"{module}-module.{_collectionName}");
-            var unsentMessages = await collection.AsQueryable()
+            var unsentMessages = await _mongoDbContext.OutboxMessages.AsQueryable()
                 .Where(x => x.SentAt == null)
                 .ToListAsync();
 
@@ -96,29 +104,51 @@ namespace Common.Messaging.Outbox.Mongo
 
             foreach (var outboxMessage in unsentMessages)
             {
-                var type = Type.GetType(outboxMessage.Type);
-                var message = _messageSerializer.Deserialize(outboxMessage.Payload, type) as IMessage;
-                
-                if (message is null)
+                var type = _domainNotificationsMapper.GetType(outboxMessage.Type);
+
+                var domainEventNotification = _messageSerializer.Deserialize(outboxMessage.Payload, type) as IDomainEventNotification;
+                if (domainEventNotification is null)
                 {
-                    _logger.LogError($"Invalid message type: {type?.Name} (cannot cast to {nameof(IMessage)}).");
+                    _logger.LogError($"Invalid DomainNotification type: {type?.Name} (cannot cast to {nameof(IDomainEventNotification)}).");
                     continue;
                 }
 
-                message.Id = outboxMessage.Id;
-                message.CorrelationId = outboxMessage.CorrelationId;
+                using (LogContext.Push(new OutboxMessageContextEnricher(domainEventNotification)))
+                {
+                    _logger.LogInformation(
+                        $"Publishing a DomainNotification : '{outboxMessage.Name}' with ID: '{domainEventNotification.Id}' (outbox)...");
 
-                var name = message.GetType().Name.Underscore();
-                _logger.LogInformation($"Publishing a message: '{name}' with ID: '{message.Id}' (outbox)...");
+                    await _commandProcessor.PublishDomainEventNotificationAsync(domainEventNotification);
 
-                if (_useBackgroundDispatcher)
-                    await _messageDispatcher.PublishAsync(message);
-                else
-                    await _moduleClient.PublishAsync(message);
 
-                outboxMessage.SentAt = DateTime.UtcNow.ToUnixTimeMilliseconds();
-                await collection.ReplaceOneAsync(x => x.Id == outboxMessage.Id, outboxMessage);
-                _logger.LogInformation($"Published a message: '{name}' with ID: '{message.Id} (outbox)'.");
+                    outboxMessage.SentAt = DateTime.UtcNow;
+                    await _mongoDbContext.OutboxMessages.ReplaceOneAsync(x => x.Id == outboxMessage.Id, outboxMessage);
+                    _logger.LogInformation(
+                        $"Published a message: '{outboxMessage.Name}' with ID: '{domainEventNotification.Id} (outbox)'.");
+                }
+            }
+        }
+
+
+        public async Task CleanProcessedAsync(CancellationToken cancellationToken = default)
+        {
+            await _mongoDbContext.OutboxMessages.DeleteManyAsync(e => e.SentAt != null, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        private class OutboxMessageContextEnricher : ILogEventEnricher
+        {
+            private readonly IDomainEventNotification _notification;
+
+            public OutboxMessageContextEnricher(IDomainEventNotification notification)
+            {
+                _notification = notification;
+            }
+
+            public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+            {
+                logEvent.AddOrUpdateProperty(new LogEventProperty("Context",
+                    new ScalarValue($"OutboxMessage:{_notification.Id.ToString()}")));
             }
         }
     }

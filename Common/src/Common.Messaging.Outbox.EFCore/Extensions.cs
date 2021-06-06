@@ -19,7 +19,7 @@ namespace Common.Messaging.Outbox.EFCore
 
             services
                 .AddSingleton(outboxOptions)
-                .AddTransient<IOutbox, EFCoreOutbox<T>>();
+                .AddTransient<IOutbox, EFCoreOutbox>();
 
             // Adding background service
             if (outboxOptions.Enabled)

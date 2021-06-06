@@ -1,24 +1,20 @@
 using System.Threading.Tasks;
 using Common.Domain;
+using Common.Messaging.Events;
 using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
 
 namespace Common.Logging.Serilog
 {
-    public class LoggingNotificationEventHandlerDecorator
+    internal sealed class LoggingNotificationEventHandlerDecorator<T> : IDomainEventNotificationHandler<T>
+        where T : class, IDomainEventNotification
     {
+        private readonly IDomainEventNotificationHandler<T> _handler;
+        private readonly ILogger<IDomainEventNotificationHandler<T>> _logger;
 
-    }
-
-    internal sealed class LoggingNotificationEventHandlerDecorator<T> : IDomainNotificationEventHandler<T>
-        where T : class, IDomainNotificationEvent
-    {
-        private readonly IDomainNotificationEventHandler<T> _handler;
-        private readonly ILogger<IDomainNotificationEventHandler<T>> _logger;
-
-        public LoggingNotificationEventHandlerDecorator(IDomainNotificationEventHandler<T> handler,
-            ILogger<IDomainNotificationEventHandler<T>> logger)
+        public LoggingNotificationEventHandlerDecorator(IDomainEventNotificationHandler<T> handler,
+            ILogger<IDomainEventNotificationHandler<T>> logger)
         {
             _handler = handler;
             _logger = logger;

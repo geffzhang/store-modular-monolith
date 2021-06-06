@@ -11,6 +11,7 @@ namespace Common
         Task SendCommandAsync<T>(T command) where T : class, ICommand;
         Task PublishIntegrationEventAsync<T>(T integrationEvent) where T : class, IIntegrationEvent;
         Task PublishDomainEventAsync(params IDomainEvent[] events);
+        Task PublishDomainEventNotificationAsync(params IDomainEventNotification[] events);
         Task PublishMessageAsync(params IMessage[] messages);
     }
 }

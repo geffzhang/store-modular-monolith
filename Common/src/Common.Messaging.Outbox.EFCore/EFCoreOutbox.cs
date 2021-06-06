@@ -1,46 +1,58 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Common.Domain;
+using Common.Domain.Dispatching;
 using Common.Messaging.Serialization;
-using Common.Messaging.Transport;
 using Common.Modules;
+using Common.Persistence;
+using Common.Persistence.MSSQL;
 using Common.Utils.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Serilog.Context;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace Common.Messaging.Outbox.EFCore
 {
-    public class EFCoreOutbox<TContext> : IOutbox where TContext : DbContext
+    public class EFCoreOutbox : IOutbox
     {
-        private readonly IMessageSerializer _messageSerializer;
-        private readonly TContext _dbContext;
-        private readonly IAsyncMessageDispatcher _messageDispatcher;
-        private readonly IModuleClient _moduleClient;
-        private readonly ILogger<EFCoreOutbox<TContext>> _logger;
-        private readonly string _collectionName;
+        private readonly ILogger<EFCoreOutbox> _logger;
         private readonly string[] _modules;
+        private readonly IDomainNotificationsMapper _domainNotificationsMapper;
+        private readonly ICommandProcessor _commandProcessor;
+        private readonly ISqlDbContext _dbContext;
+        private readonly IModuleClient _moduleClient;
+        private readonly IMessageSerializer _messageSerializer;
         private readonly bool _useBackgroundDispatcher;
 
-        public EFCoreOutbox(IMessageSerializer messageSerializer, TContext dbContext, OutboxOptions options,
-            IModuleRegistry moduleRegistry, MessagingOptions messagingOptions, IAsyncMessageDispatcher messageDispatcher,
-            IModuleClient moduleClient, ILogger<EFCoreOutbox<TContext>> logger)
+        public EFCoreOutbox(OutboxOptions options,
+            IModuleRegistry moduleRegistry,
+            ILogger<EFCoreOutbox> logger,
+            IDomainNotificationsMapper domainNotificationsMapper,
+            IMessageSerializer messageSerializer,
+            ICommandProcessor commandProcessor,
+            ISqlDbContext dbContext,
+            IModuleClient moduleClient,
+            bool useBackgroundDispatcher)
         {
-            _messageSerializer = messageSerializer;
-            _dbContext = dbContext;
-            _messageDispatcher = messageDispatcher;
-            _moduleClient = moduleClient;
             _logger = logger;
+            _domainNotificationsMapper = domainNotificationsMapper;
+            _messageSerializer = messageSerializer;
+            _commandProcessor = commandProcessor;
+            _dbContext = dbContext;
+            _moduleClient = moduleClient;
+            _useBackgroundDispatcher = useBackgroundDispatcher;
             Enabled = options.Enabled;
             _modules = moduleRegistry.Modules.ToArray();
-            _useBackgroundDispatcher = messagingOptions.UseBackgroundDispatcher;
-            _collectionName = string.IsNullOrWhiteSpace(options.CollectionName)
-                ? "outbox"
-                : options.CollectionName;
         }
 
         public bool Enabled { get; }
 
-        public async Task SaveAsync(params IMessage[] messages)
+        public async Task SaveAsync(IList<OutboxMessage> outboxMessages, CancellationToken cancellationToken)
         {
             if (!Enabled)
             {
@@ -48,31 +60,17 @@ namespace Common.Messaging.Outbox.EFCore
                 return;
             }
 
-            if (messages is null || !messages.Any())
+            if (outboxMessages is null || !outboxMessages.Any())
             {
                 _logger.LogWarning("No messages have been provided to be saved to the outbox.");
                 return;
             }
 
-            var outboxMessages = messages.Where(x => x is { })
-                .Select(x => new OutboxMessage
-                {
-                    Id = x.Id,
-                    CorrelationId = x.CorrelationId,
-                    Name = x.GetType().Name.Underscore(),
-                    Payload = _messageSerializer.Serialize(x),
-                    Type = x.GetType().AssemblyQualifiedName,
-                    ReceivedAt = DateTime.UtcNow.ToUnixTimeMilliseconds()
-                }).ToArray();
+            var module = outboxMessages[0].GetModuleName();
+            _logger.LogInformation($"Saved {outboxMessages.Count} messages to the outbox ('{module}').");
 
-            if (!outboxMessages.Any()) _logger.LogWarning("No messages have been provided to be saved to the outbox.");
-
-            var module = messages[0].GetModuleName();
-            _logger.LogInformation($"Saved {outboxMessages.Length} messages to the outbox ('{module}').");
-            var outboxMessagesSet = _dbContext.Set<OutboxMessage>($"{module}-module.{_collectionName}");
-
-            await outboxMessagesSet.AddRangeAsync(outboxMessages);
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.OutboxMessages.AddRangeAsync(outboxMessages, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public Task PublishUnsentAsync()
@@ -80,10 +78,16 @@ namespace Common.Messaging.Outbox.EFCore
             return Task.WhenAll(_modules.Select(PublishUnsentAsync));
         }
 
+        public async Task CleanProcessedAsync(CancellationToken cancellationToken = default)
+        {
+            var filter = _dbContext.OutboxMessages.Where(e => e.SentAt != null);
+            _dbContext.OutboxMessages.RemoveRange(filter);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         private async Task PublishUnsentAsync(string module)
         {
-            var collection = _dbContext.Set<OutboxMessage>($"{module}-module.{_collectionName}");
-            var unsentMessages = await collection.AsQueryable()
+            var unsentMessages = await _dbContext.OutboxMessages.AsQueryable()
                 .Where(x => x.SentAt == null)
                 .ToListAsync();
 
@@ -97,31 +101,46 @@ namespace Common.Messaging.Outbox.EFCore
 
             foreach (var outboxMessage in unsentMessages)
             {
-                var type = Type.GetType(outboxMessage.Type);
-                var message = _messageSerializer.Deserialize(outboxMessage.Payload, type) as IMessage;
+                var type = _domainNotificationsMapper.GetType(outboxMessage.Type);
 
-                if (message is null)
+                var domainEventNotification = _messageSerializer.Deserialize(outboxMessage.Payload, type) as IDomainEventNotification;
+                if (domainEventNotification is null)
                 {
-                    _logger.LogError($"Invalid message type: {type?.Name} (cannot cast to {nameof(IMessage)}).");
+                    _logger.LogError($"Invalid DomainNotification type: {type?.Name} (cannot cast to {nameof(IDomainEventNotification)}).");
                     continue;
                 }
 
-                message.Id = outboxMessage.Id;
-                message.CorrelationId = outboxMessage.CorrelationId;
+                using (LogContext.Push(new OutboxMessageContextEnricher(domainEventNotification)))
+                {
+                    _logger.LogInformation(
+                        $"Publishing a DomainNotification : '{outboxMessage.Name}' with ID: '{domainEventNotification.Id}' (outbox)...");
 
-                var name = message.GetType().Name.Underscore();
-                _logger.LogInformation($"Publishing a message: '{name}' with ID: '{message.Id}' (outbox)...");
+                    await _commandProcessor.PublishDomainEventNotificationAsync(domainEventNotification);
 
-                if (_useBackgroundDispatcher)
-                    await _messageDispatcher.PublishAsync(message);
-                else
-                    await _moduleClient.PublishAsync(message);
 
-                outboxMessage.SentAt = DateTime.UtcNow.ToUnixTimeMilliseconds();
-                _logger.LogInformation($"Published a message: '{name}' with ID: '{message.Id} (outbox)'.");
+                    outboxMessage.SentAt = DateTime.UtcNow;
+                    _logger.LogInformation(
+                        $"Published a message: '{outboxMessage.Name}' with ID: '{domainEventNotification.Id} (outbox)'.");
+                }
             }
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+        }
+
+        private class OutboxMessageContextEnricher : ILogEventEnricher
+        {
+            private readonly IDomainEventNotification _notification;
+
+            public OutboxMessageContextEnricher(IDomainEventNotification notification)
+            {
+                _notification = notification;
+            }
+
+            public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+            {
+                logEvent.AddOrUpdateProperty(new LogEventProperty("Context",
+                    new ScalarValue($"OutboxMessage:{_notification.Id.ToString()}")));
+            }
         }
     }
 }

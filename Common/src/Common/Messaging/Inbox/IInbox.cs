@@ -1,11 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using Common.Messaging.Events;
 
 namespace Common.Messaging.Inbox
 {
     internal interface IInbox
     {
         bool Enabled { get; }
-        Task HandleAsync(IMessage message, Func<Task> handler, string module);
+        Task HandleAsync(InboxMessage message, Func<Task> handler, string module);
     }
 }

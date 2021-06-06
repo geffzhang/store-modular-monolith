@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Common.Domain;
 using Common.Exceptions;
 using Common.Messaging.Commands;
 using Common.Messaging.Events;

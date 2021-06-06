@@ -6,7 +6,6 @@ namespace Common.Domain
     public interface IDomainEvent 
     {
         public DateTime OccurredOn { get; }
-        public Guid Id { get; }
+        public Guid Id { get; set; }
     }
-    
 }

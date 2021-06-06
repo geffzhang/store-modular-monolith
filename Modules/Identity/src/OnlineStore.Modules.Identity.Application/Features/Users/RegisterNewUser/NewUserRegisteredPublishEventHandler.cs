@@ -6,7 +6,10 @@ using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser
 {
-    public class NewUserRegisteredPublishEventHandler : IDomainNotificationEventHandler<NewUserRegisteredNotification>
+    //http://www.kamilgrzybek.com/design/the-outbox-pattern/
+    //http://www.kamilgrzybek.com/design/how-to-publish-and-handle-domain-events/
+    //http://www.kamilgrzybek.com/design/handling-domain-events-missing-part/
+    public class NewUserRegisteredPublishEventHandler : IDomainEventNotificationHandler<NewUserRegisteredNotification>
     {
         private readonly ICommandProcessor _commandProcessor;
         private readonly IUserDomainToIntegrationEventMapper _userDomainToIntegrationEventMapper;
@@ -22,14 +25,6 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
         {
             var integrationEvents = _userDomainToIntegrationEventMapper.Map(notification.DomainEvent).ToArray();
             await _commandProcessor.PublishMessageAsync(integrationEvents);
-
-            // await _commandProcessor.PublishMessageAsync(new NewUserRegisteredIntegrationEvent(
-            //     notification.DomainEvent.User.Id.Id,
-            //     notification.DomainEvent.User.UserName,
-            //     notification.DomainEvent.User.Email,
-            //     notification.DomainEvent.User.FirstName,
-            //     notification.DomainEvent.User.LastName,
-            //     notification.DomainEvent.User.Name));
         }
     }
 }

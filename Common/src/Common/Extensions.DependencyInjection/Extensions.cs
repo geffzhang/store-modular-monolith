@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Common.Dependency.ServiceLocator;
 using Common.Domain;
+using Common.Domain.Dispatching;
 using Common.Exceptions;
 using Common.Logging.Serilog;
 using Common.Mail;
@@ -89,26 +90,25 @@ namespace Common.Extensions.DependencyInjection
             //Adding Auto Mapper
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.TryDecorate(typeof(ICommandHandler<>), typeof(UnitOfWorkCommandHandlerDecorator<>));
-            services.TryDecorate(typeof(IDomainEventHandler<>), typeof(DomainEventsDispatcherNotificationHandlerDecorator<>));
-            services.TryDecorate(typeof(IIntegrationEventHandler<>), typeof(UnitOfWorkEventHandlerDecorator<>));
+            services.TryDecorate(typeof(ICommandHandler<>), typeof(DomainEventsDispatcherCommandHandlerDecorator<>));
+            services.TryDecorate(typeof(IEventHandler<>), typeof(DomainEventsDispatcherEventHandlerDecorator<>));
 
             services.TryDecorate(typeof(IIntegrationEventHandler<>), typeof(LoggingIntegrationEventHandlerDecorator<>));
             services.TryDecorate(typeof(IQueryHandler<,>), typeof(LoggingQueryHandlerDecorator<,>));
             services.TryDecorate(typeof(ICommandHandler<>), typeof(LoggingCommandHandlerDecorator<>));
             services.TryDecorate(typeof(IEventHandler<>), typeof(LoggingEventHandlerDecorator<>));
-            services.TryDecorate(typeof(IDomainEventHandler<>), typeof(LoggingDomainEventHandlerDecorator<>));
+            services.TryDecorate(typeof(IEventHandler<>), typeof(LoggingDomainEventHandlerDecorator<>));
+            services.TryDecorate(typeof(IEventHandler<>), typeof(LoggingNotificationEventHandlerDecorator<>));
 
             services.AddCommand(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
             services.AddQuery(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
             services.AddDomainEvents(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
             services.AddIntegrationEvent(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
-            services.AddDomainNotificationEvents(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
 
             services
                 .AddSingleton<IRequestStorage, RequestStorage>()
                 .AddRedis()
-                .AddMongo()
+                .AddMongoPersistence()
                 .AddModuleInfo(modules)
                 .AddModuleRequests(assemblies ?? AppDomain.CurrentDomain.GetAssemblies())
                 .AddScoped<ErrorHandlerMiddleware>()
@@ -189,19 +189,9 @@ namespace Common.Extensions.DependencyInjection
             IEnumerable<Assembly> assemblies)
         {
             services.AddSingleton<IDomainEventDispatcher, DomainEventDispatcher>();
+            services.AddSingleton<IDomainEventNotificationDispatcher, DomainEventNotificationDispatcher>();
             services.Scan(s => s.FromAssemblies(assemblies)
-                .AddClasses(c => c.AssignableTo(typeof(IDomainEventHandler<>)))
-                .AsImplementedInterfaces()
-                .WithScopedLifetime());
-            return services;
-        }
-
-        public static IServiceCollection AddDomainNotificationEvents(this IServiceCollection services,
-            IEnumerable<Assembly> assemblies)
-        {
-            services.AddSingleton<IDomainNotificationEventDispatcher, DomainNotificationEventDispatcher>();
-            services.Scan(s => s.FromAssemblies(assemblies)
-                .AddClasses(c => c.AssignableTo(typeof(IDomainNotificationEventHandler<>)))
+                .AddClasses(c => c.AssignableTo(typeof(IEventHandler<>)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());
             return services;
@@ -252,14 +242,8 @@ namespace Common.Extensions.DependencyInjection
         {
             var messagingOptions = services.GetOptions<MessagingOptions>(sectionName);
 
-            var inboxOptions = services.GetOptions<InboxOptions>($"{sectionName}:inbox");
-            var outboxOptions = services.GetOptions<OutboxOptions>($"{sectionName}:outbox");
             services
                 .AddSingleton(messagingOptions)
-                .AddSingleton(inboxOptions)
-                .AddSingleton(outboxOptions)
-                .AddTransient<IInbox, MongoInbox>()
-                .AddTransient<IOutbox, MongoOutbox>()
                 .AddSingleton<IAsyncMessageDispatcher, InMemoryAsyncMessageDispatcher>()
                 .AddScoped<ITransport, InMemoryMessageBroker>();
 

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Common.Messaging.Events;
 using Common.Messaging.Serialization;
 using Common.Persistence.Mongo;
 using Common.Utils;
@@ -35,7 +36,7 @@ namespace Common.Messaging.Inbox.Mongo
 
         public bool Enabled { get; }
 
-        public async Task HandleAsync(IMessage message, Func<Task> handler, string module)
+        public async Task HandleAsync(InboxMessage message, Func<Task> handler, string module)
         {
             if (!Enabled)
             {
@@ -75,7 +76,7 @@ namespace Common.Messaging.Inbox.Mongo
                     CorrelationId = message.CorrelationId,
                     Name = message.GetType().Name.Underscore(),
                     Module = message.GetModuleName(),
-                    Timestamp = DateTime.UtcNow.ToUnixTimeMilliseconds()
+                    ProcessedDate = DateTime.Now
                 });
                 if (session is { }) await session.CommitTransactionAsync();
 
@@ -92,15 +93,6 @@ namespace Common.Messaging.Inbox.Mongo
             {
                 session?.Dispose();
             }
-        }
-
-        private class InboxMessage
-        {
-            public Guid Id { get; set; }
-            public Guid CorrelationId { get; set; }
-            public string Name { get; set; }
-            public string Module { get; set; }
-            public long Timestamp { get; set; }
         }
     }
 }
