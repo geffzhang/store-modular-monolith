@@ -1,32 +1,36 @@
-﻿using Common.Extensions.DependencyInjection;
-using Common.Messaging.Commands;
+﻿using Common.Messaging.Commands;
 using Common.Persistence.Postgres.Decorators;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.Persistence.Postgres
 {
     public static class Extensions
     {
-        internal static IServiceCollection AddPostgres(this IServiceCollection services)
+        public const string SectionName = "postgres";
+
+        internal static IServiceCollection AddPostgres(this IServiceCollection services, IConfiguration configuration,
+            string sectionName = SectionName)
         {
-            var options = services.GetOptions<PostgresOptions>("postgres");
-            services.AddSingleton(options);
+            var options = configuration.GetSection(sectionName).Get<PostgresOptions>();
+            services.AddOptions<PostgresOptions>().Bind(configuration.GetSection(sectionName)).ValidateDataAnnotations();
             services.AddSingleton(new UnitOfWorkTypeRegistry());
-            
+
             return services;
         }
 
         public static IServiceCollection AddTransactionalDecorators(this IServiceCollection services)
         {
             services.TryDecorate(typeof(ICommandHandler<>), typeof(TransactionalCommandHandlerDecorator<>));
-
             return services;
         }
 
-        public static IServiceCollection AddPostgres<T>(this IServiceCollection services) where T : DbContext
+        public static IServiceCollection AddPostgres<T>(this IServiceCollection services, IConfiguration configuration,
+            string sectionName = SectionName) where T : DbContext
         {
-            var options = services.GetOptions<PostgresOptions>("postgres");
+            var options = configuration.GetSection(sectionName).Get<PostgresOptions>();
+            services.AddOptions<PostgresOptions>().Bind(configuration.GetSection(sectionName)).ValidateDataAnnotations();
             services.AddDbContext<T>(x => x.UseNpgsql(options.ConnectionString));
 
             return services;
@@ -36,7 +40,6 @@ namespace Common.Persistence.Postgres
             where TUnitOfWork : class, IUnitOfWork where TImplementation : class, TUnitOfWork
         {
             services.AddScoped<TUnitOfWork, TImplementation>();
-            services.AddScoped<IUnitOfWork, TImplementation>();
 
             using var serviceProvider = services.BuildServiceProvider();
             serviceProvider.GetRequiredService<UnitOfWorkTypeRegistry>().Register<TUnitOfWork>();

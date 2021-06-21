@@ -2,9 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Domain.Types;
+using Common.Exceptions;
 using Common.Persistence;
+using Common.Persistence.Specification;
 using Common.Types;
-using Common.Web.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace OnlineStore.Modules.Identity.Application.Extensions
@@ -30,7 +31,7 @@ namespace OnlineStore.Modules.Identity.Application.Extensions
             var secondaryResult = spec.IncludeStrings
                 .Aggregate(queryableResultWithIncludes,
                     (current, include) => current.Include(include));
-            return secondaryResult.Where(spec.Expression);
+            return secondaryResult.Where(spec.Criteria);
         }
     }
 }

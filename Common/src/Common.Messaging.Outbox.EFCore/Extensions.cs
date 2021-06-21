@@ -1,5 +1,6 @@
-﻿using Common.Extensions.DependencyInjection;
+﻿using Common.Persistence.MSSQL;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.Messaging.Outbox.EFCore
@@ -8,18 +9,14 @@ namespace Common.Messaging.Outbox.EFCore
     {
         private const string SectionName = "messaging";
 
-        public static IServiceCollection AddEntityFrameworkOutbox<T>(this IServiceCollection services,
-            string sectionName = SectionName) where T : DbContext
+        public static IServiceCollection AddEntityFrameworkOutbox<TContext>(this IServiceCollection services, IConfiguration configuration,
+            string sectionName = SectionName)
+            where TContext : DbContext, ISqlDbContext
         {
-            if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
+            var outboxOptions = configuration.GetSection("messaging:outbox").Get<OutboxOptions>();
+            services.AddOptions<OutboxOptions>().Bind(configuration.GetSection("messaging:outbox")).ValidateDataAnnotations();
 
-            var outboxOptions = services.GetOptions<OutboxOptions>($"{sectionName}:outbox");
-
-            services.AddDbContext<T>();
-
-            services
-                .AddSingleton(outboxOptions)
-                .AddTransient<IOutbox, EFCoreOutbox>();
+            services.AddScoped<IOutbox, EFCoreOutbox<TContext>>();
 
             // Adding background service
             if (outboxOptions.Enabled)

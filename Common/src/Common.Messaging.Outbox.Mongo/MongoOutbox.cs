@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Common.Domain;
 using Common.Domain.Dispatching;
-using Common.Messaging.Events;
 using Common.Messaging.Serialization;
 using Common.Messaging.Transport;
 using Common.Modules;
 using Common.Persistence.Mongo;
 using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Serilog.Context;
@@ -25,7 +25,7 @@ namespace Common.Messaging.Outbox.Mongo
         private readonly IMessageSerializer _messageSerializer;
         private readonly ILogger<MongoOutbox> _logger;
         private readonly IMongoDbContext _mongoDbContext;
-        private readonly IModuleClient _moduleClient;
+        // private readonly IModuleClient _moduleClient;
         private readonly ICommandProcessor _commandProcessor;
         private readonly IDomainNotificationsMapper _domainNotificationsMapper;
         private readonly IAsyncMessageDispatcher _messageDispatcher;
@@ -34,9 +34,9 @@ namespace Common.Messaging.Outbox.Mongo
 
         public MongoOutbox(IMongoDbContext mongoDbContext,
             IModuleRegistry moduleRegistry,
-            OutboxOptions outboxOptions,
+            IOptions<OutboxOptions> outboxOptions,
             MessagingOptions messagingOptions,
-            IModuleClient moduleClient,
+            // IModuleClient moduleClient,
             ICommandProcessor commandProcessor,
             IAsyncMessageDispatcher messageDispatcher,
             IMessageSerializer messageSerializer,
@@ -44,13 +44,13 @@ namespace Common.Messaging.Outbox.Mongo
             ILogger<MongoOutbox> logger)
         {
             _mongoDbContext = mongoDbContext;
-            _moduleClient = moduleClient;
+            // _moduleClient = moduleClient;
             _commandProcessor = commandProcessor;
             _messageDispatcher = messageDispatcher;
             _messageSerializer = messageSerializer;
             _domainNotificationsMapper = domainNotificationsMapper;
             _logger = logger;
-            Enabled = outboxOptions.Enabled;
+            Enabled = outboxOptions.Value.Enabled;
             _modules = moduleRegistry.Modules.ToArray();
             _useBackgroundDispatcher = messagingOptions.UseBackgroundDispatcher;
         }
@@ -83,12 +83,17 @@ namespace Common.Messaging.Outbox.Mongo
                     .ConfigureAwait(false);
         }
 
-        public Task PublishUnsentAsync()
+
+        public async Task<IEnumerable<OutboxMessage>> GetAllOutboxMessages(string moduleName = default)
         {
-            return Task.WhenAll(_modules.Select(PublishUnsentAsync));
+            var messages = await _mongoDbContext.OutboxMessages.AsQueryable()
+                .Where(x => moduleName.IsNullOrEmpty() || x.ModuleName == moduleName)
+                .ToListAsync();
+
+            return messages;
         }
 
-        private async Task PublishUnsentAsync(string module)
+        public async Task PublishUnsentAsync()
         {
             var unsentMessages = await _mongoDbContext.OutboxMessages.AsQueryable()
                 .Where(x => x.SentAt == null)
@@ -96,11 +101,11 @@ namespace Common.Messaging.Outbox.Mongo
 
             if (!unsentMessages.Any())
             {
-                _logger.LogTrace($"No unsent messages found in outbox ('{module}').");
+                _logger.LogTrace($"No unsent messages found in outbox.");
                 return;
             }
 
-            _logger.LogInformation($"Found {unsentMessages.Count} unsent messages in outbox ('{module}'), sending...");
+            _logger.LogInformation($"Found {unsentMessages.Count} unsent messages in outbox, sending...");
 
             foreach (var outboxMessage in unsentMessages)
             {

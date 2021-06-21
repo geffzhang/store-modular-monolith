@@ -8,7 +8,7 @@ namespace Common.Persistence.MSSQL.Configurations
     {
         public void Configure(EntityTypeBuilder<OutboxMessage> builder)
         {
-            builder.ToTable("OutboxMessages", "dbo");
+            builder.ToTable("OutboxMessage", "dbo");
 
             builder.HasKey(e => e.Id);
         }

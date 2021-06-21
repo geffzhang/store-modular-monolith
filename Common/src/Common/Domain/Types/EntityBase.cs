@@ -3,18 +3,17 @@ using System.Collections.Generic;
 
 namespace Common.Domain.Types
 {
-    public abstract class EntityBase<TId, TIdentity> : IEntity<TIdentity>, IEquatable<EntityBase<TId, TIdentity>>
+    public abstract class EntityBase<TId, TIdentity> : IEntity<TId, TIdentity>, IEquatable<EntityBase<TId, TIdentity>>
         where TIdentity : IdentityBase<TId>
     {
         public TIdentity Id { get; protected set; }
 
+        protected EntityBase()
+        {
+        }
         protected EntityBase(TIdentity id)
         {
             Id = id;
-        }
-
-        protected EntityBase()
-        {
         }
 
         public DateTime Created { get; protected set; } = DateTime.Now;
@@ -33,7 +32,7 @@ namespace Common.Domain.Types
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((EntityBase<TId, TIdentity>)obj);
+            return Equals((EntityBase<TId, TIdentity>) obj);
         }
 
         public override int GetHashCode()
@@ -60,6 +59,13 @@ namespace Common.Domain.Types
         public static bool operator !=(EntityBase<TId, TIdentity> a, EntityBase<TId, TIdentity> b)
         {
             return !(a == b);
+        }
+    }
+
+    public abstract class EntityBase : EntityBase<Guid, IdentityBase<Guid>>
+    {
+        protected EntityBase(IdentityBase<Guid> id) : base(id)
+        {
         }
     }
 }

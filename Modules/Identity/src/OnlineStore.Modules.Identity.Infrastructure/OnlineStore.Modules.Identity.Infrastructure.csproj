@@ -12,6 +12,12 @@
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OpenIdConnect.Primitives" Version="2.0.0" />
     <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <PackageReference Include="EasyCaching.Bus.Redis" Version="1.3.0" />
+    <PackageReference Include="EasyCaching.Core" Version="1.3.0" />
+    <PackageReference Include="EasyCaching.HybridCache" Version="1.3.0" />
+    <PackageReference Include="EasyCaching.InMemory" Version="1.3.0" />
+    <PackageReference Include="EasyCaching.Redis" Version="1.3.0" />
+    <PackageReference Include="EasyCaching.Serialization.MessagePack" Version="1.3.0" />
     <PackageReference Include="EntityFrameworkCore.Triggered" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.ApiAuthorization.IdentityServer" Version="5.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.5" />

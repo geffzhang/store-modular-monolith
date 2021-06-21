@@ -23,6 +23,7 @@ namespace OnlineStore.Modules.Identity.Api
                     loggerConfiguration
                     .Enrich.FromLogContext()
                     .WriteTo.SpectreConsole("{Timestamp:HH:mm:ss} [{Level:u4}] {Message:lj}{NewLine}{Exception}", LogEventLevel.Information)
+                    .WriteTo.Console()
                     .WriteTo.Seq(
                         Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341")
                     .WriteTo.Stackify();

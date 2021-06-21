@@ -14,7 +14,6 @@ namespace Common.Scheduling
             _commandProcessor = commandProcessor;
         }
  
-        [DisplayName("Processing command {0}")]
         public Task ExecuteCommand(MessageSerializedObject messageSerializedObject)
         {
             var type = messageSerializedObject.GetPayloadType();
@@ -23,7 +22,7 @@ namespace Common.Scheduling
             {
                 dynamic req = JsonConvert.DeserializeObject(messageSerializedObject.Data, type);
  
-                return this._commandProcessor.SendCommandAsync(req as ICommand);
+                return _commandProcessor.SendCommandAsync(req as ICommand);
             }
  
             return null;

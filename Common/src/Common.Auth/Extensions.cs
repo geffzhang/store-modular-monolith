@@ -1,10 +1,10 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using Common.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
@@ -14,12 +14,13 @@ namespace Common.Auth
     {
         private const string SectionName = "jwt";
 
-        public static IServiceCollection AddJwt(this IServiceCollection services, string sectionName = SectionName,
+        public static IServiceCollection AddJwt(this IServiceCollection services, IConfiguration configuration,
+            string sectionName = SectionName,
             Action<JwtBearerOptions> optionsFactory = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
 
-            var options = services.GetOptions<JwtOptions>(sectionName);
+            var options =  configuration.GetSection(sectionName).Get<JwtOptions>() ;
             services.AddSingleton<IJwtHandler, JwtHandler>();
             services.AddSingleton<IAccessTokenService, InMemoryAccessTokenService>();
             services.AddScoped<AccessTokenValidatorMiddleware>();

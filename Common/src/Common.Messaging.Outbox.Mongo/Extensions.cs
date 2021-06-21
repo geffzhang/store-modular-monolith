@@ -1,4 +1,4 @@
-using Common.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.Messaging.Outbox.Mongo
@@ -7,19 +7,18 @@ namespace Common.Messaging.Outbox.Mongo
     {
         private const string SectionName = "messaging";
 
-        public static IServiceCollection AddMongoOutbox(this IServiceCollection services,
+        public static IServiceCollection AddMongoOutbox(this IServiceCollection services, IConfiguration configuration,
             string sectionName = SectionName)
         {
             if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
 
-            var outboxOptions = services.GetOptions<OutboxOptions>($"{sectionName}:outbox");
+            var options = configuration.GetSection($"{sectionName}:outbox").Get<OutboxOptions>();
+            services.AddOptions<OutboxOptions>().Bind(configuration.GetSection($"{sectionName}:outbox")).ValidateDataAnnotations();
 
-            services
-                .AddSingleton(outboxOptions)
-                .AddTransient<IOutbox, MongoOutbox>();
+            services.AddTransient<IOutbox, MongoOutbox>();
 
             // Adding background service
-            if (outboxOptions.Enabled)
+            if (options.Enabled)
                 services.AddHostedService<OutboxProcessor>();
 
             return services;

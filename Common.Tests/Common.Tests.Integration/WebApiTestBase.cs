@@ -5,6 +5,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Common.Tests.Integration.Fixtures;
+using Common.Tests.Integration.Helpers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,8 +15,9 @@ using Xunit;
 
 namespace Common.Tests.Integration
 {
-    public abstract class WebApiTestBase : IDisposable, IClassFixture<WebApplicationFactory<Program>>,
+    public abstract class WebApiTestBase<TEntryPoint> : IDisposable, IClassFixture<WebApplicationFactory<TEntryPoint>>,
         IClassFixture<MongoFixture>
+        where TEntryPoint : class
     {
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
@@ -22,7 +25,7 @@ namespace Common.Tests.Integration
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Converters = {new JsonStringEnumConverter()}
         };
-        
+
         private string _route;
 
         protected void SetPath(string route)
@@ -46,7 +49,8 @@ namespace Common.Tests.Integration
             _route = $"{route}/";
         }
 
-        protected static T Map<T>(object data) => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(data, SerializerOptions), SerializerOptions);
+        protected static T Map<T>(object data) =>
+            JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(data, SerializerOptions), SerializerOptions);
 
         protected Task<HttpResponseMessage> GetAsync(string endpoint)
             => Client.GetAsync(GetEndpoint(endpoint));
@@ -68,7 +72,7 @@ namespace Common.Tests.Integration
 
         protected Task<HttpResponseMessage> SendAsync(HttpMethod method, string endpoint)
             => Client.SendAsync(new HttpRequestMessage(method, GetEndpoint(endpoint)));
-        
+
         protected void Authenticate(Guid userId)
         {
             var jwt = AuthHelper.GenerateJwt(userId.ToString());

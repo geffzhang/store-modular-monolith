@@ -30,8 +30,9 @@ namespace Common.Persistence.Postgres.Decorators
             }
 
             var unitOfWork = (IUnitOfWork) _serviceProvider.GetRequiredService(unitOfWorkType);
+            await unitOfWork.BeginTransactionAsync();
             await _handler.HandleAsync(command);
-            await unitOfWork.CommitAsync();
+            await unitOfWork.CommitTransactionAsync();
         }
     }
 }

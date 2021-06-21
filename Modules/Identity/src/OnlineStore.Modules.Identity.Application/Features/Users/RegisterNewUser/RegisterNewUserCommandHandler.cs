@@ -50,18 +50,35 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
                 throw new UserNameAlreadyInUseException(command.Name);
             }
 
-            user = User.Of(command.Id, command.Email, command.FirstName, command.LastName,
-                command.Name, command.UserName, command.Password, command.CreatedDate, command.CreatedBy,
-                command.Permissions.ToList(), command.UserType, _userEditable, command.IsAdministrator,
+            user = User.Of(command.Id, 
+                command.Email, 
+                command.FirstName,
+                command.LastName,
+                command.Name,
+                command.UserName,
+                command.Password, 
+                command.Permissions.ToList(),
+                command.UserType, 
+                _userEditable, 
+                command.IsAdministrator,
                 command.IsActive,
-                command.Roles.ToList(), command.LockoutEnabled, command.EmailConfirmed, command.PhotoUrl,
-                command.Status, command.ModifiedBy, command.ModifiedDate);
+                command.Roles.ToList(), 
+                command.LockoutEnabled, 
+                command.EmailConfirmed,
+                command.PhotoUrl,
+                command.Status);
 
             await _userRepository.AddAsync(user);
             _logger.LogInformation($"Created an account for the user with ID: '{user.Id}'.");
 
+            //Option1: Using our decorators for handling these operations automatically
+            //Option 2: Explicit calling domain events 
+            
             // var domainEvents = user.Events.ToArray();
             // await _commandProcessor.PublishDomainEventAsync(domainEvents); // will raise our notification event
+            
+            // var integrationEvents = _userDomainToIntegrationEventMapper.Map(notification.DomainEvent).ToArray();
+            // await _commandProcessor.PublishMessageAsync(integrationEvents);
         }
     }
 }

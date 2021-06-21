@@ -6,6 +6,7 @@ using Common.Persistence.Mongo;
 using Common.Utils;
 using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 
@@ -20,7 +21,7 @@ namespace Common.Messaging.Inbox.Mongo
         private readonly IMongoSessionFactory _sessionFactory;
         private readonly bool _transactionsEnabled;
 
-        public MongoInbox(IMongoSessionFactory sessionFactory, InboxOptions inboxOptions, MongoOptions mongoOptions,
+        public MongoInbox(IMongoSessionFactory sessionFactory, IOptions<InboxOptions> inboxOptions, MongoOptions mongoOptions,
             IMongoDatabase database, ILogger<MongoInbox> logger,IMessageSerializer messageSerializer)
         {
             _sessionFactory = sessionFactory;
@@ -28,10 +29,10 @@ namespace Common.Messaging.Inbox.Mongo
             _logger = logger;
             _messageSerializer = messageSerializer;
             _transactionsEnabled = !mongoOptions.DisableTransactions;
-            Enabled = inboxOptions.Enabled;
-            _collectionName = string.IsNullOrWhiteSpace(inboxOptions.CollectionName)
+            Enabled = inboxOptions.Value.Enabled;
+            _collectionName = string.IsNullOrWhiteSpace(inboxOptions.Value.CollectionName)
                 ? "inbox"
-                : inboxOptions.CollectionName;
+                : inboxOptions.Value.CollectionName;
         }
 
         public bool Enabled { get; }

@@ -2,6 +2,7 @@
 using Common.Domain;
 using Common.Domain.Dispatching;
 using Microsoft.Extensions.DependencyInjection;
+using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
 using OnlineStore.Modules.Identity.Application.Features.Users;
 using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 
@@ -15,7 +16,6 @@ namespace OnlineStore.Modules.Identity.Application.Extensions
 
             services.AddSingleton<IUserDomainToIntegrationEventMapper, UserDomainToIntegrationEventMapper>();
             services.AddSingleton<IDomainNotificationsMapper, UserDomainNotificationMapper>();
-            
             return services;
         }
     }

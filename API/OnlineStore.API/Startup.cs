@@ -25,6 +25,9 @@ namespace Shopping.API
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddReverseProxy()
+                .LoadFromConfig(Configuration.GetSection("ReverseProxy"));
+				
             services.AddCommon(_assemblies, _modules);
             foreach (var module in _modules)
             {

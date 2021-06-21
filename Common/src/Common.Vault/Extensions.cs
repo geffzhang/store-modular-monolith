@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Common.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
@@ -23,7 +22,7 @@ namespace Common.Vault
             return builder.ConfigureServices(services => services.AddVault(sectionName))
                 .ConfigureAppConfiguration((ctx, cfg) =>
                 {
-                    var options = cfg.Build().GetOptions<VaultOptions>(sectionName);
+                    var options = cfg.Build().GetSection(sectionName).Get<VaultOptions>();
                     if (!options.Enabled) return;
 
                     cfg.AddVaultAsync(options).GetAwaiter().GetResult();
@@ -35,7 +34,7 @@ namespace Common.Vault
             return builder.ConfigureServices(services => services.AddVault(sectionName))
                 .ConfigureAppConfiguration((ctx, cfg) =>
                 {
-                    var options = cfg.Build().GetOptions<VaultOptions>(sectionName);
+                    var options = cfg.Build().GetSection(sectionName).Get<VaultOptions>();
                     if (!options.Enabled) return;
 
                     cfg.AddVaultAsync(options).GetAwaiter().GetResult();
@@ -52,7 +51,7 @@ namespace Common.Vault
                 configuration = serviceProvider.GetService<IConfiguration>();
             }
 
-            var options = configuration.GetOptions<VaultOptions>(sectionName);
+            var options = configuration.GetSection(sectionName).Get<VaultOptions>();
             VerifyOptions(options);
             services.AddSingleton(options);
             var (client, settings) = GetClientAndSettings(options);

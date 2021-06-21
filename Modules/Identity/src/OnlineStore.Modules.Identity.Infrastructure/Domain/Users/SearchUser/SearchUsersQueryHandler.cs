@@ -43,16 +43,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.SearchUser
                 query = query.Where(x => x.UserName.Contains(search.Keyword));
             }
 
-            if (!string.IsNullOrEmpty(search.MemberId))
-            {
-                query = query.Where(x => x.MemberId == search.MemberId);
-            }
-
-            if (!search.MemberIds.IsNullOrEmpty())
-            {
-                query = query.Where(x => search.MemberIds.Contains(x.MemberId));
-            }
-
             if (search.ModifiedSinceDate != null && search.ModifiedSinceDate != default(DateTime))
             {
                 query = query.Where(x => x.ModifiedDate > search.ModifiedSinceDate);

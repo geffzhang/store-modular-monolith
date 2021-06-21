@@ -10,7 +10,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models
     public class ApplicationUser : IdentityUser<string>, IAuditable
     {
         public bool IsActive { get; set; }
-        public string MemberId { get; set; }
         public bool IsAdministrator { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -19,11 +18,12 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models
         public string UserType { get; set; }
         public string Status { get; set; }
         public AccountState UserState { get; set; }
-        public string Password { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
         public string CreatedBy { get; set; }
         public string ModifiedBy { get; set; }
+        public bool PasswordExpired { get; set; }
+        public DateTime? LastPasswordChangedDate { get; set; }
         public IList<Permission> Permissions { get; set; }
         public IList<ApplicationRole> Roles { get; set; }
 
@@ -34,17 +34,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models
         /// External provider logins.
         /// </summary>
         public virtual ApplicationUserLogin[] Logins { get; set; }
-
-        /// <summary>
-        /// Indicates that the password for this user is expired and must be changed.
-        /// </summary>
-        public virtual bool PasswordExpired { get; set; }
-
-        /// <summary>
-        /// The last date when the password was changed
-        /// </summary>
-        public virtual DateTime? LastPasswordChangedDate { get; set; }
-
 
         public virtual void Patch(ApplicationUser target)
         {
@@ -62,13 +51,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models
             target.LockoutEnabled = LockoutEnabled;
             target.LockoutEnd = LockoutEnd;
             target.AccessFailedCount = AccessFailedCount;
-            target.MemberId = MemberId;
             target.PhotoUrl = PhotoUrl;
             target.UserType = UserType;
             target.Status = Status;
-            target.Password = Password;
-            target.PasswordExpired = PasswordExpired;
-            target.LastPasswordChangedDate = LastPasswordChangedDate;
         }
     }
 }

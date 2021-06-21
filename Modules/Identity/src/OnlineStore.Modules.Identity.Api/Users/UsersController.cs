@@ -209,17 +209,27 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// <param name="request"></param>
         [HttpPost]
         [Route("create")]
-        [Authorize(SecurityConstants.Permissions.SecurityCreate)]
+        // [Authorize(SecurityConstants.Permissions.SecurityCreate)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesDefaultResponseType]
         public async Task<ActionResult> CreateAsync([FromBody] RegisterNewUserRequest request)
         {
-            var command = new RegisterNewUserCommand(request.Id.BindId(), request.Email, request.FirstName,
+            var command = new RegisterNewUserCommand(request.Id.BindId(),
+                request.Email,
+                request.FirstName,
                 request.LastName,
-                request.Name, request.UserName, request.Password, request.CreatedDate, request.CreatedBy,
-                request.Permissions.ToList(), request.UserType, request.IsAdministrator, request.IsActive,
-                request.Roles.ToList(), request.LockoutEnabled, request.EmailConfirmed, request.PhotoUrl,
-                request.Status, request.ModifiedBy, request.ModifiedDate);
+                request.Name,
+                request.UserName,
+                request.Password,
+                request.Permissions.ToList(),
+                request.UserType,
+                request.IsAdministrator,
+                request.IsActive,
+                request.Roles.ToList(),
+                request.LockoutEnabled,
+                request.EmailConfirmed,
+                request.PhotoUrl,
+                request.Status);
 
             await _commandProcessor.SendCommandAsync(command);
 

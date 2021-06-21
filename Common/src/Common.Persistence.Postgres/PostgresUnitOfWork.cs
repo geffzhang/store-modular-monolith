@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
-using Common.Domain;
 using Common.Domain.Dispatching;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,11 +16,20 @@ namespace Common.Persistence.Postgres
             _domainEventDispatcher = domainEventDispatcher;
         }
 
-        public async Task<int> CommitAsync(CancellationToken cancellationToken = default,
-            Guid? internalCommandId = null)
+
+        public async Task CommitTransactionAsync()
         {
-            await _domainEventDispatcher.DispatchAsync();
-            return await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public Task BeginTransactionAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RollbackTransaction()
+        {
+            throw new NotImplementedException();
         }
     }
 }

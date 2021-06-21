@@ -44,14 +44,7 @@ namespace Common
             await dispatcher.DispatchAsync(events);
         }
 
-        public async Task PublishIntegrationEventAsync<T>(T integrationEvent) where T : class, IIntegrationEvent
-        {
-            if (integrationEvent is null) return;
-
-            using var scope = _serviceProvider.CreateScope();
-            var dispatcher = scope.ServiceProvider.GetRequiredService<IIntegrationEventDispatcher>();
-            await dispatcher.PublishAsync(integrationEvent);
-        }
+     
 
         public async Task SendCommandAsync<T>(T command) where T : class, ICommand
         {
@@ -62,7 +55,7 @@ namespace Common
             await dispatcher.SendAsync(command);
         }
 
-        public async Task PublishMessageAsync(params IMessage[] messages)
+        public async Task PublishMessageAsync(params IIntegrationEvent[] messages)
         {
             using var scope = _serviceProvider.CreateScope();
             var transport = scope.ServiceProvider.GetRequiredService<ITransport>();

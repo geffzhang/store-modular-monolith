@@ -18,7 +18,6 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseRe
         public string PhotoUrl { get; set; }
         public UserType UserType { get; set; }
         public string Status { get; set; }
-        public string Password { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
         public string CreatedBy { get; set; }

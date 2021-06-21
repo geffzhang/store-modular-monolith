@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Common.Modules;
+using Common.Web;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -22,33 +26,30 @@ namespace OnlineStore.Modules.Identity.Api
 {
     public class Startup
     {
-        private AppSettings AppSettings { get; set; }
+        public IConfiguration Configuration { get; }
+        private Cors Cors { get; }
+        private AppOptions AppOptions { get; }
 
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
-            AppSettings = new AppSettings();
-            Configuration.Bind(AppSettings);
+            Cors = Configuration.GetSection("CORS").Get<Cors>();
+            AppOptions = Configuration.GetSection("AppOptions").Get<AppOptions>();
         }
 
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddWebApi(Configuration);
             services.AddSwaggerDocumentation();
-
             services.AddInfrastructure(Configuration);
             services.AddApplication();
-
-            services.AddCors(AppSettings);
-            services.AddHealthCheck(AppSettings, Configuration);
+            services.AddCors(Cors);
+            services.AddHealthCheck(Configuration, AppOptions.ApiAddress);
             services.AddVersioning();
             services.AddFeatureManagement();
         }
-
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -59,15 +60,17 @@ namespace OnlineStore.Modules.Identity.Api
             }
 
             app.UseStaticFiles();
+            app.UserWebApi();
             app.UseInfrastructure(env);
-            app.UseHttpsRedirection();
             app.UseRouting();
+
 
             app.UseAuthorization();
             app.UseSwaggerDocumentation();
             app.UseHealthCheck();
 
-            app.UseCors(AppSettings.Cors.AllowAnyOrigin ? "AllowAnyOrigin" : "AllowedOrigins");
+            app.UseCors("Open");
+            app.UseCors(Cors.AllowAnyOrigin ? "AllowAnyOrigin" : "AllowedOrigins");
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }

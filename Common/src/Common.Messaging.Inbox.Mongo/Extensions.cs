@@ -1,7 +1,7 @@
-using Common.Extensions.DependencyInjection;
 using Common.Messaging.Commands;
 using Common.Messaging.Outbox;
 using Common.Messaging.Outbox.Mongo;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.Messaging.Inbox.Mongo
@@ -10,14 +10,15 @@ namespace Common.Messaging.Inbox.Mongo
     {
         private const string SectionName = "messaging";
 
-        public static IServiceCollection AddMongoInbox(this IServiceCollection services,
+        public static IServiceCollection AddMongoInbox(this IServiceCollection services, IConfiguration configuration,
             string sectionName = SectionName)
         {
             if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
 
-            var inboxOptions = services.GetOptions<InboxOptions>($"{sectionName}:inbox");
+            var inboxOptions = configuration.GetSection("messaging:inbox").Get<InboxOptions>();
+            services.AddOptions<InboxOptions>().Bind(configuration.GetSection("messaging:inbox")).ValidateDataAnnotations();
+            
             services
-                .AddSingleton(inboxOptions)
                 .AddTransient<IInbox, MongoInbox>()
                 .AddTransient<IOutbox, MongoOutbox>();
 

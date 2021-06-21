@@ -10,6 +10,7 @@ using Common.Scheduling.Helpers;
 using Common.Utils;
 using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace Common.Messaging.Scheduling.Internal.MessagesScheduler
@@ -25,22 +26,24 @@ namespace Common.Messaging.Scheduling.Internal.MessagesScheduler
         private readonly string _collectionName;
         private readonly string[] _modules;
 
-        public InternalMessageScheduler(IMongoSessionFactory sessionFactory, MongoOptions mongoOptions,
-            InternalMessageOptions internalMessageOptions,
-            IMongoDatabase database, ILogger<InternalMessageScheduler> logger, IMessageSerializer messageSerializer,
+        public InternalMessageScheduler(IMongoSessionFactory sessionFactory,
+            IOptions<MongoOptions> mongoOptions,
+            IOptions<InternalMessageOptions> internalMessageOptions,
+            IMongoDatabase database, ILogger<InternalMessageScheduler> logger,
+            IMessageSerializer messageSerializer,
             IModuleClient moduleClient, IModuleRegistry moduleRegistry)
         {
             _sessionFactory = sessionFactory;
-            _mongoOptions = mongoOptions;
+            _mongoOptions = mongoOptions.Value;
             _database = database;
             _logger = logger;
             _messageSerializer = messageSerializer;
             _moduleClient = moduleClient;
-            Enabled = internalMessageOptions.Enabled;
+            Enabled = internalMessageOptions.Value.Enabled;
             _modules = moduleRegistry.Modules.ToArray();
-            _collectionName = string.IsNullOrWhiteSpace(internalMessageOptions.CollectionName)
+            _collectionName = string.IsNullOrWhiteSpace(internalMessageOptions.Value.CollectionName)
                 ? "internal-message"
-                : internalMessageOptions.CollectionName;
+                : internalMessageOptions.Value.CollectionName;
         }
 
         public bool Enabled { get; set; }

@@ -5,12 +5,11 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Common;
 using Common.Caching.Caching;
+using EasyCaching.Core;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OnlineStore.Modules.Identity.Infrastructure.Caching;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
@@ -20,7 +19,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 {
     public class CustomUserManager : AspNetUserManager<ApplicationUser>
     {
-        private readonly IExtendedMemoryCache _memoryCache;
+        private readonly IEasyCachingProvider _cachingProvider;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly RoleManager<ApplicationRole> _roleManager;
 
@@ -30,11 +29,11 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
             IEnumerable<IPasswordValidator<ApplicationUser>> passwordValidators,
             ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services,
             ILogger<UserManager<ApplicationUser>> logger, RoleManager<ApplicationRole> roleManager,
-            IExtendedMemoryCache memoryCache, IServiceScopeFactory serviceScopeFactory)
+            IEasyCachingProviderFactory cachingFactory, IServiceScopeFactory serviceScopeFactory)
             : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors,
                 services, logger)
         {
-            _memoryCache = memoryCache;
+            _cachingProvider = cachingFactory.GetCachingProvider("mem");
             _serviceScopeFactory = serviceScopeFactory;
             _roleManager = roleManager;
         }
@@ -42,70 +41,70 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
         public override async Task<ApplicationUser> FindByLoginAsync(string loginProvider, string providerKey)
         {
             var cacheKey = CacheKey.With(GetType(), nameof(FindByLoginAsync), loginProvider, providerKey);
-            var result = await _memoryCache.GetOrCreateExclusiveAsync(cacheKey, async (cacheEntry) =>
+            var result = await _cachingProvider.GetAsync(cacheKey, async () =>
             {
                 var user = await base.FindByLoginAsync(loginProvider, providerKey);
                 if (user != null)
                 {
                     await LoadUserDetailsAsync(user);
-                    cacheEntry.AddExpirationToken(SecurityCacheRegion.CreateChangeTokenForUser(user));
                 }
 
                 return user;
-            }, cacheNullValue: false);
+            }, TimeSpan.FromMinutes(10));
 
-            return result;
+
+            return result.Value!;
         }
 
         public override async Task<ApplicationUser> FindByEmailAsync(string email)
         {
             var cacheKey = CacheKey.With(GetType(), nameof(FindByEmailAsync), email);
-            var result = await _memoryCache.GetOrCreateExclusiveAsync(cacheKey, async (cacheEntry) =>
+            var result = await _cachingProvider.GetAsync(cacheKey, async () =>
             {
                 var user = await base.FindByEmailAsync(email);
                 if (user != null)
                 {
                     await LoadUserDetailsAsync(user);
-                    cacheEntry.AddExpirationToken(SecurityCacheRegion.CreateChangeTokenForUser(user));
                 }
 
                 return user;
-            }, cacheNullValue: false);
-            return result;
+            }, TimeSpan.FromMinutes(10));
+
+            return result.Value!;
         }
 
         public override async Task<ApplicationUser> FindByNameAsync(string userName)
         {
             var cacheKey = CacheKey.With(GetType(), nameof(FindByNameAsync), userName);
-            var result = await _memoryCache.GetOrCreateExclusiveAsync(cacheKey, async (cacheEntry) =>
+            var result = await _cachingProvider.GetAsync(cacheKey, async () =>
             {
                 var user = await base.FindByNameAsync(userName);
                 if (user != null)
                 {
                     await LoadUserDetailsAsync(user);
-                    cacheEntry.AddExpirationToken(SecurityCacheRegion.CreateChangeTokenForUser(user));
                 }
 
                 return user;
-            }, cacheNullValue: false);
-            return result;
+            }, TimeSpan.FromMinutes(10));
+
+            return result.Value!;
         }
 
         public override async Task<ApplicationUser> FindByIdAsync(string userId)
         {
             var cacheKey = CacheKey.With(GetType(), nameof(FindByIdAsync), userId);
-            var result = await _memoryCache.GetOrCreateExclusiveAsync(cacheKey, async (cacheEntry) =>
+            var result = await _cachingProvider.GetAsync(cacheKey, async () =>
             {
                 var user = await base.FindByIdAsync(userId);
                 if (user != null)
                 {
                     await LoadUserDetailsAsync(user);
-                    cacheEntry.AddExpirationToken(SecurityCacheRegion.CreateChangeTokenForUser(user));
                 }
 
                 return user;
-            }, cacheNullValue: false);
-            return result;
+            }, TimeSpan.FromMinutes(10));
+
+            return result.Value!;
         }
 
         public override async Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string token,
@@ -115,10 +114,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
             var existUser = await base.FindByIdAsync(user.Id);
 
             var result = await base.ResetPasswordAsync(existUser, token, newPassword);
-            if (result == IdentityResult.Success)
-            {
-                SecurityCacheRegion.ExpireUser(user);
-            }
 
             return result;
         }
@@ -129,7 +124,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
             var result = await base.ChangePasswordAsync(user, currentPassword, newPassword);
             if (result == IdentityResult.Success)
             {
-                SecurityCacheRegion.ExpireUser(user);
+                var cacheKey = CacheKey.With(GetType(), nameof(FindByIdAsync), user.Id);
+                await _cachingProvider.RemoveAsync(cacheKey);
             }
 
             return result;
@@ -138,14 +134,10 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
         public override async Task<IdentityResult> DeleteAsync(ApplicationUser user)
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var commandProcessor = scope.ServiceProvider.GetRequiredService<ICommandProcessor>();
 
-            await commandProcessor.PublishDomainEventAsync(new UserChangingDomainEvent(user.ToUser()));
             var result = await base.DeleteAsync(user);
             if (result.Succeeded)
             {
-                await commandProcessor.PublishDomainEventAsync(new UserChangedDomainEvent(user.ToUser()));
-                SecurityCacheRegion.ExpireUser(user);
             }
 
             return result;
@@ -175,14 +167,11 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
             await LoadUserDetailsAsync(existUser);
 
             using var scope = _serviceScopeFactory.CreateScope();
-            var commandProcessor = scope.ServiceProvider.GetRequiredService<ICommandProcessor>();
 
-            await commandProcessor.PublishDomainEventAsync(new UserChangingDomainEvent(user.ToUser()));
             user.Patch(existUser);
             var result = await base.UpdateAsync(existUser);
             if (result.Succeeded)
             {
-                await commandProcessor.PublishDomainEventAsync(new UserChangedDomainEvent(user.ToUser()));
                 if (user.Roles != null)
                 {
                     var targetRoles = (await GetRolesAsync(existUser));
@@ -199,8 +188,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
                         await RemoveFromRoleAsync(existUser, removeRole);
                     }
                 }
-
-                SecurityCacheRegion.ExpireUser(existUser);
             }
 
             return result;
@@ -209,13 +196,10 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
         public override async Task<IdentityResult> CreateAsync(ApplicationUser user)
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var commandProcessor = scope.ServiceProvider.GetRequiredService<ICommandProcessor>();
 
-            await commandProcessor.PublishDomainEventAsync(new UserChangingDomainEvent(user.ToUser()));
             var result = await base.CreateAsync(user);
             if (result.Succeeded)
             {
-                await commandProcessor.PublishDomainEventAsync(new UserChangedDomainEvent(user.ToUser()));
                 var permissions = user.Permissions;
                 var roles = user.Roles;
 
@@ -239,8 +223,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
                             await AddToRoleAsync(user, newRole.Name);
                     }
                 }
-
-                SecurityCacheRegion.ExpireUser(user);
             }
 
             return result;

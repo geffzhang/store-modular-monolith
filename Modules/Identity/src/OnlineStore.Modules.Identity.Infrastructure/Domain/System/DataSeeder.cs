@@ -35,12 +35,16 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
 
         private async Task SeedUsersAsync(CancellationToken cancellationToken)
         {
-            if (await _userManager.FindByNameAsync("admin") == null)
+            var user = await _userManager.FindByNameAsync("admin");
+            if (user == null)
             {
                 var admin = new ApplicationUser
                 {
                     Id = Guid.NewGuid().ToString(),
                     IsAdministrator = true,
+                    Name = "admin",
+                    FirstName = "admin",
+                    LastName = "admin",
                     UserName = "admin",
                     PasswordExpired = true,
                     Email = "admin@admin.com",
@@ -54,6 +58,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
                 if (adminUser == null)
                 {
                     await _userManager.CreateAsync(admin);
+                    await _userManager.AddToRoleAsync(admin, "admin");
                 }
             }
         }

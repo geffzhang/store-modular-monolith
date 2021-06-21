@@ -1,6 +1,6 @@
 # Migration
 
-For Generating migration files we can use bellow command or for init database based on our DBContext Models we can use of `await identityContext.Database.EnsureCreatedAsync()` that onlt create database base on our model and if database exists before it dosn't do anything.
+For Generating migration files we can use bellow command or for init database based on our DBContext Models we can use of `await identityContext.Database.EnsureCreatedAsync()` that only create database base on our model and if database exists before it dosn't do anything.
 
 ``` bash
  dotnet ef migrations add Init --context IdentityDbContext

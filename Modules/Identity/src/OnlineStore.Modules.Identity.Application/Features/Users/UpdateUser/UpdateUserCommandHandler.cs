@@ -51,11 +51,11 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.UpdateUser
             }
 
             var user = User.Of(command.Id, command.Email, command.FirstName, command.LastName,
-                command.Name, command.UserName, command.Password, command.CreatedDate, command.CreatedBy,
-                command.Permissions.ToList(), command.UserType, _userEditable, command.IsAdministrator,
-                command.IsActive,
-                command.Roles.ToList(), command.LockoutEnabled, command.EmailConfirmed, command.PhotoUrl,
-                command.Status, command.ModifiedBy, command.ModifiedDate);
+                command.Name, command.UserName, command.Password,
+                command.Permissions.ToList(), command.UserType, _userEditable,
+                command.IsAdministrator, command.IsActive, command.Roles.ToList(),
+                command.LockoutEnabled, command.EmailConfirmed, command.PhotoUrl,
+                command.Status);
 
             if (!applicationUser.Email.EqualsInvariant(command.Email))
             {

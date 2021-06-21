@@ -18,8 +18,12 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
             var services = scope.ServiceProvider;
 
             var identityContext = services.GetRequiredService<IdentityDbContext>();
-
+            
+            //TODO:Replacing with DbUp 
+            //https://stackoverflow.com/a/38241900/581476
+            //https://www.michalbialecki.com/2020/07/20/adding-entity-framework-core-5-migrations-to-net-5-project/
             await identityContext.Database.MigrateAsync();
+            IdentityDbUpInitializer.Initialize(identityContext.Database.GetConnectionString());
 
             await commandProcessor.SendCommandAsync(new SeedIdentityCommand());
         }

@@ -7,47 +7,43 @@ using Common.Domain;
 using Common.Domain.Dispatching;
 using Common.Messaging.Serialization;
 using Common.Modules;
-using Common.Persistence;
 using Common.Persistence.MSSQL;
 using Common.Utils.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Serilog.Context;
 using Serilog.Core;
 using Serilog.Events;
 
 namespace Common.Messaging.Outbox.EFCore
 {
-    public class EFCoreOutbox : IOutbox
+    public class EFCoreOutbox<TContext> : IOutbox
+        where TContext : DbContext, ISqlDbContext
     {
-        private readonly ILogger<EFCoreOutbox> _logger;
-        private readonly string[] _modules;
+        private readonly ILogger<EFCoreOutbox<TContext>> _logger;
+
+        // private readonly string[] _modules;
         private readonly IDomainNotificationsMapper _domainNotificationsMapper;
         private readonly ICommandProcessor _commandProcessor;
-        private readonly ISqlDbContext _dbContext;
-        private readonly IModuleClient _moduleClient;
+        private readonly TContext _dbContext;
         private readonly IMessageSerializer _messageSerializer;
-        private readonly bool _useBackgroundDispatcher;
 
-        public EFCoreOutbox(OutboxOptions options,
-            IModuleRegistry moduleRegistry,
-            ILogger<EFCoreOutbox> logger,
+        public EFCoreOutbox(IOptions<OutboxOptions> options,
+            // IModuleRegistry moduleRegistry,
+            ILogger<EFCoreOutbox<TContext>> logger,
             IDomainNotificationsMapper domainNotificationsMapper,
             IMessageSerializer messageSerializer,
             ICommandProcessor commandProcessor,
-            ISqlDbContext dbContext,
-            IModuleClient moduleClient,
-            bool useBackgroundDispatcher)
+            TContext dbContext)
         {
             _logger = logger;
             _domainNotificationsMapper = domainNotificationsMapper;
             _messageSerializer = messageSerializer;
             _commandProcessor = commandProcessor;
             _dbContext = dbContext;
-            _moduleClient = moduleClient;
-            _useBackgroundDispatcher = useBackgroundDispatcher;
-            Enabled = options.Enabled;
-            _modules = moduleRegistry.Modules.ToArray();
+            Enabled = options.Value.Enabled;
+            // _modules = moduleRegistry.Modules.ToArray();
         }
 
         public bool Enabled { get; }
@@ -73,9 +69,13 @@ namespace Common.Messaging.Outbox.EFCore
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public Task PublishUnsentAsync()
+        public async Task<IEnumerable<OutboxMessage>> GetAllOutboxMessages(string moduleName = default)
         {
-            return Task.WhenAll(_modules.Select(PublishUnsentAsync));
+            var messages = await _dbContext.OutboxMessages.Where(x => moduleName.IsNullOrEmpty() || x.ModuleName == moduleName)
+                .AsQueryable()
+                .ToListAsync();
+
+            return messages;
         }
 
         public async Task CleanProcessedAsync(CancellationToken cancellationToken = default)
@@ -85,7 +85,7 @@ namespace Common.Messaging.Outbox.EFCore
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        private async Task PublishUnsentAsync(string module)
+        public async Task PublishUnsentAsync()
         {
             var unsentMessages = await _dbContext.OutboxMessages.AsQueryable()
                 .Where(x => x.SentAt == null)
@@ -93,11 +93,11 @@ namespace Common.Messaging.Outbox.EFCore
 
             if (!unsentMessages.Any())
             {
-                _logger.LogTrace($"No unsent messages found in outbox ('{module}').");
+                _logger.LogTrace($"No unsent messages found in outbox.");
                 return;
             }
 
-            _logger.LogInformation($"Found {unsentMessages.Count} unsent messages in outbox ('{module}'), sending...");
+            _logger.LogInformation($"Found {unsentMessages.Count} unsent messages in outbox, sending...");
 
             foreach (var outboxMessage in unsentMessages)
             {
@@ -116,9 +116,8 @@ namespace Common.Messaging.Outbox.EFCore
                         $"Publishing a DomainNotification : '{outboxMessage.Name}' with ID: '{domainEventNotification.Id}' (outbox)...");
 
                     await _commandProcessor.PublishDomainEventNotificationAsync(domainEventNotification);
-
-
                     outboxMessage.SentAt = DateTime.UtcNow;
+
                     _logger.LogInformation(
                         $"Published a message: '{outboxMessage.Name}' with ID: '{domainEventNotification.Id} (outbox)'.");
                 }

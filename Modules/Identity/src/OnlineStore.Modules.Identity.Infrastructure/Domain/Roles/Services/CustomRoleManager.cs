@@ -6,27 +6,26 @@ using System.Threading.Tasks;
 using Common;
 using Common.Caching.Caching;
 using Common.Utils.Extensions;
+using EasyCaching.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
 using OnlineStore.Modules.Identity.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Caching;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
 {
     public class CustomRoleManager : AspNetRoleManager<ApplicationRole>
     {
         private readonly IPermissionService _knownPermissions;
-        private readonly IExtendedMemoryCache _memoryCache;
+        private readonly IEasyCachingProvider _cachingProvider;
         private readonly MvcNewtonsoftJsonOptions _jsonOptions;
 
         public CustomRoleManager(
             IPermissionService knownPermissions
-            , IExtendedMemoryCache memoryCache
+            , IEasyCachingProviderFactory cachingFactory
             , IRoleStore<ApplicationRole> store
             , IEnumerable<IRoleValidator<ApplicationRole>> roleValidators
             , ILookupNormalizer keyNormalizer
@@ -37,16 +36,15 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
             : base(store, roleValidators, keyNormalizer, errors, logger, contextAccessor)
         {
             _knownPermissions = knownPermissions;
-            _memoryCache = memoryCache;
+            _cachingProvider = cachingFactory.GetCachingProvider("mem");
             _jsonOptions = jsonOptions.Value;
         }
 
         public override async Task<ApplicationRole> FindByNameAsync(string roleName)
         {
             var cacheKey = CacheKey.With(GetType(), "FindByNameAsync", roleName);
-            var result = await _memoryCache.GetOrCreateExclusiveAsync(cacheKey, async (cacheEntry) =>
+            var result = await _cachingProvider.GetAsync(cacheKey, async () =>
             {
-                cacheEntry.AddExpirationToken(SecurityCacheRegion.CreateChangeToken());
                 var role = await base.FindByNameAsync(roleName);
                 if (role != null)
                 {
@@ -54,16 +52,16 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
                 }
 
                 return role;
-            }, cacheNullValue: false);
-            return result;
+            }, TimeSpan.FromMinutes(10));
+
+            return result.Value;
         }
 
         public override async Task<ApplicationRole> FindByIdAsync(string roleId)
         {
             var cacheKey = CacheKey.With(GetType(), "FindByIdAsync", roleId);
-            var result = await _memoryCache.GetOrCreateExclusiveAsync(cacheKey, async (cacheEntry) =>
+            var result = await _cachingProvider.GetAsync(cacheKey, async () =>
             {
-                cacheEntry.AddExpirationToken(SecurityCacheRegion.CreateChangeToken());
                 var role = await base.FindByIdAsync(roleId);
                 if (role != null)
                 {
@@ -71,8 +69,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
                 }
 
                 return role;
-            }, cacheNullValue: false);
-            return result;
+            }, TimeSpan.FromMinutes(10));
+
+            return result.Value;
         }
 
         public override async Task<IdentityResult> CreateAsync(ApplicationRole role)
@@ -90,8 +89,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
                     //Need to use an existing tracked by EF entity in order to add permissions for role
                     await base.AddClaimAsync(existRole, claim);
                 }
-
-                SecurityCacheRegion.ExpireRegion();
             }
 
             return result;
@@ -141,8 +138,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
                 {
                     await base.RemoveClaimAsync(existRole, targetClaim);
                 }
-
-                SecurityCacheRegion.ExpireRegion();
             }
 
             return result;
@@ -151,11 +146,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
         public override async Task<IdentityResult> DeleteAsync(ApplicationRole role)
         {
             var result = await base.DeleteAsync(role);
-            if (result.Succeeded)
-            {
-                SecurityCacheRegion.ExpireRegion();
-            }
-
             return result;
         }
 

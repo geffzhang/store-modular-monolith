@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Common.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -12,19 +13,16 @@ namespace OnlineStore.Modules.Identity.Api.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddHealthCheck(this IServiceCollection services, AppSettings appSettings,
-            IConfiguration configuration)
+        public static IServiceCollection AddHealthCheck(this IServiceCollection services, IConfiguration configuration,
+            string urlGroup = "")
         {
             services.AddHealthChecks()
                 .AddDbContextCheck<IdentityDbContext>(name: "Identity DB Context", HealthStatus.Degraded)
-                .AddUrlGroup(new Uri(appSettings.ApplicationDetail.ContactWebsite), "Online Store",
-                    HealthStatus.Degraded)
+                .AddUrlGroup(new Uri(urlGroup), "Online Store", HealthStatus.Degraded)
                 .AddSqlServer(configuration.GetConnectionString("OnlineStore"));
 
-            services.AddHealthChecksUI(setupSettings: setup =>
-            {
-                setup.AddHealthCheckEndpoint("Basic Health Check", $"/healthz");
-            }).AddInMemoryStorage();
+            services.AddHealthChecksUI(setup => { setup.AddHealthCheckEndpoint("Basic Health Check", $"/healthz"); })
+                .AddInMemoryStorage();
 
             return services;
         }
@@ -41,12 +39,12 @@ namespace OnlineStore.Modules.Identity.Api.Extensions
             return services;
         }
 
-        public static IServiceCollection AddCors(this IServiceCollection services, AppSettings appSettings)
+        public static IServiceCollection AddCors(this IServiceCollection services, Cors cors)
         {
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowedOrigins", builder => builder
-                    .WithOrigins(appSettings.Cors.AllowedOrigins)
+                    .WithOrigins(cors.AllowedOrigins)
                     .AllowAnyMethod()
                     .AllowAnyHeader());
 
@@ -65,11 +63,6 @@ namespace OnlineStore.Modules.Identity.Api.Extensions
 
         public static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services)
         {
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "OnlineStore.Modules.Identity.Api", Version = "v1"});
-            });
-
             services.AddSwaggerGen(c =>
             {
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -115,6 +108,5 @@ namespace OnlineStore.Modules.Identity.Api.Extensions
 
             return services;
         }
-
     }
 }

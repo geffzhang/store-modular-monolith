@@ -13,14 +13,11 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.SendVerificat
     public class SendVerificationEmailCommandHandler : ICommandHandler<SendVerificationEmailCommand>
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IMessagesScheduler _messagesScheduler;
         private readonly IMailService _mailService;
 
-        public SendVerificationEmailCommandHandler(UserManager<ApplicationUser> userManager,
-            IMessagesScheduler messagesScheduler, IMailService mailService)
+        public SendVerificationEmailCommandHandler(UserManager<ApplicationUser> userManager, IMailService mailService)
         {
             _userManager = userManager;
-            _messagesScheduler = messagesScheduler;
             _mailService = mailService;
         }
 
@@ -32,10 +29,10 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.SendVerificat
             var encodedCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
             var callbackUrl =
                 $"{command.RequestScheme}://{command.RequestHost}/#/confirm-email/{applicationUser.Id}/{encodedCode}";
-            
+
             string link = $"<a href='{callbackUrl}'>link</a>";
             string content = $"Welcome to Online Shopping application! Please confirm your registration using this {link}.";
-            
+
             // Send Email
             await _mailService.SendAsync(new MailRequest(applicationUser.Email, "Confirmation Email", content));
         }

@@ -7,9 +7,9 @@ namespace Common.Messaging.Commands
 {
     internal class CommandDispatcher : ICommandDispatcher
     {
-        private readonly IServiceScopeFactory _serviceFactory;
+        private readonly IServiceProvider _serviceFactory;
 
-        public CommandDispatcher(IServiceScopeFactory serviceFactory)
+        public CommandDispatcher(IServiceProvider serviceFactory)
         {
             _serviceFactory = serviceFactory;
         }

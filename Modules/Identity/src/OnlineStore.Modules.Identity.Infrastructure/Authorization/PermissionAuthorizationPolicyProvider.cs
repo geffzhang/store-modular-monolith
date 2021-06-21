@@ -1,13 +1,13 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common.Caching.Caching;
+using EasyCaching.Core;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
 using OnlineStore.Modules.Identity.Infrastructure.Authentication;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
 {
@@ -17,15 +17,15 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
     public class PermissionAuthorizationPolicyProvider : DefaultAuthorizationPolicyProvider
     {
         private readonly IPermissionService _permissionService;
-        private readonly IExtendedMemoryCache _memoryCache;
+        private readonly IEasyCachingProvider _cachingProvider;
 
         public PermissionAuthorizationPolicyProvider(
             IOptions<AuthorizationOptions> options,
-            IPermissionService permissionService, IExtendedMemoryCache memoryCache)
+            IPermissionService permissionService, IEasyCachingProviderFactory cachingFactory)
             : base(options)
         {
             _permissionService = permissionService;
-            _memoryCache = memoryCache;
+            _cachingProvider = cachingFactory.GetCachingProvider("mem");
         }
 
         public override async Task<AuthorizationPolicy> GetPolicyAsync(string policyName)
@@ -45,7 +45,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
         private Dictionary<string, AuthorizationPolicy> GetDynamicAuthorizationPoliciesFromModulesPermissions()
         {
             var cacheKey = CacheKey.With(GetType(), "GetDynamicAuthorizationPoliciesFromModulesPermissions");
-            var result = _memoryCache.GetOrCreateExclusive(cacheKey, (cacheEntry) =>
+            var result = _cachingProvider.Get(cacheKey, () =>
             {
                 var resultLookup = new Dictionary<string, AuthorizationPolicy>();
                 foreach (var permission in _permissionService.GetAllPermissions())
@@ -59,8 +59,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
                 }
 
                 return resultLookup;
-            });
-            return result;
+            },TimeSpan.FromMinutes(10));
+            
+            return result.Value;
         }
     }
 }

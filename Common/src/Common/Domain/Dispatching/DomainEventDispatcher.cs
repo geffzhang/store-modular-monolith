@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common.Messaging.Events;
 using Common.Messaging.Outbox;
+using Common.Persistence.MSSQL;
 using Common.Serialization;
 using Common.Utils.Extensions;
 using Common.Web.Contexts;
@@ -14,30 +15,36 @@ namespace Common.Domain.Dispatching
 {
     internal sealed class DomainEventDispatcher : IDomainEventDispatcher
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IDomainEventContext _domainEventContext;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        public DomainEventDispatcher(IServiceProvider serviceProvider)
-            => _serviceProvider = serviceProvider;
+        public DomainEventDispatcher(IDomainEventContext domainEventContext, IServiceScopeFactory scopeFactory)
+        {
+            _domainEventContext = domainEventContext;
+            _scopeFactory = scopeFactory;
+        }
 
         public async Task DispatchAsync(params IDomainEvent[] domainEvents)
         {
-            if (domainEvents is null || !domainEvents.Any())
+            IEnumerable<IDomainEvent> events = domainEvents?.ToList();
+
+            if (events is null || events.Any() == false)
             {
-                return;
+                events = _domainEventContext.GetDomainEvents();
             }
 
-            using var scope = _serviceProvider.CreateScope();
-
+            var scope = _scopeFactory.CreateScope();
+            
             var domainEventNotifications = new List<IDomainEventNotification<IDomainEvent>>();
-            foreach (var domainEvent in domainEvents)
+            foreach (var domainEvent in events)
             {
                 //https://jeremylindsayni.wordpress.com/2019/02/11/instantiating-a-c-object-from-a-string-using-activator-createinstance-in-net/
                 Type domainEvenNotificationType = typeof(IDomainEventNotification<>);
                 var domainNotificationWithGenericType =
                     domainEvenNotificationType.MakeGenericType(domainEvent.GetType());
+                
                 var domainNotification =
-                    Activator.CreateInstance(domainNotificationWithGenericType) as
-                        IDomainEventNotification<IDomainEvent>;
+                    scope.ServiceProvider.GetService(domainNotificationWithGenericType) as IDomainEventNotification<IDomainEvent>;
 
                 if (domainNotification is null)
                     continue;
@@ -48,7 +55,7 @@ namespace Common.Domain.Dispatching
                 domainEventNotifications.Add(domainNotification);
             }
 
-            foreach (var @event in domainEvents)
+            foreach (var @event in events)
             {
                 var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(@event.GetType());
                 var handlers = scope.ServiceProvider.GetServices(handlerType);
@@ -71,10 +78,10 @@ namespace Common.Domain.Dispatching
                     ContractResolver = new AllPropertiesContractResolver()
                 });
 
-                var outbox = _serviceProvider.GetRequiredService<IOutbox>();
-                var outboxOptions = _serviceProvider.GetRequiredService<OutboxOptions>();
-                var context = _serviceProvider.GetRequiredService<IContext>();
-                var domainNotificationsMapper = _serviceProvider.GetRequiredService<IDomainNotificationsMapper>();
+                var outbox = scope.ServiceProvider.GetRequiredService<IOutbox>();
+                var outboxOptions = scope.ServiceProvider.GetRequiredService<OutboxOptions>();
+                var context = scope.ServiceProvider.GetRequiredService<IContext>();
+                var domainNotificationsMapper = scope.ServiceProvider.GetRequiredService<IDomainNotificationsMapper>();
                 var name = domainNotificationsMapper.GetName(domainEventNotification.GetType());
 
                 if (outboxOptions.Enabled == false)
@@ -83,13 +90,12 @@ namespace Common.Domain.Dispatching
                 var outboxMessage = new OutboxMessage()
                 {
                     Id = domainEventNotification.Id,
-                    CorrelationId = context.CorrelationId,
                     OccurredOn = domainEventNotification.DomainEvent.OccurredOn,
                     Type = domainEventNotification.GetType().AssemblyQualifiedName,
                     Name = name ?? domainEventNotification.GetType().Name.Underscore(),
-                    Payload = data
+                    Payload = data,
+                    ModuleName = domainEventNotification.GetModuleName()
                 };
-
                 await outbox.SaveAsync(new List<OutboxMessage> {outboxMessage});
             }
         }

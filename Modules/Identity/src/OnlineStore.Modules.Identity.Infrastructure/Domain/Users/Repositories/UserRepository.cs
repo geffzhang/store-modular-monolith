@@ -12,6 +12,7 @@ using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Repositories
 {
+	//Aggregate (Root) Design: Separate Behavior & Data for Persistence: https://www.youtube.com/watch?v=GtWVGJp061A
     public class UserRepository : IUserRepository
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -28,7 +29,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Repositories
             if (string.IsNullOrEmpty(user.Password))
                 identityResult = await _userManager.CreateAsync(appUser);
             else
-                identityResult = await _userManager.CreateAsync(appUser, appUser.Password);
+                identityResult = await _userManager.CreateAsync(appUser, user.Password);
 
             return new CreateUserResponse(Guid.Parse(appUser.Id), identityResult.Succeeded,
                 identityResult.Errors.Select(e => new Error(e.Code, e.Description)));

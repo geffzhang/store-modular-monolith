@@ -1,8 +1,8 @@
 using System;
-using Common.Extensions.DependencyInjection;
 using Common.Persistence.Mongo.Factories;
 using Common.Persistence.Mongo.Repositories;
 using Common.Persistence.Mongo.Seeders;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -30,25 +30,21 @@ namespace Common.Persistence.Mongo
             return services;
         }
 
-        public static IServiceCollection AddMongoPersistence(this IServiceCollection services, string sectionName = SectionName,
+        public static IServiceCollection AddMongoPersistence(this IServiceCollection services, IConfiguration configuration,
+            string sectionName = SectionName,
             Type seederType = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
 
-            var mongoOptions = services.GetOptions<MongoOptions>(sectionName);
-            services.AddSingleton(mongoOptions);
+            var options = configuration.GetSection(sectionName).Get<MongoOptions>();
+            services.AddOptions<MongoOptions>().Bind(configuration.GetSection(sectionName)).ValidateDataAnnotations();
 
             services.AddScoped<IMongoDbContext, MongoDbContext>();
-            services.AddSingleton<IMongoClient>(sp =>
-            {
-                var options = sp.GetService<MongoOptions>();
-                return new MongoClient(options.ConnectionString);
-            });
+            services.AddSingleton<IMongoClient>(sp => new MongoClient(options?.ConnectionString));
             services.AddTransient(sp =>
             {
-                var options = sp.GetService<MongoOptions>();
                 var client = sp.GetService<IMongoClient>();
-                return client.GetDatabase(options.Database);
+                return client?.GetDatabase(options?.Database);
             });
             services.AddTransient<IMongoSessionFactory, MongoSessionFactory>();
 
@@ -68,7 +64,7 @@ namespace Common.Persistence.Mongo
             BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
             BsonSerializer.RegisterSerializer(typeof(decimal?),
                 new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
-            ConventionRegistry.Register("trill", new ConventionPack
+            ConventionRegistry.Register("shopping", new ConventionPack
             {
                 new CamelCaseElementNameConvention(),
                 new IgnoreExtraElementsConvention(true),

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Common.Extensions.DependencyInjection;
 using Common.Logging.Serilog.Options;
 using Common.Web;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
@@ -26,10 +26,10 @@ namespace Common.Logging.Serilog
 
                 if (string.IsNullOrWhiteSpace(appSectionName)) appSectionName = AppSectionName;
 
-                var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
-                var loggerOptions = context.Configuration.GetOptions<LoggerOptions>(loggerSectionName);
-
-                MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
+                var appOptions = context.Configuration.GetSection(appSectionName).Get<AppOptions>();
+                var loggerOptions = context.Configuration.GetSection(loggerSectionName).Get<LoggerOptions>();
+                if (appOptions is { } && loggerConfiguration is { })
+                    MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
                 configure?.Invoke(loggerConfiguration);
             });
         }
