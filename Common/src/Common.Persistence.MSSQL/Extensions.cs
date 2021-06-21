@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Common.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -29,47 +29,41 @@ namespace Common.Persistence.MSSQL
             var mssqlOptions = configuration.GetSection(sectionName).Get<MssqlOptions>();
 
             services.AddDbContext<TContext>(options => options.UseSqlServer(mssqlOptions.ConnectionString, sqlOptions =>
-            {
-                sqlOptions.MigrationsAssembly(typeof(TContext).Assembly.GetName().Name);
-                sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
-            }))
-            .AddScoped<ISqlDbContext>(ctx => ctx.GetRequiredService<TContext>())
-            .AddScoped<IDomainEventContext>(ctx => ctx.GetRequiredService<TContext>());
-
-            services.AddScoped<IDbFacadeResolver>(provider => provider.GetService<ISqlDbContext>());
+                {
+                    sqlOptions.MigrationsAssembly(typeof(TContext).Assembly.GetName().Name);
+                    sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+                }))
+                .AddScoped<ISqlDbContext>(ctx => ctx.GetRequiredService<TContext>())
+                .AddScoped<IDomainEventContext, DomainEventContext>();
 
             configurator?.Invoke(services);
 
             return services;
         }
 
-        public static async ValueTask<TResponse> HandleTransaction<TDbContext, TResponse>(this ICommandProcessor commandProcessor,
-            TDbContext dbContext, CancellationToken cancellationToken, Func<Task<TResponse>> next)
-            where TDbContext : DbContext, ISqlDbContext, IDomainEventContext
+        public static async Task HandleTransactionAsync<TDbContext>(
+            this ICommandProcessor commandProcessor,
+            TDbContext dbContext,
+            IList<IDomainEvent> events,
+            Func<Task> next)
+            where TDbContext : ISqlDbContext
         {
             var strategy = dbContext.Database.CreateExecutionStrategy();
-            return await strategy.ExecuteAsync(async () =>
+            await strategy.ExecuteAsync(async () =>
             {
                 // Achieving atomicity
-               await dbContext.BeginTransactionAsync();
+                await dbContext.BeginTransactionAsync();
 
-                var response = await next();
-                var domainEvents = dbContext.GetDomainEvents().ToList();
-
-                var tasks = domainEvents
-                    .Select(async @event =>
-                    {
-                        var id = (response as dynamic)?.Id;
-                        @event.Id = id;
-
-                        // publish it out
-                        await commandProcessor.PublishDomainEventAsync(@event);
-                    });
+                await next();
+                var domainEvents = events == null || events.Any() == false ? dbContext.GetDomainEvents().ToList() : events;
+                var tasks = domainEvents.Select(async @event =>
+                {
+                    // also will publish our domain event notification internally
+                    await commandProcessor.PublishDomainEventAsync(@event);
+                });
 
                 await Task.WhenAll(tasks);
                 await dbContext.CommitTransactionAsync();
-                
-                return response;
             });
         }
 

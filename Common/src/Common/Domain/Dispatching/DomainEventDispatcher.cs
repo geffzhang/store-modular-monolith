@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Common.Messaging.Events;
 using Common.Messaging.Outbox;
-using Common.Persistence.MSSQL;
 using Common.Serialization;
 using Common.Utils.Extensions;
 using Common.Web.Contexts;
@@ -26,15 +24,15 @@ namespace Common.Domain.Dispatching
 
         public async Task DispatchAsync(params IDomainEvent[] domainEvents)
         {
-            IEnumerable<IDomainEvent> events = domainEvents?.ToList();
+            IEnumerable<IDomainEvent> events = domainEvents is null || domainEvents.Any() == false
+                ? _domainEventContext.GetDomainEvents()?.ToList()
+                : domainEvents.ToList();
 
             if (events is null || events.Any() == false)
-            {
-                events = _domainEventContext.GetDomainEvents();
-            }
+                return;
 
             var scope = _scopeFactory.CreateScope();
-            
+
             var domainEventNotifications = new List<IDomainEventNotification<IDomainEvent>>();
             foreach (var domainEvent in events)
             {
@@ -42,7 +40,7 @@ namespace Common.Domain.Dispatching
                 Type domainEvenNotificationType = typeof(IDomainEventNotification<>);
                 var domainNotificationWithGenericType =
                     domainEvenNotificationType.MakeGenericType(domainEvent.GetType());
-                
+
                 var domainNotification =
                     scope.ServiceProvider.GetService(domainNotificationWithGenericType) as IDomainEventNotification<IDomainEvent>;
 

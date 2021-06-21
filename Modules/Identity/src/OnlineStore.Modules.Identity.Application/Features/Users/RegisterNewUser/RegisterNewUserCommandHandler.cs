@@ -8,6 +8,7 @@ using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineStore.Modules.Identity.Application.Features.Users.Exceptions;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Domain.Users.Services;
+using Common.Persistence.MSSQL;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser
 {
@@ -17,16 +18,21 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
         private readonly IUserEditable _userEditable;
         private readonly ILogger<RegisterNewUserCommandHandler> _logger;
         private readonly ICommandProcessor _commandProcessor;
+        private readonly ISqlDbContext _dbContext;
         private readonly IUserDomainToIntegrationEventMapper _userEventMapper;
 
-        public RegisterNewUserCommandHandler(IUserRepository userRepository, IUserEditable userEditable,
-            ILogger<RegisterNewUserCommandHandler> logger, ICommandProcessor commandProcessor,
+        public RegisterNewUserCommandHandler(IUserRepository userRepository,
+            IUserEditable userEditable,
+            ILogger<RegisterNewUserCommandHandler> logger,
+            ICommandProcessor commandProcessor,
+            ISqlDbContext dbContext,
             IUserDomainToIntegrationEventMapper userEventMapper)
         {
             _userRepository = userRepository;
             _userEditable = userEditable;
             _logger = logger;
             _commandProcessor = commandProcessor;
+            _dbContext = dbContext;
             _userEventMapper = userEventMapper;
         }
 
@@ -50,33 +56,36 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
                 throw new UserNameAlreadyInUseException(command.Name);
             }
 
-            user = User.Of(command.Id, 
-                command.Email, 
+            user = User.Of(command.Id,
+                command.Email,
                 command.FirstName,
                 command.LastName,
                 command.Name,
                 command.UserName,
-                command.Password, 
+                command.Password,
                 command.Permissions.ToList(),
-                command.UserType, 
-                _userEditable, 
+                command.UserType,
+                _userEditable,
                 command.IsAdministrator,
                 command.IsActive,
-                command.Roles.ToList(), 
-                command.LockoutEnabled, 
+                command.Roles.ToList(),
+                command.LockoutEnabled,
                 command.EmailConfirmed,
                 command.PhotoUrl,
                 command.Status);
 
-            await _userRepository.AddAsync(user);
-            _logger.LogInformation($"Created an account for the user with ID: '{user.Id}'.");
+            await _commandProcessor.HandleTransactionAsync(_dbContext, user.Events?.ToList(), async () =>
+            {
+                await _userRepository.AddAsync(user);
+                _logger.LogInformation($"Created an account for the user with ID: '{user.Id}'.");
+            });
 
             //Option1: Using our decorators for handling these operations automatically
             //Option 2: Explicit calling domain events 
-            
+
             // var domainEvents = user.Events.ToArray();
             // await _commandProcessor.PublishDomainEventAsync(domainEvents); // will raise our notification event
-            
+
             // var integrationEvents = _userDomainToIntegrationEventMapper.Map(notification.DomainEvent).ToArray();
             // await _commandProcessor.PublishMessageAsync(integrationEvents);
         }

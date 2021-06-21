@@ -3,63 +3,65 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common.Domain;
 using Common.Domain.Dispatching;
-using Common.Messaging;
 using Common.Messaging.Commands;
 using Common.Messaging.Events;
 using Common.Messaging.Transport;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Common
 {
     internal sealed class CommandProcessor : ICommandProcessor
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IDomainEventDispatcher _domainEventDispatcher;
+        private readonly IDomainEventNotificationDispatcher _domainEventNotificationDispatcher;
+        private readonly ICommandDispatcher _commandDispatcher;
+        private readonly ITransport _transport;
 
-        public CommandProcessor(IServiceProvider serviceProvider)
+        public CommandProcessor(IServiceProvider serviceProvider,
+            IDomainEventDispatcher domainEventDispatcher,
+            IDomainEventNotificationDispatcher domainEventNotificationDispatcher,
+            ICommandDispatcher commandDispatcher,
+            ITransport transport)
         {
             _serviceProvider = serviceProvider;
+            _domainEventDispatcher = domainEventDispatcher;
+            _domainEventNotificationDispatcher = domainEventNotificationDispatcher;
+            _commandDispatcher = commandDispatcher;
+            _transport = transport;
         }
 
-        public async Task PublishDomainEventAsync(params IDomainEvent[] domainEvents) 
+        public async Task PublishDomainEventAsync(params IDomainEvent[] domainEvents)
         {
             if (domainEvents is null || !domainEvents.Any())
-            {
                 return;
-            }
-            
-            using var scope = _serviceProvider.CreateScope();
-            var dispatcher = scope.ServiceProvider.GetRequiredService<IDomainEventDispatcher>();
-            await dispatcher.DispatchAsync(domainEvents);
+
+            // also will publish domain event notification internally
+            await _domainEventDispatcher.DispatchAsync(domainEvents);
         }
 
         public async Task PublishDomainEventNotificationAsync(params IDomainEventNotification[] events)
         {
             if (events is null || !events.Any())
-            {
                 return;
-            }
             
-            using var scope = _serviceProvider.CreateScope();
-            var dispatcher = scope.ServiceProvider.GetRequiredService<IDomainEventNotificationDispatcher>();
-            await dispatcher.DispatchAsync(events);
+            await _domainEventNotificationDispatcher.DispatchAsync(events);
         }
 
-     
 
         public async Task SendCommandAsync<T>(T command) where T : class, ICommand
         {
-            if (command is null) return;
+            if (command is null)
+                return;
 
-            using var scope = _serviceProvider.CreateScope();
-            var dispatcher = scope.ServiceProvider.GetRequiredService<ICommandDispatcher>();
-            await dispatcher.SendAsync(command);
+            await _commandDispatcher.SendAsync(command);
         }
 
         public async Task PublishMessageAsync(params IIntegrationEvent[] messages)
         {
-            using var scope = _serviceProvider.CreateScope();
-            var transport = scope.ServiceProvider.GetRequiredService<ITransport>();
-            await transport.PublishAsync(messages);
+            if (messages is null || !messages.Any())
+                return;
+            
+            await _transport.PublishAsync(messages);
         }
     }
 }

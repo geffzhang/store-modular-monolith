@@ -21,8 +21,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure
     /// https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity
     /// https://docs.microsoft.com/en-us/dotnet/architecture/microservices/secure-net-microservices-web-applications
     /// </summary>
-    public sealed class IdentityDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>, ISqlDbContext, IDomainEventContext
-
+    public sealed class IdentityDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>, ISqlDbContext
     {
         private IDbContextTransaction _currentTransaction;
 
