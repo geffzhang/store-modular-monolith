@@ -49,32 +49,27 @@ namespace Common.Utils.Reflection
                 select type;
         }
 
-        public static IEnumerable<Type> GetAllTypesImplementingInterface(Type targetInterface, Assembly[] assemblies)
+        public static IEnumerable<Type> GetAllTypesImplementingInterface(Type interfaceType, params Assembly[] assemblies)
         {
-            return assemblies.SelectMany(assembly => GetAllTypesImplementingInterface(targetInterface, assembly));
+            var inputAssemblies = assemblies.Any() ? assemblies : AppDomain.CurrentDomain.GetAssemblies();
+            return inputAssemblies.SelectMany(assembly => GetAllTypesImplementingInterface(interfaceType, assembly));
         }
 
-        public static IEnumerable<Type> GetAllTypesImplementingInterface(Type targetInterface, Assembly assembly)
+        public static IEnumerable<Type> GetAllTypesImplementingInterface<TInterface>(params Assembly[] assemblies)
         {
-            try
-            {
-                return GetAllTypesImplementingInterface(targetInterface, assembly.GetTypes());
-            }
-            catch (ReflectionTypeLoadException)
-            {
-                //It's expected to not being able to load all assemblies
-                return new List<Type>();
-            }
+            var inputAssemblies = assemblies.Any() ? assemblies : AppDomain.CurrentDomain.GetAssemblies();
+            return inputAssemblies.SelectMany(GetAllTypesImplementingInterface<TInterface>);
         }
 
-        public static IEnumerable<Type> GetAllTypesImplementingInterface(Type targetInterface, IEnumerable<Type> types)
+        private static IEnumerable<Type> GetAllTypesImplementingInterface<TInterface>(Assembly assembly = null)
         {
-            return from type in types
-                from interfaceType in type.GetInterfaces()
-                where
-                    targetInterface.IsAssignableFrom(interfaceType) &&
-                    type.IsClass && !type.IsAbstract
-                select type;
+            var inputAssembly = assembly ?? Assembly.GetExecutingAssembly();
+            return inputAssembly.GetTypes().Where(type => typeof(TInterface).IsAssignableFrom(type) && !type.IsInterface);
+        }
+
+        private static IEnumerable<Type> GetAllTypesImplementingInterface(Type interfaceType, Assembly assembly)
+        {
+            return assembly.GetTypes().Where(type => interfaceType.IsAssignableFrom(type) && !type.IsInterface);
         }
 
         public static IEnumerable<string> GetPropertyNames<T>(params Expression<Func<T, object>>[] propertyExpressions)
@@ -93,15 +88,15 @@ namespace Common.Utils.Reflection
             string retVal = null;
             if (propertyExpression != null)
             {
-                var lambda = (LambdaExpression)propertyExpression;
+                var lambda = (LambdaExpression) propertyExpression;
                 MemberExpression memberExpression;
                 if (lambda.Body is UnaryExpression unaryExpression)
                 {
-                    memberExpression = (MemberExpression)unaryExpression.Operand;
+                    memberExpression = (MemberExpression) unaryExpression.Operand;
                 }
                 else
                 {
-                    memberExpression = (MemberExpression)lambda.Body;
+                    memberExpression = (MemberExpression) lambda.Body;
                 }
 
                 retVal = memberExpression.Member.Name;
@@ -116,11 +111,11 @@ namespace Common.Utils.Reflection
             return properties.Where(x => x.GetCustomAttributes(attribute, true).Any()).ToArray();
         }
 
+        //https://riptutorial.com/csharp/example/15938/creating-an-instance-of-a-type
         public static bool IsHaveAttribute(this PropertyInfo propertyInfo, Type attribute)
         {
             return propertyInfo.GetCustomAttributes(attribute, true).Any();
         }
-
 
         public static Type[] GetTypeInheritanceChainTo(this Type type, Type toBaseType)
         {
@@ -174,14 +169,14 @@ namespace Common.Utils.Reflection
 
                 if (objectType.GetInterface(typeof(T).Name) != null)
                 {
-                    retVal.Add((T)obj);
-                    resultList.Add((T)obj);
+                    retVal.Add((T) obj);
+                    resultList.Add((T) obj);
                 }
 
                 var properties = objectType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
                 var objects = properties.Where(x => x.PropertyType.GetInterface(typeof(T).Name) != null)
-                    .Select(x => (T)x.GetValue(obj)).ToList();
+                    .Select(x => (T) x.GetValue(obj)).ToList();
 
                 //Recursive call for single properties
                 retVal.AddRange(objects.Where(x => x != null)
@@ -207,6 +202,13 @@ namespace Common.Utils.Reflection
 
             return retVal.ToArray();
         }
+
+        public static T CreateInstanceFromType<T>(Type type, params object[] parameters)
+        {
+            var instance = (T) Activator.CreateInstance(type, parameters);
+
+            return instance;
+        }   
 
         public static bool IsDictionary(this Type type)
         {

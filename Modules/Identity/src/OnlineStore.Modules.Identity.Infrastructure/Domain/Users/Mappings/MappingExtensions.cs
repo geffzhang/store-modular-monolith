@@ -18,7 +18,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
         {
             if (user is null)
                 return null;
-            
+
             var applicationUser = new ApplicationUser
             {
                 Name = user.UserName,
@@ -47,21 +47,29 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings
         {
             if (appUser is null)
                 return null;
-            
+
             var userType = EnumUtility.SafeParse(appUser.UserType, UserType.Customer);
 
-            return User.Of(new UserId(Guid.Parse(appUser.Id)), appUser.Email, appUser.FirstName, appUser.LastName,
+            var permissions = appUser.Permissions?.Select(x => Permission.Of(x.Name, "")).ToArray();
+            var roles = appUser.Roles?.Select(x => Role.Of(x.Name, x.Name)).ToArray();
+
+            var user = User.Of(new UserId(Guid.Parse(appUser.Id)), appUser.Email, appUser.FirstName, appUser.LastName,
                 appUser.Name, appUser.UserName, null!,
-                appUser.Permissions?.Select(x => x.Name).ToList()!, userType, userEditable!, appUser.IsAdministrator, appUser.IsActive,
-                appUser.Roles?.Select(x => x.Name).ToList()!, appUser.LockoutEnabled, appUser.EmailConfirmed,
+                userType, userEditable!, appUser.IsAdministrator, appUser.IsActive,
+                appUser.LockoutEnabled, appUser.EmailConfirmed,
                 appUser.PhotoUrl, appUser.Status, appUser.CreatedBy, appUser.CreatedDate, appUser.ModifiedBy, appUser.ModifiedDate);
+
+            user.AssignPermission(permissions);
+            user.AssignRole(roles);
+
+            return user;
         }
 
         public static UserDto ToUserDto(this ApplicationUser appUser)
         {
             if (appUser is null)
                 return null;
-            
+
             var userType = EnumUtility.SafeParse(appUser.UserType, UserType.Customer);
 
             return new UserDto()

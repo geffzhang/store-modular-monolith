@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Common;
 using Common.Messaging.Commands;
@@ -51,6 +52,7 @@ namespace OnlineStore.Modules.Identity.IntegrationTests
             };
             var scope = ScopeFactory.CreateScope();
             _connectionFactory = scope.ServiceProvider.GetRequiredService<ISqlConnectionFactory>();
+            HttpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
 
             var outbox = scope.ServiceProvider.GetRequiredService<IOutbox>();
             OutboxMessagesHelper = new OutboxMessagesHelper(outbox);
@@ -58,7 +60,8 @@ namespace OnlineStore.Modules.Identity.IntegrationTests
             EnsureDatabase();
         }
 
-        public OutboxMessagesHelper OutboxMessagesHelper { get; }
+        public IHttpClientFactory HttpClientFactory { get; init; }
+        public OutboxMessagesHelper OutboxMessagesHelper { get; init; }
         public IServiceScopeFactory ScopeFactory { get; init; }
 
         public void SetOutput(ITestOutputHelper output)

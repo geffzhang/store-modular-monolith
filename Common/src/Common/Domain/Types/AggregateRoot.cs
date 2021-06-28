@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Common.Domain.Exceptions;
+using Newtonsoft.Json;
 
 namespace Common.Domain.Types
 {
@@ -11,7 +12,8 @@ namespace Common.Domain.Types
         private readonly List<IDomainEvent> _events = new();
         private bool _versionIncremented;
         public int Version { get; protected set; }
-
+        
+        // [JsonIgnore]
         public IEnumerable<IDomainEvent> Events => _events;
 
         protected AggregateRoot()

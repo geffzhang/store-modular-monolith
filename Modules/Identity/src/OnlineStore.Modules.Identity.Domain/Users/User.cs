@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using Common.Domain.Types;
-using Microsoft.AspNetCore.WebUtilities;
 using OnlineStore.Modules.Identity.Domain.Constants;
 using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
 using OnlineStore.Modules.Identity.Domain.Users.DomainExceptions;
@@ -17,40 +13,33 @@ namespace OnlineStore.Modules.Identity.Domain.Users
     public class User : AggregateRoot<Guid, UserId>
     {
         // Using a private collection field, better for DDD Aggregate's encapsulation
-        private readonly List<Role> _roles;
+        private readonly List<Role> _roles = new();
+
+        // private readonly List<ApplicationUserLogin> _logins = new();
+        private readonly List<Permission> _permissions = new();
 
         private readonly IUserEditable _userEditable;
-
-        // private readonly List<ApplicationUserLogin> _logins;
-        private readonly List<Permission> _permissions;
-        public string UserName { get; }
-        public bool EmailConfirmed { get; }
-        public string Email { get; }
-        public string FirstName { get; }
-        public string LastName { get; }
-        public string Name { get; }
-        public bool IsAdministrator { get; }
-        public string PhotoUrl { get; }
-        public UserType UserType { get; }
-        public string Status { get; }
-        public string Password { get; }
-        public bool LockoutEnabled { get; }
-        public bool IsActive { get; }
-        public bool PasswordExpired { get; }
-        public DateTime? LastPasswordChangedDate { get; }
+        public string UserName { get; private set; }
+        public bool EmailConfirmed { get; private set;}
+        public string Email { get; private set;}
+        public string FirstName { get; private set;}
+        public string LastName { get; private set;}
+        public string Name { get; private set;}
+        public bool IsAdministrator { get; private set;}
+        public string? PhotoUrl { get; private set;}
+        public UserType UserType { get; private set;}
+        public string? Status { get; private set;}
+        public string Password { get; private set;}
+        public bool LockoutEnabled { get; private set;}
+        public bool IsActive { get; private set;}
+        public bool PasswordExpired { get; private set;}
+        public DateTime? LastPasswordChangedDate { get; private set;}
         public DateTime CreatedDate { get; init; }
         public DateTime? ModifiedDate { get; init; }
-        public string CreatedBy { get; init; }
-        public string ModifiedBy { get; init; }
-
+        public string? CreatedBy { get; init; }
+        public string? ModifiedBy { get; init; }
         public IReadOnlyList<Role> Roles => _roles;
-
         public IReadOnlyList<Permission> Permissions => _permissions;
-
-        private User()
-        {
-            // Only for EF.
-        }
 
         private User(UserId id,
             string email,
@@ -59,24 +48,21 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             string name,
             string userName,
             string password,
-            IReadOnlyList<string> permissions,
             UserType userType,
             IUserEditable userEditable,
             bool isAdmin = false,
             bool isActive = true,
-            IReadOnlyList<string> roles = null,
             bool locked = false,
             bool emailConfirmed = false,
-            string photoUrl = null,
-            string status = null,
-            string createdBy = null,
+            string? photoUrl = null,
+            string? status = null,
+            string? createdBy = null,
             DateTime? createdDate = null,
-            string modifiedBy = null,
+            string? modifiedBy = null,
             DateTime? modifiedDate = null)
         {
             CheckEmailValidity(email);
             CheckNameValidity(name);
-            CheckingRoleValidity(roles);
 
             UserName = userName;
             IsActive = true;
@@ -88,8 +74,6 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             UserType = userType;
             Password = password;
             LockoutEnabled = locked;
-            _roles = roles?.Select(x => Role.Of(x, x)).ToList();
-            _permissions = permissions?.Select(x => Permission.Of(x, "")).ToList() ?? new List<Permission>();
             EmailConfirmed = emailConfirmed;
             PhotoUrl = photoUrl;
             Status = status;
@@ -104,7 +88,10 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             AddDomainEvent(new NewUserRegisteredDomainEvent(this));
         }
 
-
+        private User()
+        {
+            // Only for deserialization 
+        }
         public static User Of(UserId id,
             string email,
             string firstName,
@@ -112,19 +99,17 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             string name,
             string userName,
             string password,
-            IReadOnlyList<string> permissions,
             UserType userType,
             IUserEditable userEditable,
             bool isAdmin = false,
             bool isActive = true,
-            IReadOnlyList<string> roles = null,
             bool locked = false,
             bool emailConfirmed = false,
-            string photoUrl = null,
-            string status = null,
-            string createdBy = null,
+            string? photoUrl = null,
+            string? status = null,
+            string? createdBy = null,
             DateTime? createdDate = null,
-            string modifiedBy = null,
+            string? modifiedBy = null,
             DateTime? modifiedDate = null)
         {
             return new(id,
@@ -134,12 +119,10 @@ namespace OnlineStore.Modules.Identity.Domain.Users
                 name,
                 userName,
                 password,
-                permissions,
                 userType,
                 userEditable,
                 isAdmin,
                 isActive,
-                roles,
                 locked,
                 emailConfirmed,
                 photoUrl,
@@ -150,14 +133,28 @@ namespace OnlineStore.Modules.Identity.Domain.Users
                 modifiedDate);
         }
 
-        public void AssignRole(Role role)
+        public void AssignRole(params Role[]? roles)
         {
-            if (role is null)
+            if (roles is null)
                 throw new Exception("Role can't be null.");
 
-            var exists = _roles.Contains(role);
+            foreach (var role in roles)
+            {
+                var exists = _roles.Contains(role);
+                if (!exists) _roles.Add(role);
+            }
+        }
 
-            if (!exists) _roles.Add(role);
+        public void AssignPermission(params Permission[]? permissions)
+        {
+            if (permissions is null)
+                throw new Exception("Role can't be null.");
+
+            foreach (var permission in permissions)
+            {
+                var exists = _permissions.Contains(permission);
+                if (!exists) _permissions.Add(permission);
+            }
         }
 
         public virtual void Patch(User target)
@@ -183,14 +180,6 @@ namespace OnlineStore.Modules.Identity.Domain.Users
         #endregion
 
         #region Domain Invariants
-
-        public static void CheckingRoleValidity(IReadOnlyList<string> roles)
-        {
-            roles?.ToList().ForEach(role =>
-            {
-                if (!Role.IsValid(role)) throw new InvalidRoleException(role);
-            });
-        }
 
         public static void CheckNameValidity(string name)
         {

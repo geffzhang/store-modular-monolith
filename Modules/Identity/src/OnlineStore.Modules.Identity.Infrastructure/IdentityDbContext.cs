@@ -7,6 +7,7 @@ using Common.Domain;
 using Common.Domain.Types;
 using Common.Messaging.Outbox;
 using Common.Persistence.MSSQL;
+using Common.Persistence.MSSQL.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -34,7 +35,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
+            builder.ApplyConfiguration(new OutboxMessageEntityTypeConfiguration());
             builder.Entity<IdentityUserRole<string>>(userRole =>
             {
                 userRole.HasOne<ApplicationRole>()

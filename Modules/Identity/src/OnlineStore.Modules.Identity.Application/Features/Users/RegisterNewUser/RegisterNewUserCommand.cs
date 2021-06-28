@@ -10,8 +10,8 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
         public RegisterNewUserCommand(Guid id, string email, string firstName, string lastName,
             string name, string userName, string password, 
             IReadOnlyList<string> permissions, UserType userType, bool isAdmin = false, bool isActive = true,
-            IReadOnlyList<string> roles = null, bool locked = false, bool emailConfirmed = false,
-            string photoUrl = null, string status = null)
+            IReadOnlyList<string>? roles = null, bool locked = false, bool emailConfirmed = false,
+            string? photoUrl = null, string? status = null)
         {
             UserName = userName;
             IsActive = true;
@@ -38,14 +38,14 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
         public string LastName { get; }
         public string Name { get; }
         public bool IsAdministrator { get; }
-        public string PhotoUrl { get; }
+        public string? PhotoUrl { get; }
         public UserType UserType { get; }
-        public string Status { get; }
+        public string? Status { get; }
         public string Password { get; }
         public bool LockoutEnabled { get; }
         public bool IsActive { get; }
-        public IEnumerable<string> Roles { get; }
-        public IEnumerable<string> Permissions { get; }
+        public IEnumerable<string>? Roles { get; }
+        public IEnumerable<string>? Permissions { get; }
         public Guid Id { get; set; }
         public Guid CorrelationId { get; set; }
     }

@@ -4,24 +4,20 @@ using System.Security.Claims;
 
 namespace Common.Web.Contexts
 {
-    internal sealed class IdentityContext : IIdentityContext
+    public sealed class IdentityContext 
     {
-        internal IdentityContext()
-        {
-        }
-
-        internal IdentityContext(ClaimsPrincipal principal)
+        public IdentityContext(ClaimsPrincipal principal)
         {
             Id = principal.Identity?.Name;
             IsAuthenticated = principal.Identity?.IsAuthenticated is true;
             IsAdmin = principal.IsInRole("admin");
-            Claims = principal.Claims?.ToDictionary(x => x.Type, x => x.Value) ?? new Dictionary<string, string>();
+            Claims = principal.Claims.ToDictionary(x => x.Type, x => x.Value);
+            Role = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
         }
-
-        internal static IIdentityContext Empty => new IdentityContext();
         public string Id { get; }
         public bool IsAuthenticated { get; }
         public bool IsAdmin { get; }
-        public IDictionary<string, string> Claims { get; } = new Dictionary<string, string>();
+        public string Role { get; }
+        public IDictionary<string, string> Claims { get; }
     }
 }

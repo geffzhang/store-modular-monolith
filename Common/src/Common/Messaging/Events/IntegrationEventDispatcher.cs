@@ -28,8 +28,8 @@ namespace Common.Messaging.Events
             using var scope = _serviceFactory.CreateScope();
             if (@event.CorrelationId == Guid.Empty)
             {
-                var context = scope.ServiceProvider.GetRequiredService<IContext>();
-                @event.CorrelationId = context.CorrelationId;
+                var context = scope.ServiceProvider.GetRequiredService<ICorrelationContextAccessor>();
+                @event.CorrelationId = Guid.Parse(context.CorrelationContext.CorrelationId); 
             }
 
             if (typeof(T) == typeof(IIntegrationEvent))

@@ -34,7 +34,7 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.UpdateUser
             var applicationUser = await _userRepository.FindByIdAsync(command.Id.ToString());
             if (applicationUser == null)
             {
-                throw new UserNotFoundException(command?.UserName);
+                throw new UserNotFoundException(command.UserName);
             }
 
             if (_userEditable.IsUserEditable(applicationUser.UserName))
@@ -50,10 +50,9 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.UpdateUser
                 throw new UnAuthorizeUserException(command.UserName);
             }
 
-            var user = User.Of(command.Id, command.Email, command.FirstName, command.LastName,
-                command.Name, command.UserName, command.Password,
-                command.Permissions.ToList(), command.UserType, _userEditable,
-                command.IsAdministrator, command.IsActive, command.Roles.ToList(),
+            var user =  User.Of(command.Id, command.Email, command.FirstName, command.LastName,
+                command.Name, command.UserName, command.Password, command.UserType, _userEditable,
+                command.IsAdministrator, command.IsActive, 
                 command.LockoutEnabled, command.EmailConfirmed, command.PhotoUrl,
                 command.Status);
 

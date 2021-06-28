@@ -8,6 +8,8 @@ namespace Common.Messaging.Outbox
         /// Id of message.
         /// </summary>
         public Guid Id { get; set; }
+        
+        public Guid CorrelationId { get; set; }
 
         /// <summary>
         /// Name of message

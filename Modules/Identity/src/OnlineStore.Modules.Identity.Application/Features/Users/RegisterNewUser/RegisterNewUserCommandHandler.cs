@@ -63,16 +63,17 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
                 command.Name,
                 command.UserName,
                 command.Password,
-                command.Permissions.ToList(),
                 command.UserType,
                 _userEditable,
                 command.IsAdministrator,
                 command.IsActive,
-                command.Roles.ToList(),
                 command.LockoutEnabled,
                 command.EmailConfirmed,
                 command.PhotoUrl,
                 command.Status);
+
+            user.AssignPermission(command.Permissions?.Select(x => Permission.Of(x, "")).ToArray());
+            user.AssignRole(command.Roles?.Select(x => Role.Of(x, x)).ToArray());
 
             await _commandProcessor.HandleTransactionAsync(_dbContext, user.Events?.ToList(), async () =>
             {

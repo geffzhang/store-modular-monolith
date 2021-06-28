@@ -1,10 +1,13 @@
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Common.Messaging.Commands;
+using Common.Messaging.Outbox;
 using Common.Persistence;
 using Common.Persistence.MSSQL;
 using Common.Tests.Integration.Factory;
+using Common.Tests.Integration.Helpers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -25,31 +28,32 @@ namespace Common.Tests.Integration.Fixtures
     {
         private readonly Checkpoint _checkpoint;
         private readonly IConfiguration _configuration;
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly WebApplicationFactory<TEntryPoint> _factory;
+        private readonly OnlineStoreApplicationFactory<TEntryPoint> _factory;
         private string _currentUserId;
+        private readonly ISqlConnectionFactory _connectionFactory;
 
         public IntegrationTestFixture()
         {
             _factory = new OnlineStoreApplicationFactory<TEntryPoint>();
             _configuration = _factory.Services.GetRequiredService<IConfiguration>(); // get test configurations
-            _scopeFactory = _factory.Services.GetRequiredService<IServiceScopeFactory>();
-            var services = new ServiceCollection();
 
-            dynamic startup = Activator.CreateInstance(typeof(TEntryPoint), _configuration) as TEntryPoint;
-            services.AddSingleton(Mock.Of<IWebHostEnvironment>(w =>
-                w.EnvironmentName == "Development" &&
-                w.ApplicationName == "OnlineStore"));
+            _factory = new OnlineStoreApplicationFactory<TEntryPoint>();
+            _configuration = _factory.Configuration; // get test configurations
+            ScopeFactory = _factory.ScopeFactory;
 
-            startup?.ConfigureServices(services);
-            // Replace service registration for ICurrentUserService
-            // Remove existing registration
-            var currentUserServiceDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ICurrentUserService));
-            services.Remove(currentUserServiceDescriptor);
+            _checkpoint = new Checkpoint
+            {
+                TablesToIgnore = new[] {"__EFMigrationsHistory"}
+            };
+            var scope = ScopeFactory.CreateScope();
+            _connectionFactory = scope.ServiceProvider.GetRequiredService<ISqlConnectionFactory>();
+            HttpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
 
-            // Register testing version
-            services.AddScoped(_ => Mock.Of<ICurrentUserService>(s => s.UserId == _currentUserId));
+            var outbox = scope.ServiceProvider.GetRequiredService<IOutbox>();
+            OutboxMessagesHelper = new OutboxMessagesHelper(outbox);
 
+            EnsureDatabase();
+            
             _checkpoint = new Checkpoint
             {
                 TablesToIgnore = new[] {"__EFMigrationsHistory"}
@@ -57,12 +61,17 @@ namespace Common.Tests.Integration.Fixtures
 
             EnsureDatabase();
         }
+        
+        public IHttpClientFactory HttpClientFactory { get; init; }
+        public OutboxMessagesHelper OutboxMessagesHelper { get; init; }
+        public IServiceScopeFactory ScopeFactory { get; init; }
 
         private void EnsureDatabase()
         {
-            using var scope = _scopeFactory.CreateScope();
+            using var scope = ScopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetService<TDbContext>();
 
+            DbUpInitializer.Initialize(context?.Database.GetConnectionString());
             context?.Database.Migrate();
         }
 
@@ -74,7 +83,7 @@ namespace Common.Tests.Integration.Fixtures
 
         public async Task ExecuteScopeAsync(Func<IServiceProvider, Task> action)
         {
-            using var scope = _scopeFactory.CreateScope();
+            using var scope = ScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
 
             try
@@ -94,7 +103,7 @@ namespace Common.Tests.Integration.Fixtures
 
         public async Task<T> ExecuteScopeAsync<T>(Func<IServiceProvider, Task<T>> action)
         {
-            using var scope = _scopeFactory.CreateScope();
+            using var scope = ScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
             
             try
@@ -221,7 +230,7 @@ namespace Common.Tests.Integration.Fixtures
             var userName = "test@local";
             var password = "Testing1234!";
 
-            using var scope = _scopeFactory.CreateScope();
+            using var scope = ScopeFactory.CreateScope();
 
             var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -46,28 +47,37 @@ namespace Common.Messaging.Serialization.Newtonsoft
 
             ((List<JsonConverter>) settings.Converters).AddRange(_converters);
 
-            if (camelCase)
-            {
-                settings.ContractResolver = new CamelCaseExceptDictionaryKeysResolver();
-            }
+            settings.ContractResolver = new ContractResolverWithPrivate();
 
             if (indented)
             {
                 settings.Formatting = Formatting.Indented;
             }
 
+            // for handling private constructor
+            settings.ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor;
+
             return settings;
         }
 
-        private class CamelCaseExceptDictionaryKeysResolver : CamelCasePropertyNamesContractResolver
+        private class ContractResolverWithPrivate : CamelCasePropertyNamesContractResolver
         {
-            protected override JsonDictionaryContract CreateDictionaryContract(Type objectType)
+            //http://danielwertheim.se/json-net-private-setters/
+            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
             {
-                var contract = base.CreateDictionaryContract(objectType);
+                var prop = base.CreateProperty(member, memberSerialization);
 
-                contract.DictionaryKeyResolver = propertyName => propertyName;
+                if (!prop.Writable)
+                {
+                    var property = member as PropertyInfo;
+                    if (property != null)
+                    {
+                        var hasPrivateSetter = property.GetSetMethod(true) != null;
+                        prop.Writable = hasPrivateSetter;
+                    }
+                }
 
-                return contract;
+                return prop;
             }
         }
     }

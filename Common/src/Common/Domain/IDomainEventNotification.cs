@@ -11,5 +11,6 @@ namespace Common.Domain
     public interface IDomainEventNotification 
     {
         public Guid Id { get; set; }
+        public Guid CorrelationId { get; set; }
     }
 }

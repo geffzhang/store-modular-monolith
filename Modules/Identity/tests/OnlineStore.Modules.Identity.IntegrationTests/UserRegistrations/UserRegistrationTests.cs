@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Common;
 using Common.Messaging.Commands;
@@ -27,6 +28,10 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
         [Fact]
         public async Task RegisterNewUserCommand_Test()
         {
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://TheCodeBuzz.com");
+            var client = _fixture.HttpClientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+
             //Arrange
             var registerUserCommand = new RegisterNewUserCommand(UserRegistrationSampleData.Id.BindId(), UserRegistrationSampleData.Email,
                 UserRegistrationSampleData.FirstName, UserRegistrationSampleData.LastName, UserRegistrationSampleData.Name,
@@ -48,7 +53,7 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
             appUser.Roles.ShouldNotBeNull();
             appUser.Roles.Select(x => x.Name).ShouldAllBe(x => UserRegistrationSampleData.Roles.Contains(x));
             appUser.Permissions.Select(x => x.Name).ShouldAllBe(x => UserRegistrationSampleData.Permissions.Contains(x));
-            
+
             var messagesList = await _fixture.OutboxMessagesHelper.GetOutboxMessages();
             messagesList.Count.ShouldBe(1);
             var newUserRegisteredNotification = await _fixture.OutboxMessagesHelper.GetLastOutboxMessage<NewUserRegisteredNotification>();

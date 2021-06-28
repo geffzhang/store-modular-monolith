@@ -62,11 +62,12 @@ namespace Common.Messaging.Outbox.EFCore
                 return;
             }
 
-            var module = outboxMessages[0].GetModuleName();
-            _logger.LogInformation($"Saved {outboxMessages.Count} messages to the outbox ('{module}').");
-
             await _dbContext.OutboxMessages.AddRangeAsync(outboxMessages, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation($"Saved {outboxMessages.Count} messages to the outbox.");
+            _logger.LogInformation(
+                $"Saved outbox messages id are '{string.Join(',', outboxMessages.Select(x => x.Id.ToString()))}' in '{string.Join(',', outboxMessages.Select(x => x.ModuleName))}' modules");
         }
 
         public async Task<IEnumerable<OutboxMessage>> GetAllOutboxMessages(string moduleName = default)

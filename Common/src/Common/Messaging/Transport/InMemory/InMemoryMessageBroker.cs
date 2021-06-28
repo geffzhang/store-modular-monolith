@@ -2,9 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Messaging.Events;
-using Common.Messaging.Outbox;
-using Common.Modules;
-using Common.Utils;
 using Common.Utils.Extensions;
 using Common.Web.Contexts;
 using Microsoft.Extensions.Logging;
@@ -14,23 +11,23 @@ namespace Common.Messaging.Transport.InMemory
 {
     internal class InMemoryMessageBroker : ITransport
     {
-        private readonly IContext _context;
+        private readonly ICorrelationContextAccessor _correlationContextAccessor;
         private readonly ILogger<InMemoryMessageBroker> _logger;
-        private readonly IIntegrationEventDispatcher _dispatcher;
-        private readonly IAsyncMessageDispatcher _messageDispatcher;
+        private readonly IAsyncMessageDispatcher _asyncMessageDispatcher;
+        private readonly IIntegrationEventDispatcher _integrationEventDispatcher;
         private readonly MessagingOptions _messagingOptions;
 
-        public InMemoryMessageBroker(IAsyncMessageDispatcher messageDispatcher,
-            IContext context,
+        public InMemoryMessageBroker(IAsyncMessageDispatcher asyncMessageDispatcher,
+            IIntegrationEventDispatcher integrationEventDispatcher,
+            ICorrelationContextAccessor correlationContextAccessor,
             IOptions<MessagingOptions> messagingOptions,
-            ILogger<InMemoryMessageBroker> logger,
-            IIntegrationEventDispatcher dispatcher)
+            ILogger<InMemoryMessageBroker> logger)
         {
-            _messageDispatcher = messageDispatcher;
-            _context = context;
+            _asyncMessageDispatcher = asyncMessageDispatcher;
+            _integrationEventDispatcher = integrationEventDispatcher;
+            _correlationContextAccessor = correlationContextAccessor;
             _messagingOptions = messagingOptions.Value;
             _logger = logger;
-            _dispatcher = dispatcher;
         }
 
         public async Task PublishAsync(params IIntegrationEvent[] messages)
@@ -42,8 +39,7 @@ namespace Common.Messaging.Transport.InMemory
 
             foreach (var message in messages)
                 if (message.CorrelationId == Guid.Empty)
-                    message.CorrelationId = _context.CorrelationId;
-
+                    message.CorrelationId = Guid.Parse(_correlationContextAccessor.CorrelationContext.CorrelationId);
 
             foreach (var message in messages)
             {
@@ -52,22 +48,11 @@ namespace Common.Messaging.Transport.InMemory
 
                 if (_messagingOptions.UseBackgroundDispatcher)
                 {
-                    await _messageDispatcher.PublishAsync(message);
+                    await _asyncMessageDispatcher.PublishAsync(message);
                     continue;
                 }
 
-                await PublishIntegrationEventAsync(messages);
-            }
-        }
-
-        private async Task PublishIntegrationEventAsync<T>(T[] integrationEvents) where T : class, IIntegrationEvent
-        {
-            if (integrationEvents is null || integrationEvents.Any() == false)
-                return;
-
-            foreach (var integrationEvent in integrationEvents)
-            {
-                await _dispatcher.PublishAsync(integrationEvent);
+                await _integrationEventDispatcher.PublishAsync(message);
             }
         }
     }

@@ -24,8 +24,8 @@ namespace Common.Messaging.Commands
             using var scope = _serviceFactory.CreateScope();
             if (command.CorrelationId == Guid.Empty)
             {
-                var context = scope.ServiceProvider.GetRequiredService<IContext>();
-                command.CorrelationId = context.CorrelationId;
+                var context = scope.ServiceProvider.GetRequiredService<ICorrelationContextAccessor>();
+                command.CorrelationId = Guid.Parse(context.CorrelationContext.CorrelationId);
             }
 
             var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<T>>();

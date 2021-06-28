@@ -20,22 +20,7 @@ namespace Common.Tests.Integration.Factory
         public ITestOutputHelper Output { get; set; }
         public IConfiguration Configuration => Services.GetRequiredService<IConfiguration>();
         public IServiceScopeFactory ScopeFactory => Services.GetRequiredService<IServiceScopeFactory>();
-
         public string CurrentUserId { get; set; }
-
-        // This won't be called because we're using the generic host
-        // protected override IWebHostBuilder CreateWebHostBuilder()
-        // {
-        //     var builder = base.CreateWebHostBuilder();
-        //     builder.UseEnvironment("tests");
-        //     builder.ConfigureLogging(logging =>
-        //     {
-        //         logging.ClearProviders();
-        //         logging.AddXUnit(Output);
-        //     });
-
-        //     return builder;
-        // }
 
         //use this if we use IHost and generic host
         protected override IHostBuilder CreateHostBuilder()
@@ -69,9 +54,6 @@ namespace Common.Tests.Integration.Factory
                 
                 // Register testing version
                 services.AddScoped(_ => Mock.Of<ICurrentUserService>(s => s.UserId == CurrentUserId));
-            });
-            builder.Configure((context,applicationBuilder) =>
-            {
             });
         }
     }

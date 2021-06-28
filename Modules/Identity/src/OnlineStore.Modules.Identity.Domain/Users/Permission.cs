@@ -67,20 +67,20 @@ namespace OnlineStore.Modules.Identity.Domain.Users
         #endregion
 
 
-        private const char SCOPE_CHAR_SEPARATOR = '|';
+        private const char ScopeCharSeparator = '|';
 
         public string Name { get; private set; }
 
         /// <summary>
         /// Display name of the group to which this permission belongs. The '|' character is used to separate Child and parent groups.
         /// </summary>
-        public string GroupName { get; private set; }
+        public string? GroupName { get; private set; }
 
-        public IList<PermissionScope> AssignedScopes { get; private set; } = new List<PermissionScope>();
+        public IList<PermissionScope>? AssignedScopes { get; private set; } = new List<PermissionScope>();
 
         public IList<PermissionScope> AvailableScopes { get; } = new List<PermissionScope>();
 
-        private Permission(string name, string groupName = null)
+        public Permission(string name, string? groupName = null)
         {
             Name = name;
             GroupName = groupName;
@@ -117,20 +117,20 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             };
         }
 
-        public static Permission Of(string name, string groupName = null)
+        public static Permission Of(string name, string? groupName = null)
         {
             return new(name, groupName);
         }
 
         public static Permission TryCreateFromClaim(Claim claim, JsonSerializerSettings jsonSettings)
         {
-            Permission result = null;
-            if (claim != null && claim.Type.EqualsInvariant(SecurityConstants.Claims.PermissionClaimType))
+            Permission result = null!;
+            if (claim.Type.EqualsInvariant(SecurityConstants.Claims.PermissionClaimType))
             {
                 result = new(claim.Value);
-                if (result.Name.Contains(SCOPE_CHAR_SEPARATOR))
+                if (result.Name.Contains(ScopeCharSeparator))
                 {
-                    var parts = claim.Value.Split(SCOPE_CHAR_SEPARATOR);
+                    var parts = claim.Value.Split(ScopeCharSeparator);
                     result.Name = parts.First();
                     result.AssignedScopes =
                         JsonConvert.DeserializeObject<PermissionScope[]>(parts.Skip(1).FirstOrDefault() ?? string.Empty,
@@ -146,7 +146,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             var result = Name;
             if (!AssignedScopes.IsNullOrEmpty())
             {
-                result += SCOPE_CHAR_SEPARATOR + JsonConvert.SerializeObject(AssignedScopes, jsonSettings);
+                result += ScopeCharSeparator + JsonConvert.SerializeObject(AssignedScopes, jsonSettings);
             }
 
             return new Claim(SecurityConstants.Claims.PermissionClaimType, result);

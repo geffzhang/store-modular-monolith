@@ -71,9 +71,6 @@ namespace Common.Dependency
                 .AddSingleton<IQueryProcessor, QueryProcessor>()
                 .AddSingleton<IMessagesExecutor, MessagesExecutor>()
                 .AddSingleton<IMessageChannel, MessageChannel>()
-                .AddSingleton<IContextFactory, ContextFactory>()
-                .AddScoped(ctx => ctx.GetRequiredService<IContextFactory>().Create())
-                .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
                 .AddSingleton<IExecutionContextAccessor, ExecutionContextAccessor>()
                 .AddSingleton<IDependencyResolver, DefaultDependencyResolver>()
                 .AddMessaging(configuration, "messaging");

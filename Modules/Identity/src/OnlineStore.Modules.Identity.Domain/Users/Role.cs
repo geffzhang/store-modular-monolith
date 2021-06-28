@@ -32,11 +32,11 @@ namespace OnlineStore.Modules.Identity.Domain.Users
 
         public string Name { get; }
         public string Code { get; }
-        public string Description { get; }
+        public string? Description { get; }
 
         public IList<Permission> Permissions { get; }
 
-        private Role(string name, string code, string description = null, params Permission[] permissions)
+        public Role(string name, string code, string? description = null, params Permission[] permissions)
         {
             Name = name;
             Code = code;
@@ -44,7 +44,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             Description = description;
         }
 
-        public static Role Of(string name, string code, string description = null, params Permission[] permissions)
+        public static Role Of(string name, string code, string? description = null, params Permission[] permissions)
         {
             return new(name, code, description, permissions);
         }

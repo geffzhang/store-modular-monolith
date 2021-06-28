@@ -13,7 +13,7 @@ namespace Common.Utils.Extensions
         public static string GetModuleName(this object value)
         {
             return value?.GetType().GetModuleName() ?? string.Empty;
-        }
+        } 
 
         public static string GetExceptionCode(this Exception exception)
         {

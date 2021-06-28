@@ -60,7 +60,7 @@ namespace OnlineStore.Modules.Identity.Api
             }
 
             app.UseStaticFiles();
-            app.UserWebApi();
+            app.UserWebApi(env);
             app.UseInfrastructure(env);
             app.UseRouting();
 

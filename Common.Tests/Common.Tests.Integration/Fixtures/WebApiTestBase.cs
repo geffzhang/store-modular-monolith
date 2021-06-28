@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Common.Tests.Integration.Fixtures;
 using Common.Tests.Integration.Helpers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -13,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Xunit;
 
-namespace Common.Tests.Integration
+namespace Common.Tests.Integration.Fixtures
 {
     public abstract class WebApiTestBase<TEntryPoint> : IDisposable, IClassFixture<WebApplicationFactory<TEntryPoint>>,
         IClassFixture<MongoFixture>

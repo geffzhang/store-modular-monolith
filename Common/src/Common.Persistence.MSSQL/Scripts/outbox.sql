@@ -1,6 +1,7 @@
 CREATE TABLE [dbo].OutboxMessage
 (
     [Id] UNIQUEIDENTIFIER NOT NULL,
+    [CorrelationId] UNIQUEIDENTIFIER NOT NULL,
     [OccurredOn] DATETIME2 NOT NULL,
     [Type] VARCHAR(255) NOT NULL,
     [Name] VARCHAR(255) NOT NULL,

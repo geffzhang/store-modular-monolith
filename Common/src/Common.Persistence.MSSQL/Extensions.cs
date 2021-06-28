@@ -34,7 +34,8 @@ namespace Common.Persistence.MSSQL
                     sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
                 }))
                 .AddScoped<ISqlDbContext>(ctx => ctx.GetRequiredService<TContext>())
-                .AddScoped<IDomainEventContext, DomainEventContext>();
+                .AddScoped<IDomainEventContext, DomainEventContext>()
+                .AddScoped<IDbFacadeResolver>(ctx => ctx.GetRequiredService<TContext>());
 
             configurator?.Invoke(services);
 
@@ -48,6 +49,8 @@ namespace Common.Persistence.MSSQL
             Func<Task> next)
             where TDbContext : ISqlDbContext
         {
+            //https://docs.microsoft.com/en-us/ef/core/miscellaneous/connection-resiliency
+            //https://devblogs.microsoft.com/cesardelatorre/using-resilient-entity-framework-core-sql-connections-and-transactions-retries-with-exponential-backoff/
             var strategy = dbContext.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {

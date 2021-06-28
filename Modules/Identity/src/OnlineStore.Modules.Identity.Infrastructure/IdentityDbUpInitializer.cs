@@ -1,4 +1,5 @@
 using System.Reflection;
+using Common.Messaging.Outbox;
 using DbUp;
 
 namespace OnlineStore.Modules.Identity.Infrastructure
@@ -10,7 +11,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure
             var upgrader =
                 DeployChanges.To
                     .SqlDatabase(connection)
-                    .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
+                    .WithScriptsEmbeddedInAssembly(typeof(OutboxMessage).Assembly)
                     .LogToConsole()
                     .Build();
             var result = upgrader.PerformUpgrade();

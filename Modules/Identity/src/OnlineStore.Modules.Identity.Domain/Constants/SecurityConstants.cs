@@ -5,7 +5,7 @@ namespace OnlineStore.Modules.Identity.Domain.Constants
 {
     public static class SecurityConstants
     {
-        public const string AnonymousUsername = "Anonymous";
+        public const string AnonymousUsername = "anonymous";
 
         public static class Claims
         {
@@ -18,10 +18,10 @@ namespace OnlineStore.Modules.Identity.Domain.Constants
         public static class Roles
         {
             public static readonly Role Customer =
-                Role.Of(nameof(Customer), nameof(Customer), "Customer Role.");
+                Role.Of(nameof(Customer).ToLower(), nameof(Customer), "Customer Role.");
 
             public static readonly Role Admin =
-                Role.Of(nameof(Admin), nameof(Admin), "Admins Role.");
+                Role.Of(nameof(Admin).ToLower(), nameof(Admin), "Admins Role.");
 
 
             public static readonly IEnumerable<Role> AllRoles = new List<Role>() {Customer, Admin};
@@ -31,9 +31,8 @@ namespace OnlineStore.Modules.Identity.Domain.Constants
 
         public static class SystemRoles
         {
-            public const string Customer = "__customer";
-            public const string Manager = "__manager";
-            public const string Administrator = "__administrator";
+            public const string Customer = "customer";
+            public const string Administrator = "admin";
         }
 
         public static class Permissions
