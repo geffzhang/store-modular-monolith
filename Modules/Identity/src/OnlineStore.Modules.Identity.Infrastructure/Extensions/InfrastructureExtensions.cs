@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Common;
 using Common.Messaging.Outbox.EFCore;
 using Common.Messaging.Scheduling.Hangfire.MessagesScheduler;
 using Common.Persistence.MSSQL;
@@ -16,6 +17,12 @@ using OnlineStore.Modules.Identity.Infrastructure.Domain.System;
 using OnlineStore.Modules.Identity.Infrastructure.Middlewares;
 using Serilog;
 using Common.Dependency;
+using Common.Domain.Types;
+using EntityFrameworkCore.Triggered;
+using Microsoft.EntityFrameworkCore;
+using OnlineStore.Modules.Identity.Application.Features.System;
+using OnlineStore.Modules.Identity.Domain.Users;
+using OnlineStore.Modules.Identity.Infrastructure.Triggers;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
 {
@@ -26,9 +33,20 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
         {
             services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
             services.AddCommon(configuration);
-            services.AddMssqlPersistence<IdentityDbContext>(configuration,configurator:svc => svc.AddRepository(typeof(Repository<>)));
+            services.AddMssqlPersistence<IdentityDbContext>(configuration,
+                configurator: s =>
+                {
+                    s.AddRepository(typeof(Repository<>)); 
+                    
+                }, 
+                optionBuilder: options =>
+                {
+                    // options.UseTriggers(triggerOptions => {
+                    //     triggerOptions.AddTrigger<AuditTrigger>();
+                    // });
+                });
             services.AddEntityFrameworkOutbox<IdentityDbContext>(configuration);
-            
+
             AddScopeServices(services);
             AddTransientServices(services);
             AddSingletonServices(services);
@@ -41,7 +59,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
 
         private static void AddScopeServices(IServiceCollection services)
         {
-            services.AddScoped<DataSeeder>();
+            services.AddScoped<IDataSeeder, DataSeeder>();
             services.AddScoped<IUserEditable, UserEditable>();
         }
 
@@ -85,7 +103,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
             app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
             app.UseSerilogRequestLogging();
             app.UseCustomExceptionHandler();
-            app.UseIdentityDataSeederAsync().GetAwaiter().GetResult();
 
             return app;
         }

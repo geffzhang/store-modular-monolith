@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Common.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +17,11 @@ namespace Common.Persistence.MSSQL
     {
         private const string SectionName = "mssql";
 
-        public static IServiceCollection AddMssqlPersistence<TContext>(this IServiceCollection services, IConfiguration configuration,
-            string sectionName = SectionName, Action<IServiceCollection> configurator = null)
+        public static IServiceCollection AddMssqlPersistence<TContext>(this IServiceCollection services,
+            IConfiguration configuration,
+            string sectionName = SectionName,
+            Action<IServiceCollection> configurator = null,
+            Action<DbContextOptionsBuilder> optionBuilder = null)
             where TContext : DbContext, ISqlDbContext, IDomainEventContext, IDbFacadeResolver
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -32,10 +36,14 @@ namespace Common.Persistence.MSSQL
                 {
                     sqlOptions.MigrationsAssembly(typeof(TContext).Assembly.GetName().Name);
                     sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+                    //adding all existing triggers dynamically   
+                    options.UseTriggers(triggerOptions => triggerOptions.AddAssemblyTriggers(typeof(TContext).Assembly));
+                    optionBuilder?.Invoke(options);
                 }))
                 .AddScoped<ISqlDbContext>(ctx => ctx.GetRequiredService<TContext>())
                 .AddScoped<IDomainEventContext, DomainEventContext>()
                 .AddScoped<IDbFacadeResolver>(ctx => ctx.GetRequiredService<TContext>());
+
 
             configurator?.Invoke(services);
 
@@ -58,7 +66,9 @@ namespace Common.Persistence.MSSQL
                 await dbContext.BeginTransactionAsync();
 
                 await next();
-                var domainEvents = events == null || events.Any() == false ? dbContext.GetDomainEvents().ToList() : events;
+                var domainEvents = events == null || events.Any() == false
+                    ? dbContext.GetDomainEvents().ToList()
+                    : events;
                 var tasks = domainEvents.Select(async @event =>
                 {
                     // also will publish our domain event notification internally

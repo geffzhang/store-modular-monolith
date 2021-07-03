@@ -14,6 +14,7 @@ using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
+using OnlineStore.Modules.Identity.Infrastructure.Extensions;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 {
@@ -197,35 +198,36 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
         {
             using var scope = _serviceScopeFactory.CreateScope();
 
-            var result = await base.CreateAsync(user);
-            if (result.Succeeded)
+            var userResult = await base.CreateAsync(user);
+            userResult.LogResult($"a new user with userId '{user.Id}' added successfully.");
+            if (userResult.Succeeded)
             {
-                var permissions = user.Permissions;
-                var roles = user.Roles;
-
-
-                if (permissions != null && permissions.Any())
+                if (user.Permissions != null && user.Permissions.Any())
                 {
                     //Add
-                    foreach (var permission in permissions)
+                    foreach (var permission in user.Permissions)
                     {
-                        await AddClaimAsync(user,
+                       var claimResult = await AddClaimAsync(user,
                             new Claim(SecurityConstants.Claims.PermissionClaimType, permission.Name));
+                       claimResult.LogResult($"claim {permission.Name} added to user '{user.Id}' successfully.");
                     }
                 }
 
-                if (roles != null && roles.Any())
+                if (user.Roles != null && user.Roles.Any())
                 {
                     //Add
-                    foreach (var newRole in roles)
+                    foreach (var newRole in user.Roles)
                     {
                         if (await _roleManager.RoleExistsAsync(newRole.Name))
-                            await AddToRoleAsync(user, newRole.Name);
+                        {
+                          var roleResult =  await AddToRoleAsync(user, newRole.Name);
+                          roleResult.LogResult($"role '{newRole.Id}' added to user '{user.Id}' successfully.");
+                        }
                     }
                 }
             }
 
-            return result;
+            return userResult;
         }
 
 

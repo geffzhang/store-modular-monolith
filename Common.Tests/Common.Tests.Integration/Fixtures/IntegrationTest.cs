@@ -8,107 +8,114 @@ using Common.Messaging.Queries;
 using Common.Persistence.MSSQL;
 using Common.Tests.Integration.Factory;
 using Common.Tests.Integration.Helpers;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 using Respawn;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Common.Tests.Integration.Fixtures
 {
-    public class IntegrationTestFixture<TEntryPoint, TDbContext> : IAsyncLifetime
+    public abstract class IntegrationTest<TEntryPoint, TDbContext> :
+        IClassFixture<OnlineStoreApplicationFactory<TEntryPoint>>
         where TEntryPoint : class
         where TDbContext : DbContext, ISqlDbContext
     {
         private readonly Checkpoint _checkpoint;
 
-        private readonly OnlineStoreApplicationFactory<TEntryPoint> _factory;
-        public IHttpClientFactory HttpClientFactory => ServiceProvider.GetRequiredService<IHttpClientFactory>();
+        protected OutboxMessagesHelper OutboxMessagesHelper { get; }
+        protected WebApplicationFactory<TEntryPoint> Factory { get; set; }
+        protected IServiceProvider ServiceProvider => Factory.Services;
+        protected IConfiguration Configuration => ServiceProvider.GetService<IConfiguration>();
+        protected ISqlConnectionFactory ConnectionFactory { get; }
+        protected HttpClient HttpClient { get; }
+        protected IHttpClientFactory HttpClientFactory { get; }
 
-        public OutboxMessagesHelper OutboxMessagesHelper
+
+        protected IntegrationTest(OnlineStoreApplicationFactory<TEntryPoint> fixture, ITestOutputHelper outputHelper,
+            string environment = "tests")
         {
-            get
+            //https://adamstorr.azurewebsites.net/blog/integration-testing-with-aspnetcore-3-1-remove-the-boiler-plate
+            //a way to swap out dependencies or we can handle this swap easier in our custom WebApplicationFactory
+            Factory = fixture.WithWebHostBuilder(builder =>
             {
-                var outbox = ServiceProvider.GetRequiredService<IOutbox>();
-                return new OutboxMessagesHelper(outbox);
-            }
-        }
+                builder.ConfigureLogging(l =>
+                {
+                    if (outputHelper is not null)
+                    {
+                        l.ClearProviders();
+                        l.AddXUnit(outputHelper);
+                    }
+                });
 
-        public IServiceProvider ServiceProvider => _factory.Services;
-        public IConfiguration Configuration => _factory.Configuration;
-        public ISqlConnectionFactory ConnectionFactory => ServiceProvider.GetRequiredService<ISqlConnectionFactory>();
-
-        public IntegrationTestFixture()
-        {
-            _factory = new OnlineStoreApplicationFactory<TEntryPoint>();
+                builder.UseEnvironment(environment);
+                builder.ConfigureTestServices(ConfigureTestServices);
+            });
             _checkpoint = new Checkpoint
             {
                 TablesToIgnore = new[] {"__EFMigrationsHistory"}
             };
+            HttpClient = Factory.CreateClient();
+            ConnectionFactory = ServiceProvider.GetRequiredService<ISqlConnectionFactory>();
+            HttpClientFactory = ServiceProvider.GetRequiredService<IHttpClientFactory>();
+            var outbox = ServiceProvider.GetRequiredService<IOutbox>();
+            OutboxMessagesHelper = new OutboxMessagesHelper(outbox);
+            ResetState().GetAwaiter().GetResult();
         }
 
-        public void SetOutput(ITestOutputHelper output)
+        protected virtual void ConfigureTestServices(IServiceCollection services)
         {
-            _factory.OutputHelper = output;
         }
-
-        public void RegisterTestServices(Action<IServiceCollection> services)
-        {
-            _factory.TestRegistrationServices = services;
-        }
-
         public async Task ResetState()
         {
-            await _checkpoint.Reset(OptionsHelper.GetOptions<MssqlOptions>("mssql", "appsettings.tests.json")
-                .ConnectionString);
+            await _checkpoint.Reset(ConnectionFactory.GetConnectionString());
         }
 
         public async Task ExecuteScopeAsync(Func<IServiceProvider, Task> action)
         {
             var dbContext = ServiceProvider.GetRequiredService<TDbContext>();
-            var strategy = dbContext.Database.CreateExecutionStrategy();
-            await strategy.ExecuteAsync(async () =>
+
+            try
             {
-                try
-                {
-                    await dbContext.BeginTransactionAsync();
+                await dbContext.BeginTransactionAsync();
 
-                    await action(ServiceProvider);
+                await action(ServiceProvider);
 
-                    await dbContext.CommitTransactionAsync();
-                }
-                catch (Exception _)
-                {
-                    dbContext?.RollbackTransaction();
-                    throw;
-                }
-            });
+                await dbContext.CommitTransactionAsync();
+            }
+            catch (Exception)
+            {
+                dbContext?.RollbackTransaction();
+                throw;
+            }
         }
 
         public async Task<T> ExecuteScopeAsync<T>(Func<IServiceProvider, Task<T>> action)
         {
-            //https://weblogs.asp.net/dixin/entity-framework-core-and-linq-to-entities-7-data-changes-and-transactions
             var dbContext = ServiceProvider.GetRequiredService<TDbContext>();
-            var strategy = dbContext.Database.CreateExecutionStrategy();
-            return await strategy.ExecuteAsync(async () =>
+
+            try
             {
-                try
-                {
-                    await dbContext.BeginTransactionAsync();
+                await dbContext.BeginTransactionAsync();
 
-                    var result = await action(ServiceProvider);
+                var result = await action(ServiceProvider);
 
-                    await dbContext.CommitTransactionAsync();
+                await dbContext.CommitTransactionAsync();
 
-                    return result;
-                }
-                catch (Exception)
-                {
-                    dbContext?.RollbackTransaction();
-                    throw;
-                }
-            });
+                return result;
+            }
+            catch (Exception)
+            {
+                dbContext?.RollbackTransaction();
+                throw;
+            }
         }
 
         public Task ExecuteDbContextAsync(Func<TDbContext, Task> action)
@@ -180,8 +187,7 @@ namespace Common.Tests.Integration.Fixtures
             });
         }
 
-        public Task InsertAsync<TEntity, TEntity2, TEntity3, TEntity4>(TEntity entity, TEntity2 entity2,
-            TEntity3 entity3, TEntity4 entity4)
+        public Task InsertAsync<TEntity, TEntity2, TEntity3, TEntity4>(TEntity entity, TEntity2 entity2, TEntity3 entity3, TEntity4 entity4)
             where TEntity : class
             where TEntity2 : class
             where TEntity3 : class
@@ -198,12 +204,12 @@ namespace Common.Tests.Integration.Fixtures
             });
         }
 
-        public Task<T> FindAsync<T>(object id) where T : class
+        public Task<T> FindAsync<T>(Guid id) where T : class
         {
             return ExecuteDbContextAsync(db => db.Set<T>().FindAsync(id).AsTask());
         }
 
-        public Task SendAsync<TRequest>(TRequest request) where TRequest : class, ICommand
+        public Task SendAsync(ICommand request)
         {
             return ExecuteScopeAsync(sp =>
             {
@@ -211,9 +217,8 @@ namespace Common.Tests.Integration.Fixtures
 
                 return commandProcessor.SendCommandAsync(request);
             });
-        }  
-        
-        public Task<TResponse> QueryAsync<TResponse>(IQuery<TResponse> query) where TResponse : class
+        }
+        public Task QueryAsync<TResponse>(IQuery<TResponse> query) where TResponse : class, IQuery<TResponse>
         {
             return ExecuteScopeAsync(sp =>
             {
@@ -222,16 +227,6 @@ namespace Common.Tests.Integration.Fixtures
                 return queryProcessor.QueryAsync(query);
             });
         }
-        
-        public async Task InitializeAsync()
-        {
-            await ResetState();
-        }
 
-        public Task DisposeAsync()
-        {
-            _factory?.Dispose();
-            return Task.CompletedTask;
-        }
     }
 }

@@ -37,24 +37,11 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
     {
         private const string SectionName = "mssql";
 
-        internal static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration configuration,
+        internal static IServiceCollection AddIdentityServices(this IServiceCollection services,
+            IConfiguration configuration,
             Action<AuthorizationOptions> setupAction = null,
             string sectionName = SectionName)
         {
-            // if (configuration.GetValue<bool>("UseInMemoryDatabase"))
-            // {
-            //     services.AddDbContext<IdentityDbContext>(options =>
-            //         options.UseInMemoryDatabase("OnlineStore"));
-            // }
-            // else
-            // {
-            //     var mssqlOptions = configuration.GetSection(sectionName).Get<MssqlOptions>();
-            //     services.AddDbContext<IdentityDbContext>(options =>
-            //         options.UseSqlServer(mssqlOptions.ConnectionString,
-            //             b => b.MigrationsAssembly(typeof(IdentityDbContext).Assembly.FullName)));
-            // }
-
-
             services.TryAddScoped<IUserNameResolver, UserNameResolver>();
             services.TryAddScoped<IPermissionService, PermissionService>();
             services.TryAddScoped<IRoleSearchService, RoleSearchService>();
@@ -80,8 +67,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
             services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
             //Platform authorization handler for policies based on permissions
             services.AddSingleton<IAuthorizationHandler, DefaultPermissionAuthorizationHandler>();
-        
-            if (setupAction != null) services.Configure(setupAction);
+
+            if (setupAction != null)
+                services.Configure(setupAction);
 
             //some dependencies will add here if not registered before
             services.AddIdentity<ApplicationUser, ApplicationRole>(options => options.Stores.MaxLengthForKeys = 128)
@@ -99,11 +87,12 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
                 options.ClaimsIdentity.UserIdClaimType = OpenIdConnectConstants.Claims.Name;
                 options.ClaimsIdentity.RoleClaimType = OpenIdConnectConstants.Claims.Role;
             });
-            
+
             //https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options
             services.Configure<IdentityOptions>(configuration.GetSection("IdentityOptions"));
             services.Configure<UserOptionsExtended>(configuration.GetSection("IdentityOptions:User"));
-            services.AddOptions<AuthorizationOptions>().Bind(configuration.GetSection("Authorization")).ValidateDataAnnotations();
+            services.AddOptions<AuthorizationOptions>().Bind(configuration.GetSection("Authorization"))
+                .ValidateDataAnnotations();
             var authorizationOptions = configuration.GetSection("Authorization").Get<AuthorizationOptions>();
 
             return services;
@@ -167,5 +156,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
                 });
             return services;
         }
+        
+        
     }
 }

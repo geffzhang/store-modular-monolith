@@ -12,7 +12,7 @@ namespace Common.Utils.Reflection
     /// <typeparam name="BaseType"></typeparam>
     public static class TypeFactory<BaseType>
     {
-        private static readonly List<TypeInfo<BaseType>> _typeInfos = new List<TypeInfo<BaseType>>();
+        private static readonly List<TypeInfo<BaseType>> _typeInfos = new();
 
         /// <summary>
         /// All registered type mapping informations within current factory instance

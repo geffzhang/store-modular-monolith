@@ -6,16 +6,16 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
 {
     public class SeedIdentityCommandHandler : ICommandHandler<SeedIdentityCommand>
     {
-        private readonly DataSeeder _dataSeeder;
+        private readonly IDataSeeder _dataSeeder;
 
-        public SeedIdentityCommandHandler(DataSeeder dataSeeder)
+        public SeedIdentityCommandHandler(IDataSeeder dataSeeder)
         {
             _dataSeeder = dataSeeder;
         }
 
         public async Task HandleAsync(SeedIdentityCommand command)
         {
-            await _dataSeeder.SeedAllAsync(default);
+            await _dataSeeder.SeedAllAsync();
         }
     }
 }

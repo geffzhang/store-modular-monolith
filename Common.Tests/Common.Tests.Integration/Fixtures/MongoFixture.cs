@@ -1,11 +1,13 @@
 using System;
+using System.Threading.Tasks;
 using Common.Persistence.Mongo;
 using Common.Tests.Integration.Helpers;
 using MongoDB.Driver;
+using Xunit;
 
 namespace Common.Tests.Integration.Fixtures
 {
-    public class MongoFixture : IDisposable
+    public class MongoFixture : IAsyncLifetime
     {
         private readonly MongoClient _client;
         private readonly string _databaseName;
@@ -19,9 +21,15 @@ namespace Common.Tests.Integration.Fixtures
 
         public IMongoDatabase Database => _client.GetDatabase(_databaseName);
 
-        public void Dispose()
+        public Task InitializeAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task DisposeAsync()
         {
             _client.DropDatabase(_databaseName);
+            return Task.CompletedTask;
         }
     }
 }

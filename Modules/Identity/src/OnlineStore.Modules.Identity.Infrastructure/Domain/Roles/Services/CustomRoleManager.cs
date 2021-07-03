@@ -167,7 +167,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services
                 foreach (var storedPermission in storedPermissions)
                 {
                     //Copy all meta information (like GroupName) from registered to stored (for particular role) permission
-                    var knownPermission = knownPermissionsDict[storedPermission.Name];
+                   knownPermissionsDict.TryGetValue(storedPermission.Name, out Permission knownPermission);
                     if (knownPermission != null)
                     {
                         knownPermission.Patch(storedPermission);

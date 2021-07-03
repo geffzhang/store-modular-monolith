@@ -1,33 +1,20 @@
-﻿using Microsoft.AspNetCore.Http;
-using OnlineStore.Modules.Identity.Domain.Users;
+﻿using Common.Web.Contexts;
 using OnlineStore.Modules.Identity.Domain.Users.Services;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 {
     public class UserNameResolver : IUserNameResolver
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IExecutionContextAccessor _executionContextAccessor;
 
-        public UserNameResolver(IHttpContextAccessor httpContextAccessor)
+        public UserNameResolver(IExecutionContextAccessor executionContextAccessor)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _executionContextAccessor = executionContextAccessor;
         }
 
         public string GetCurrentUserName()
         {
-            string result = "unknown";
-
-            var context = _httpContextAccessor.HttpContext;
-            var identity = context?.User.Identity;
-            if (identity is {IsAuthenticated: true})
-            {
-                result = context.Request.Headers["User-Name"];
-                if (string.IsNullOrEmpty(result))
-                {
-                    result = identity.Name;
-                }
-            }
-            return result;
+            return _executionContextAccessor.ExecutionContext.IdentityContext.Id;
         }
     }
 }

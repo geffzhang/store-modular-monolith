@@ -16,11 +16,12 @@ namespace Common.Web.Contexts
         {
             var context = new ExecutionContext
             {
-                Name = $"{_httpContextAccessor.HttpContext?.Request.Method} {_httpContextAccessor.HttpContext?.Request.Path}",
+                Name =
+                    $"{_httpContextAccessor.HttpContext?.Request.Method} {_httpContextAccessor.HttpContext?.Request.Path}",
                 ResourceId = _httpContextAccessor.HttpContext.GetResourceIdFoRequest(),
                 SpanContext = string.Empty,
                 TraceId = _httpContextAccessor.HttpContext?.TraceIdentifier,
-                RequestId = _httpContextAccessor.HttpContext?.TraceIdentifier ?? Guid.NewGuid().ToString("N"),
+                RequestId = Guid.NewGuid().ToString("N"),
                 ConnectionId = _httpContextAccessor.HttpContext?.Connection.Id,
                 IdentityContext = new IdentityContext(_httpContextAccessor.HttpContext?.User)
             };

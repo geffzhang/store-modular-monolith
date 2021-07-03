@@ -4,6 +4,6 @@ namespace Common.Web.Contexts
     {
         
         public string CorrelationIdHeaderKey { get; set; } = "x-correlation-id";
-        public string CorrelationContextHeaderKey { get; set; } = "Correlation-Context";
+        public string CorrelationContextHeaderKey { get; set; } = "correlation-context";
     }
 }

@@ -28,7 +28,9 @@ namespace Common.Messaging.Commands
                 command.CorrelationId = Guid.Parse(context.CorrelationContext.CorrelationId);
             }
 
-            var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<T>>();
+            var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
+            dynamic handler = scope.ServiceProvider.GetRequiredService(handlerType);
+
             await handler.HandleAsync(command);
         }
     }

@@ -53,6 +53,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Repositories
         public async Task<User> FindByIdAsync(string id)
         {
             var appUser = await _userManager.FindByIdAsync(id);
+            
             return appUser.ToUser();
         }
 

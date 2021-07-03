@@ -1,31 +1,29 @@
-﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Common.Tests.Integration.Constants;
 using Common.Utils.Reflection;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
 using OnlineStore.Modules.Identity.Application.Features.System;
 using OnlineStore.Modules.Identity.Domain.Users;
-using OnlineStore.Modules.Identity.Domain.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
+namespace OnlineStore.Modules.Identity.IntegrationTests
 {
-    public class DataSeeder : IDataSeeder
+    public class IdentityTestSeeder : IDataSeeder
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IPermissionService _permissionService;
 
-        public DataSeeder(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
+        public IdentityTestSeeder(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
             IPermissionService permissionService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _permissionService = permissionService;
         }
-
         public async Task SeedAllAsync()
         {
             await SeedPermissions();
@@ -35,30 +33,29 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
 
         private async Task SeedUsersAsync()
         {
-            var user = await _userManager.FindByNameAsync("admin");
+            var user = await _userManager.FindByNameAsync(UsersConstants.AdminUser.Name);
             if (user == null)
             {
                 var admin = new ApplicationUser
                 {
-                    Id = "4073f0f0-855a-48e6-9168-d4e20f1d2839",
-                    IsAdministrator = true,
-                    Name = "admin",
-                    FirstName = "admin",
-                    LastName = "admin",
-                    UserName = "admin",
+                    Id = UsersConstants.AdminUser.UserId,
+                    IsAdministrator = UsersConstants.AdminUser.IsAdministrator,
+                    Name = UsersConstants.AdminUser.Name,
+                    FirstName = UsersConstants.AdminUser.FirstName,
+                    LastName = UsersConstants.AdminUser.LastName,
+                    UserName = UsersConstants.AdminUser.UserName,
                     PasswordExpired = true,
-                    Email = "admin@admin.com",
-                    IsActive = true,
-                    UserType = UserType.Administrator.ToString()
+                    Email = UsersConstants.AdminUser.UserEmail,
+                    IsActive = UsersConstants.AdminUser.IsActive,
+                    UserType = UsersConstants.AdminUser.UserType
                 };
 
-                admin.PasswordHash = _userManager.PasswordHasher.HashPassword(admin, "admin");
+                admin.PasswordHash = _userManager.PasswordHasher.HashPassword(admin, UsersConstants.AdminUser.Password);
 
                 var adminUser = await _userManager.FindByIdAsync(admin.Id);
                 if (adminUser == null)
                 {
                     await _userManager.CreateAsync(admin);
-                    await _userManager.AddToRoleAsync(admin, "admin");
                 }
             }
         }

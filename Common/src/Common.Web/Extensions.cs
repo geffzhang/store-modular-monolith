@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
 using Newtonsoft.Json;
@@ -29,11 +30,11 @@ namespace Common.Web
         private const string AppOptionsSectionName = "AppOptions";
         private const string ExecutionContextSection = "ExecutionContextOptions";
         private static ExecutionContextOptions _contextOptions;
+
         public static IServiceCollection AddWebApi(this IServiceCollection services, IConfiguration configuration,
             string appOptionSection = AppOptionsSectionName, string executionContextSection = ExecutionContextSection)
         {
             services.AddHttpContextAccessor();
-
             services.AddOptions<ExecutionContextOptions>().Bind(configuration.GetSection(executionContextSection))
                 .ValidateDataAnnotations();
             _contextOptions = configuration.GetSection(executionContextSection).Get<ExecutionContextOptions>();
@@ -41,7 +42,7 @@ namespace Common.Web
             services.AddScoped<ICorrelationContextAccessor, CorrelationContextAccessor>();
             services.AddScoped<IExecutionContextAccessor, ExecutionContextAccessor>();
             services.AddScoped<IExecutionContextFactory, ExecutionContextFactory>();
-            
+
             services.AddProblemDetails(x =>
             {
                 x.Map<InvalidCommandException>(ex => new InvalidCommandProblemDetails(ex));
@@ -49,7 +50,8 @@ namespace Common.Web
             });
 
             var appOptions = configuration.GetSection(appOptionSection).Get<AppOptions>();
-            services.AddOptions<AppOptions>().Bind(configuration.GetSection(appOptionSection)).ValidateDataAnnotations();
+            services.AddOptions<AppOptions>().Bind(configuration.GetSection(appOptionSection))
+                .ValidateDataAnnotations();
 
             var disabledModules = new List<string>();
             foreach (var (key, value) in configuration.AsEnumerable())
@@ -100,7 +102,7 @@ namespace Common.Web
                 .AddScoped<ResourceIdGeneratorMiddleware>()
                 .AddScoped<LogContextMiddleware>()
                 .AddScoped<AddCorrelationContextToResponseMiddleware>();
-            
+
             //https://dominikjeske.github.io/configure-httpclients/
             services.AddHttpClient();
             services.AddScoped<CorrelationContextMessageHandler>();
@@ -108,10 +110,11 @@ namespace Common.Web
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>
                 {
-                    builder.AdditionalHandlers.Add(builder.Services.GetRequiredService<CorrelationContextMessageHandler>());
+                    builder.AdditionalHandlers.Add(builder.Services
+                        .GetRequiredService<CorrelationContextMessageHandler>());
                 });
             });
-            
+
             if (!appOptions.DisplayBanner || string.IsNullOrWhiteSpace(appOptions.Name)) return services;
 
             var version = appOptions.DisplayVersion ? $" {appOptions.Version}" : string.Empty;
@@ -154,12 +157,16 @@ namespace Common.Web
 
             idProperty.Value = id;
         }
-        public static string GetResourceIdFoRequest(this HttpContext context)
-            => context.Items.TryGetValue(_contextOptions.ResourceIdHeaderKey, out var id) ? id as string : string.Empty;
-        public static void SetResourceIdFoRequest(this HttpContext context, string id)
-            => context.Items.TryAdd(_contextOptions.ResourceIdHeaderKey, id);
-        public static void SetOperationHeader(this HttpResponse response, string id)
-            => response.Headers.Add(_contextOptions.OperationHeaderKey, $"operations/{id}");
 
+        public static string GetResourceIdFoRequest(this HttpContext context)
+            => context.Items.TryGetValue(_contextOptions?.ResourceIdHeaderKey ?? "resource-id", out var id)
+                ? id as string
+                : string.Empty;
+
+        public static void SetResourceIdFoRequest(this HttpContext context, string id)
+            => context.Items.TryAdd(_contextOptions?.ResourceIdHeaderKey ?? "resource-id", id);
+
+        public static void SetOperationHeader(this HttpResponse response, string id)
+            => response.Headers.Add(_contextOptions?.OperationHeaderKey ?? "x-operation", $"operations/{id}");
     }
 }

@@ -6,7 +6,7 @@ namespace Common.Tests.Integration.Helpers
     {
         public static TSettings GetOptions<TSettings>(string section, string settingsFileName = null) where TSettings : class, new()
         {
-            settingsFileName ??= "appsettings.test.json";
+            settingsFileName ??= "appsettings.tests.json";
             var configuration = new TSettings();
             
             GetConfigurationRoot(settingsFileName)

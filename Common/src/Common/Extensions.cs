@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Common.Dependency.ServiceLocator;
@@ -18,9 +19,7 @@ using Common.Messaging.Transport.InMemory;
 using Common.Persistence.Mongo;
 using Common.Scheduling;
 using Common.Web.Contexts;
-using Common.Web.Middlewares;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -32,7 +31,7 @@ using IMailService = Common.Mail.IMailService;
 [assembly: InternalsVisibleTo("OnlineStore.Tests.Benchmarks")]
 [assembly: InternalsVisibleTo("OnlineStore.Common.Tests.Integration")]
 
-namespace Common.Dependency
+namespace Common
 {
     public static class Extensions
     {
@@ -152,7 +151,8 @@ namespace Common.Dependency
         }
 
 
-        private static IServiceCollection AddIntegrationEvent(this IServiceCollection services, IList<Assembly> assemblies)
+        private static IServiceCollection AddIntegrationEvent(this IServiceCollection services,
+            IList<Assembly> assemblies)
         {
             services.AddSingleton<IIntegrationEventDispatcher, IntegrationEventDispatcher>();
 
@@ -166,10 +166,12 @@ namespace Common.Dependency
         }
 
 
-        public static IServiceCollection AddMessaging(this IServiceCollection services, IConfiguration configuration, string sectionName)
+        public static IServiceCollection AddMessaging(this IServiceCollection services, IConfiguration configuration,
+            string sectionName)
         {
             var messagingOptions = configuration.GetSection(sectionName).Get<MessagingOptions>();
-            services.AddOptions<MessagingOptions>().Bind(configuration.GetSection(sectionName)).ValidateDataAnnotations();
+            services.AddOptions<MessagingOptions>().Bind(configuration.GetSection(sectionName))
+                .ValidateDataAnnotations();
 
             services
                 .AddSingleton<IAsyncMessageDispatcher, InMemoryAsyncMessageDispatcher>()
@@ -190,6 +192,77 @@ namespace Common.Dependency
             contractRegistry.Validate();
 
             return app;
+        }
+
+        public static void Unregister<TService>(this IServiceCollection services)
+        {
+            var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(TService));
+            services.Remove(descriptor);
+        }
+
+        public static void Replace<TService, TImplementation>(this IServiceCollection services,
+            ServiceLifetime lifetime)
+        {
+            services.Unregister<TService>();
+            services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), lifetime));
+        }
+
+        public static void ReplaceScoped<TService, TImplementation>(this IServiceCollection services)
+            where TService : class
+            where TImplementation : class, TService
+        {
+            services.Unregister<TService>();
+            services.AddScoped<TService, TImplementation>();
+        }
+
+        public static void ReplaceScoped<TService>(this IServiceCollection services,
+            Func<IServiceProvider, TService> implementationFactory)
+            where TService : class
+        {
+            services.Unregister<TService>();
+            services.AddScoped(implementationFactory);
+        }
+
+        public static void ReplaceTransient<TService, TImplementation>(this IServiceCollection services)
+            where TService : class
+            where TImplementation : class, TService
+        {
+            services.Unregister<TService>();
+            services.AddTransient<TService, TImplementation>();
+        }
+
+        public static void ReplaceTransient<TService>(this IServiceCollection services,
+            Func<IServiceProvider, TService> implementationFactory)
+            where TService : class
+        {
+            services.Unregister<TService>();
+            services.AddTransient(implementationFactory);
+        }
+
+        public static void ReplaceSingleton<TService, TImplementation>(this IServiceCollection services)
+            where TService : class
+            where TImplementation : class, TService
+        {
+            services.Unregister<TService>();
+            services.AddSingleton<TService, TImplementation>();
+        }
+
+        public static void RegisterOptions<TOptions>(this IServiceCollection services, IConfiguration configuration)
+            where TOptions : class, new()
+        {
+            var options = new TOptions();
+            configuration.Bind(typeof(TOptions).Name, options);
+
+            services.AddSingleton(options);
+        }
+
+        public static void RegisterOptions<TOptions>(this IServiceCollection services, IConfiguration configuration,
+            string name) where TOptions : class, new()
+        {
+            var options = new TOptions();
+            configuration.Bind(name, options);
+
+            services.AddSingleton(options);
         }
     }
 }

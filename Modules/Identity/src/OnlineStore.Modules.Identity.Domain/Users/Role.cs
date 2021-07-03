@@ -22,8 +22,8 @@ namespace OnlineStore.Modules.Identity.Domain.Users
                 Permission.SeeUsersDetail);
 
         public static Role Admin =>
-            new(SecurityConstants.Roles.Admin.Name, SecurityConstants.Roles.Customer.Code, SecurityConstants.Roles
-                    .Customer.Description,
+            new(SecurityConstants.Roles.Admin.Name, SecurityConstants.Roles.Admin.Code, SecurityConstants.Roles
+                    .Admin.Description,
                 Permission.EditAdmins,
                 Permission.CreateAdmins,
                 Permission.DeleteAdmins,
