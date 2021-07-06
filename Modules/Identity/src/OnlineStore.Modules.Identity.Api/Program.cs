@@ -8,6 +8,11 @@ using Microsoft.Extensions.Hosting;
 using OnlineStore.Modules.Identity.Application.Features.System;
 using OnlineStore.Modules.Identity.Infrastructure;
 using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
+using Serilog.Sinks.SystemConsole.Themes;
+using Serilog.Templates;
+using Serilog.Templates.Themes;
 
 namespace OnlineStore.Modules.Identity.Api
 {
@@ -15,26 +20,47 @@ namespace OnlineStore.Modules.Identity.Api
     {
         public static async Task Main(string[] args)
         {
-            var host = CreateHostBuilder(args).Build();
-            await SeedData(host);
-            await host.RunAsync();
+            //https://github.com/serilog/serilog-aspnetcore
+
+            // The initial "bootstrap" logger is able to log errors during start-up. It's completely replaced by the
+            // logger configured in `UseSerilog()` below, once configuration and dependency-injection have both been
+            // set up successfully.
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console(new RenderedCompactJsonFormatter())
+                .CreateBootstrapLogger();
+
+            try
+            {
+                var host = CreateHostBuilder(args).Build();
+                await SeedData(host);
+                await host.RunAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .UseSerilog((context, loggerConfiguration) =>
-                {
-                    loggerConfiguration
-                        .Enrich.FromLogContext()
-                        .WriteTo.Console()
-                        // .WriteTo.Console(new ExpressionTemplate(
-                        //     "{ {@t, @mt, @l: if @l = 'Information' then undefined() else @l, @x, ..@p} }\n", theme: TemplateTheme.Code))
-                        .WriteTo.Seq(
-                            Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341")
-                        .WriteTo.Stackify();
-                })
+                .UseSerilog((context, services, configuration) => configuration
+                    .ReadFrom.Configuration(context.Configuration)
+                    .ReadFrom.Services(services)
+                    .Enrich.FromLogContext()
+                    // .WriteTo.Console(new RenderedCompactJsonFormatter())
+                    // .WriteTo.Console(
+                    //     outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+                    //     theme: AnsiConsoleTheme.Code)
+                    .WriteTo.Console(formatter: new ExpressionTemplate("{ {@t, @mt, @l, @x, ..@p} }\n"))
+                    .WriteTo.Seq(Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341")
+                    .WriteTo.Stackify()
+                    .WriteTo.Debug()
+                )
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
-
 
         public static async Task SeedData(IHost host)
         {

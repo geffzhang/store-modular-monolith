@@ -19,6 +19,9 @@ using Moq;
 using OnlineStore.Modules.Identity.Application.Features.System;
 using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineStore.Modules.Identity.Infrastructure;
+using Serilog;
+using Serilog.Events;
+using Serilog.Templates;
 using Xunit.Abstractions;
 
 namespace Common.Tests.Integration.Factory
@@ -47,16 +50,8 @@ namespace Common.Tests.Integration.Factory
         protected override IHostBuilder CreateHostBuilder()
         {
             var builder = base.CreateHostBuilder();
-
-            //https://github.com/serilog/serilog-aspnetcore/issues/57
-            builder.ConfigureLogging(l =>
-            {
-                if (OutputHelper is not null)
-                {
-                    l.ClearProviders();
-                    l.AddXUnit(OutputHelper);
-                }
-            });
+            //https://github.com/yorchideas/Serilog.Sinks.Xunit2
+            builder = builder.UseSerilog((_, _, configuration) => configuration.WriteTo.Xunit(OutputHelper));
 
             return builder;
         }
@@ -85,7 +80,7 @@ namespace Common.Tests.Integration.Factory
                 };
                 var user = new MockAuthUser(roleClaims.Concat(otherClaims).ToArray());
                 services.AddScoped(_ => user);
-                
+
                 TestRegistrationServices?.Invoke(services);
             });
 
@@ -102,6 +97,16 @@ namespace Common.Tests.Integration.Factory
 
                 seeder.SeedAllAsync().GetAwaiter().GetResult();
             });
+
+            //https://visualstudiomagazine.com/Blogs/Tool-Tracker/2019/03/Keeping-Configuration-Settings.aspx
+            // builder.ConfigureAppConfiguration((context, config) =>
+            // {
+            //     config.AddInMemoryCollection(new[]
+            //     {
+            //         new KeyValuePair<string, string>(
+            //             "mssql:ConnectionStrings", "")
+            //     });
+            // });
         }
     }
 }

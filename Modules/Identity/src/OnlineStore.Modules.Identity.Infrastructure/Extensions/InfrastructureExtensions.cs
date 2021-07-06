@@ -18,11 +18,13 @@ using OnlineStore.Modules.Identity.Infrastructure.Middlewares;
 using Serilog;
 using Common.Dependency;
 using Common.Domain.Types;
+using Common.Logging.Serilog;
 using EntityFrameworkCore.Triggered;
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Modules.Identity.Application.Features.System;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Triggers;
+using Serilog.Events;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
 {
@@ -34,11 +36,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
             services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
             services.AddCommon(configuration);
             services.AddMssqlPersistence<IdentityDbContext>(configuration,
-                configurator: s =>
-                {
-                    s.AddRepository(typeof(Repository<>)); 
-                    
-                }, 
+                configurator: s => { s.AddRepository(typeof(Repository<>)); },
                 optionBuilder: options =>
                 {
                     // options.UseTriggers(triggerOptions => {
@@ -99,9 +97,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
         public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app,
             IWebHostEnvironment env)
         {
-            // packages exists in Common project
             app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
-            app.UseSerilogRequestLogging();
+            //https://andrewlock.net/using-serilog-aspnetcore-in-asp-net-core-3-logging-the-selected-endpoint-name-with-serilog/
+            app.UseSerilogRequestLogging(opts => opts.EnrichDiagnosticContext = RequestLoggingHelper.EnrichFromRequest);
             app.UseCustomExceptionHandler();
 
             return app;

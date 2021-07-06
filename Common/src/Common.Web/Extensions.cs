@@ -66,8 +66,9 @@ namespace Common.Web
                     disabledModules.Add(key.Split(":")[0]);
                 }
             }
-
-            services.AddControllers()
+            
+            //https://andrewlock.net/using-serilog-aspnetcore-in-asp-net-core-3-logging-mvc-propertis-with-serilog/
+            services.AddControllers(options => options.Filters.Add<Common.Logging.Serilog.SerilogLoggingActionFilter>())
                 .ConfigureApplicationPartManager(manager =>
                 {
                     var removedParts = new List<ApplicationPart>();

@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using OnlineStore.Modules.Identity.Api;
 using OnlineStore.Modules.Identity.Application.Features.System;
@@ -40,6 +42,7 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
             _fixture.RegisterTestServices(services =>
             {
                 services.ReplaceScoped<IDataSeeder, IdentityTestSeeder>();
+                services.AddSingleton<Calculator>();
                 var httpContextAccessorMock = Substitute.For<IHttpContextAccessor>();
                 httpContextAccessorMock.HttpContext = new DefaultHttpContext
                 {
@@ -64,40 +67,73 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
         {
         }
 
+        // [Fact]
+        // public async Task RegisterNewUserCommand_Test()
+        // {
+        //     //Arrange
+        //     var registerUserCommand = new RegisterNewUserCommand(UserRegistrationSampleData.Id.BindId(),
+        //         UserRegistrationSampleData.Email,
+        //         UserRegistrationSampleData.FirstName, UserRegistrationSampleData.LastName,
+        //         UserRegistrationSampleData.Name,
+        //         UserRegistrationSampleData.UserName, UserRegistrationSampleData.Password,
+        //         UserRegistrationSampleData.Permissions.ToImmutableList(), UserRegistrationSampleData.UserType,
+        //         UserRegistrationSampleData.IsAdministrator, UserRegistrationSampleData.IsActive,
+        //         UserRegistrationSampleData.Roles.ToImmutableList(), UserRegistrationSampleData.LockoutEnabled,
+        //         UserRegistrationSampleData.EmailConfirmed, UserRegistrationSampleData.PhotoUrl,
+        //         UserRegistrationSampleData.Status);
+        //
+        //     //Act
+        //     await _fixture.SendAsync(registerUserCommand);
+        //
+        //     //Assert
+        //     var query = new GetUserByIdQuery(registerUserCommand.Id);
+        //     var created = await _fixture.QueryAsync(query);
+        //     
+        //     created.Should().NotBeNull();
+        //     created.Id.Should().Be(registerUserCommand.Id);
+        //     created.CreatedBy.Should().BeEquivalentTo(UsersConstants.AdminUser.UserName);
+        //     created.Roles.Should().NotBeNull();
+        //     created.Roles.Select(x => x).Should().BeEquivalentTo(UserRegistrationSampleData.Roles);
+        //     created.Permissions.Select(x => x).Should().BeEquivalentTo(UserRegistrationSampleData.Permissions);
+        //
+        //     var messagesList = await _fixture.OutboxMessagesHelper.GetOutboxMessages();
+        //     messagesList.Count.Should().Be(1);
+        //     var newUserRegisteredNotification =
+        //         await _fixture.OutboxMessagesHelper.GetLastOutboxMessage<NewUserRegisteredNotification>();
+        //     newUserRegisteredNotification.DomainEvent.User.UserName.Should().Be(UserRegistrationSampleData.UserName);
+        // }
+        
         [Fact]
-        public async Task RegisterNewUserCommand_Test()
+        public void Calculator_Sums_Two_Integers()
         {
-            //Arrange
-            var registerUserCommand = new RegisterNewUserCommand(UserRegistrationSampleData.Id.BindId(),
-                UserRegistrationSampleData.Email,
-                UserRegistrationSampleData.FirstName, UserRegistrationSampleData.LastName,
-                UserRegistrationSampleData.Name,
-                UserRegistrationSampleData.UserName, UserRegistrationSampleData.Password,
-                UserRegistrationSampleData.Permissions.ToImmutableList(), UserRegistrationSampleData.UserType,
-                UserRegistrationSampleData.IsAdministrator, UserRegistrationSampleData.IsActive,
-                UserRegistrationSampleData.Roles.ToImmutableList(), UserRegistrationSampleData.LockoutEnabled,
-                UserRegistrationSampleData.EmailConfirmed, UserRegistrationSampleData.PhotoUrl,
-                UserRegistrationSampleData.Status);
+            // Get the system-under-test (the Calculator) from the service collection.
+            // This will be created with a logger that routes to the xunit test output.
+            var calculator = _fixture.ServiceProvider .GetRequiredService<Calculator>();
 
-            //Act
-            await _fixture.SendAsync(registerUserCommand);
+            // Act
+            int actual = calculator.Sum(1, 2);
 
-            //Assert
-            var query = new GetUserByIdQuery(registerUserCommand.Id);
-            var created = await _fixture.QueryAsync(query);
-            
-            created.Should().NotBeNull();
-            created.Id.Should().Be(registerUserCommand.Id);
-            created.CreatedBy.Should().BeEquivalentTo(UsersConstants.AdminUser.UserName);
-            created.Roles.Should().NotBeNull();
-            created.Roles.Select(x => x).Should().BeEquivalentTo(UserRegistrationSampleData.Roles);
-            created.Permissions.Select(x => x).Should().BeEquivalentTo(UserRegistrationSampleData.Permissions);
+            // Assert
+            3.Should().Be(actual);
+        }
+    }
+    
+    public sealed class Calculator
+    {
+        private readonly ILogger _logger;
 
-            var messagesList = await _fixture.OutboxMessagesHelper.GetOutboxMessages();
-            messagesList.Count.Should().Be(1);
-            var newUserRegisteredNotification =
-                await _fixture.OutboxMessagesHelper.GetLastOutboxMessage<NewUserRegisteredNotification>();
-            newUserRegisteredNotification.DomainEvent.User.UserName.Should().Be(UserRegistrationSampleData.UserName);
+        public Calculator(ILogger<Calculator> logger)
+        {
+            _logger = logger;
+        }
+
+        public int Sum(int x, int y)
+        {
+            int sum = x + y;
+
+            _logger.LogInformation("The sum of {x} and {y} is {sum}.", x, y, sum);
+
+            return sum;
         }
     }
 }
