@@ -13,7 +13,7 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
     {
         private readonly ICommandProcessor _commandProcessor;
         private readonly IUserDomainToIntegrationEventMapper _userDomainToIntegrationEventMapper;
-
+        
         public NewUserRegisteredPublishEventHandler(ICommandProcessor commandProcessor,
             IUserDomainToIntegrationEventMapper userDomainToIntegrationEventMapper)
         {

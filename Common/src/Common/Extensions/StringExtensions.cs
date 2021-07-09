@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Common.Utils.Extensions
+namespace Common.Extensions
 {
     public static class StringExtensions
     {
@@ -113,14 +113,6 @@ namespace Common.Utils.Extensions
         public static bool EqualsInvariant(this string str1, string str2)
         {
             return string.Equals(str1, str2, StringComparison.OrdinalIgnoreCase);
-        }
-
-        public static string Underscore(this string value)
-        {
-            return string.IsNullOrWhiteSpace(value)
-                ? string.Empty
-                : string.Concat(value.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString()))
-                    .ToLowerInvariant();
         }
 
         public static string GetCurrencyName(this string isoCurrencySymbol)

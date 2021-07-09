@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Common.Messaging.Outbox
 {
@@ -15,13 +16,13 @@ namespace Common.Messaging.Outbox
         private readonly ILogger<OutboxProcessor> _logger;
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public OutboxProcessor(IServiceScopeFactory serviceScopeFactory, OutboxOptions outboxOptions,
+        public OutboxProcessor(IServiceScopeFactory serviceScopeFactory, IOptions<OutboxOptions> outboxOptions,
             ILogger<OutboxProcessor> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
-            _interval = outboxOptions.Interval ?? TimeSpan.FromSeconds(1);
-            _enabled = outboxOptions.Enabled;
+            _interval = outboxOptions.Value?.Interval ?? TimeSpan.FromSeconds(1);
+            _enabled = outboxOptions.Value?.Enabled ?? false;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

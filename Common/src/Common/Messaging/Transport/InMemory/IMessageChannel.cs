@@ -5,7 +5,7 @@ namespace Common.Messaging.Transport.InMemory
 {
     internal interface IMessageChannel
     {
-        ChannelReader<IMessage> Reader { get; }
-        ChannelWriter<IMessage> Writer { get; }
+        ChannelReader<IIntegrationEvent> Reader { get; }
+        ChannelWriter<IIntegrationEvent> Writer { get; }
     }
 }

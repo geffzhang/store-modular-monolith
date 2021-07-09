@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using Common.Extensions;
 using Common.Messaging;
 using Common.Utils;
-using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Common.Modules

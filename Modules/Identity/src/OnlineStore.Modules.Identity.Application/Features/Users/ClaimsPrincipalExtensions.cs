@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
-using Common.Utils.Extensions;
+using Common.Extensions;
 using Newtonsoft.Json;
 using OnlineStore.Modules.Identity.Domain;
 using OnlineStore.Modules.Identity.Domain.Constants;

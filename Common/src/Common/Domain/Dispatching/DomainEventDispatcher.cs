@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Common.Extensions;
 using Common.Messaging.Outbox;
 using Common.Serialization;
-using Common.Utils.Extensions;
 using Common.Utils.Reflection;
 using Common.Web.Contexts;
+using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -53,22 +54,23 @@ namespace Common.Domain.Dispatching
             {
                 //https://jeremylindsayni.wordpress.com/2019/02/11/instantiating-a-c-object-from-a-string-using-activator-createinstance-in-net/
                 Type domainEvenNotificationType = typeof(IDomainEventNotification<>);
-                var domainNotificationWithGenericType = domainEvenNotificationType.MakeGenericType(domainEvent.GetType());
+                var domainNotificationWithGenericType =
+                    domainEvenNotificationType.MakeGenericType(domainEvent.GetType());
 
                 var types = ReflectionHelper.GetAllTypesImplementingInterface(domainNotificationWithGenericType);
                 foreach (var type in types)
                 {
-
                     var domainEventNotification =
                         ReflectionHelper.CreateInstanceFromType<dynamic>(type, domainEvent, domainEvent.Id,
-                           Guid.Parse(_correlationContextAccessor.CorrelationContext.CorrelationId));
+                            Guid.Parse(_correlationContextAccessor.CorrelationContext.CorrelationId));
                     if (domainEventNotification is null)
                         continue;
 
-                    
+
                     domainEventNotifications.Add(domainEventNotification);
                 }
             }
+
 
             //http://www.kamilgrzybek.com/design/the-outbox-pattern/
             //http://www.kamilgrzybek.com/design/how-to-publish-and-handle-domain-events/
@@ -82,8 +84,8 @@ namespace Common.Domain.Dispatching
                 var outbox = _serviceProvider.GetRequiredService<IOutbox>();
                 var outboxOptions = _serviceProvider.GetRequiredService<IOptions<OutboxOptions>>();
                 var domainNotificationsMapper = _serviceProvider.GetRequiredService<IDomainNotificationsMapper>();
-                var name = domainNotificationsMapper.GetName(domainEventNotification.GetType());
-
+                var type = domainNotificationsMapper.GetName(domainEventNotification.GetType());
+                string name = domainEventNotification.GetType().Name;
                 if (outboxOptions.Value?.Enabled == false)
                     return;
 
@@ -91,8 +93,8 @@ namespace Common.Domain.Dispatching
                 {
                     Id = domainEventNotification.Id,
                     OccurredOn = domainEventNotification.DomainEvent.OccurredOn,
-                    Type = domainEventNotification.GetType().AssemblyQualifiedName,
-                    Name = name ?? domainEventNotification.GetType().Name.Underscore(),
+                    Type = type ?? domainEventNotification.GetType().AssemblyQualifiedName,
+                    Name = name.Underscore(),
                     Payload = data,
                     CorrelationId = domainEventNotification.CorrelationId,
                     ModuleName = ((object) domainEventNotification).GetModuleName()

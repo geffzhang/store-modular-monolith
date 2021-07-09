@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Common.Extensions;
 using Common.Messaging.Commands;
 using Common.Messaging.Serialization;
 using Common.Modules;
@@ -8,7 +9,7 @@ using Common.Persistence.Mongo;
 using Common.Scheduling;
 using Common.Scheduling.Helpers;
 using Common.Utils;
-using Common.Utils.Extensions;
+using Humanizer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;

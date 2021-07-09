@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Common.Extensions;
 using Common.Utils;
-using Common.Utils.Extensions;
 
 namespace Common.Persistence.Postgres
 {

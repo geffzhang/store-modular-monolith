@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Common.Messaging.Events;
 using Common.Modules;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -11,13 +12,14 @@ namespace Common.Messaging.Transport.InMemory
     {
         private readonly IMessageChannel _channel;
         private readonly ILogger<InMemoryBackgroundDispatcher> _logger;
-        private readonly IModuleClient _moduleClient;
+        private readonly IIntegrationEventDispatcher _integrationEventDispatcher;
 
-        public InMemoryBackgroundDispatcher(IMessageChannel channel, IModuleClient moduleClient,
+        public InMemoryBackgroundDispatcher(IMessageChannel channel,
+            IIntegrationEventDispatcher integrationEventDispatcher,
             ILogger<InMemoryBackgroundDispatcher> logger)
         {
             _channel = channel;
-            _moduleClient = moduleClient;
+            _integrationEventDispatcher = integrationEventDispatcher;
             _logger = logger;
         }
 
@@ -27,7 +29,7 @@ namespace Common.Messaging.Transport.InMemory
             await foreach (var @event in _channel.Reader.ReadAllAsync(stoppingToken))
                 try
                 {
-                    await _moduleClient.PublishAsync(@event);
+                    await _integrationEventDispatcher.PublishAsync(@event);
                 }
                 catch (Exception exception)
                 {

@@ -3,6 +3,7 @@ using Common.Messaging.Events;
 
 namespace Common.Domain.Dispatching
 {
+    [Decorator]
     public class DomainEventsDispatcherEventHandlerDecorator<T> : IEventHandler<T>
         where T : IEvent
     {

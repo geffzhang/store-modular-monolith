@@ -24,8 +24,8 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
         public async Task HandleAsync(NewUserRegisteredNotification @event)
         {
             await _messagesScheduler.Enqueue(new SendVerificationEmailCommand(@event.DomainEvent.User.Id.Id.ToString(),
-                _httpContextAccessor?.HttpContext?.Request.Scheme,
-                _httpContextAccessor?.HttpContext?.Request.Host.Value));
+                _httpContextAccessor.HttpContext?.Request.Scheme,
+                _httpContextAccessor.HttpContext?.Request.Host.Value));
         }
     }
 }

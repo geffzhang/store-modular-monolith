@@ -10,7 +10,7 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.SendVerificati
     //https://github.com/kgrzybek/modular-monolith-with-ddd/discussions/187
     public class SendVerificationEmailCommand : InternalCommand
     {
-        public SendVerificationEmailCommand(string userId, string requestScheme, string requestHost)
+        public SendVerificationEmailCommand(string userId, string? requestScheme, string? requestHost)
         {
             UserId = userId;
             RequestScheme = requestScheme;

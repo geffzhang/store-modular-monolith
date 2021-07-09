@@ -1,10 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using Common.Extensions;
 using Common.Messaging.Events;
 using Common.Messaging.Serialization;
 using Common.Persistence.Mongo;
 using Common.Utils;
-using Common.Utils.Extensions;
+using Humanizer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;

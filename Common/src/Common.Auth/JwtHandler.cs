@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using Common.Extensions;
 using Common.Utils;
-using Common.Utils.Extensions;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Common.Auth

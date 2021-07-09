@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using Common.Extensions;
 using Common.Persistence.MSSQL;
 using Common.Tests.Integration.Constants;
 using Common.Tests.Integration.Extensions;
@@ -74,7 +75,7 @@ namespace Common.Tests.Integration.Factory
             //The test app's builder.ConfigureTestServices callback is executed after the app's Startup.ConfigureServices code is executed.
             builder.ConfigureTestServices((services) =>
             {
-                services.RemoveAll(typeof(IHostedService));
+                // services.RemoveAll(typeof(IHostedService));
 
                 services.AddScoped(_ => CreateAnonymouslyUserMock());
 

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Common.Extensions;
 using Common.Messaging;
 using Common.Messaging.Events;
 using Common.Utils;
-using Common.Utils.Extensions;
 
 namespace Common.Exceptions
 {

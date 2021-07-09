@@ -18,6 +18,7 @@ using OnlineStore.Modules.Identity.Infrastructure.Middlewares;
 using Serilog;
 using Common.Dependency;
 using Common.Domain.Types;
+using Common.Extensions;
 using Common.Logging.Serilog;
 using Common.Web.Extensions;
 using EntityFrameworkCore.Triggered;

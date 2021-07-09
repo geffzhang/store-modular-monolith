@@ -1,5 +1,5 @@
 ﻿using System;
-using Common.Utils.Extensions;
+using Common.Extensions;
 
 namespace Common.Caching.Caching
 {

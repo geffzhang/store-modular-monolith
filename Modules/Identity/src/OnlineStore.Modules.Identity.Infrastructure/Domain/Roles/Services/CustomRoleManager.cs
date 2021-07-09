@@ -5,7 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Common;
 using Common.Caching.Caching;
-using Common.Utils.Extensions;
+using Common.Extensions;
 using EasyCaching.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

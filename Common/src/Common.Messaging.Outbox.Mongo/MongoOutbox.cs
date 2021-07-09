@@ -5,11 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Common.Domain;
 using Common.Domain.Dispatching;
+using Common.Extensions;
 using Common.Messaging.Serialization;
-using Common.Messaging.Transport;
-using Common.Modules;
 using Common.Persistence.Mongo;
-using Common.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
@@ -25,34 +23,22 @@ namespace Common.Messaging.Outbox.Mongo
         private readonly IMessageSerializer _messageSerializer;
         private readonly ILogger<MongoOutbox> _logger;
         private readonly IMongoDbContext _mongoDbContext;
-        // private readonly IModuleClient _moduleClient;
         private readonly ICommandProcessor _commandProcessor;
         private readonly IDomainNotificationsMapper _domainNotificationsMapper;
-        private readonly IAsyncMessageDispatcher _messageDispatcher;
-        private readonly string[] _modules;
-        private readonly bool _useBackgroundDispatcher;
 
         public MongoOutbox(IMongoDbContext mongoDbContext,
-            IModuleRegistry moduleRegistry,
             IOptions<OutboxOptions> outboxOptions,
-            MessagingOptions messagingOptions,
-            // IModuleClient moduleClient,
             ICommandProcessor commandProcessor,
-            IAsyncMessageDispatcher messageDispatcher,
             IMessageSerializer messageSerializer,
             IDomainNotificationsMapper domainNotificationsMapper,
             ILogger<MongoOutbox> logger)
         {
             _mongoDbContext = mongoDbContext;
-            // _moduleClient = moduleClient;
             _commandProcessor = commandProcessor;
-            _messageDispatcher = messageDispatcher;
             _messageSerializer = messageSerializer;
             _domainNotificationsMapper = domainNotificationsMapper;
             _logger = logger;
             Enabled = outboxOptions.Value.Enabled;
-            _modules = moduleRegistry.Modules.ToArray();
-            _useBackgroundDispatcher = messagingOptions.UseBackgroundDispatcher;
         }
 
         public bool Enabled { get; }
@@ -109,7 +95,7 @@ namespace Common.Messaging.Outbox.Mongo
 
             foreach (var outboxMessage in unsentMessages)
             {
-                var type = _domainNotificationsMapper.GetType(outboxMessage.Type);
+                var type = _domainNotificationsMapper.GetType(outboxMessage.Type) ?? Type.GetType(outboxMessage.Type);
 
                 var domainEventNotification = _messageSerializer.Deserialize(outboxMessage.Payload, type) as IDomainEventNotification;
                 if (domainEventNotification is null)

@@ -16,12 +16,12 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users
             _mapping.Add("NewUserRegisteredNotification", typeof(NewUserRegisteredNotification));
         }
 
-        public string GetName(Type type)
+        public string? GetName(Type type)
         {
             return _mapping.ToDictionary((i) => i.Value, (i) => i.Key).GetValueOrDefault(type);
         }
 
-        public Type GetType(string name)
+        public Type? GetType(string name)
         {
             return _mapping.GetValueOrDefault(name);
         }

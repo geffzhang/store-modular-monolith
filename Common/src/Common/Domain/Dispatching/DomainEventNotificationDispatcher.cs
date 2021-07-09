@@ -17,12 +17,10 @@ namespace Common.Domain.Dispatching
 
         public async Task DispatchAsync(params IDomainEventNotification[] events)
         {
-            var scope = _serviceProvider.CreateScope();
-
             foreach (var @event in events)
             {
-                var handlerType = typeof(IEventHandler<>).MakeGenericType(@event.GetType());
-                var handlers = scope.ServiceProvider.GetServices(handlerType);
+                var handlerType = typeof(IDomainEventNotificationHandler<>).MakeGenericType(@event.GetType());
+                var handlers = _serviceProvider.GetServices(handlerType);
 
                 var tasks = handlers.Select(x => (Task) handlerType
                     .GetMethod(nameof(IDomainEventNotificationHandler<IDomainEventNotification>.HandleAsync))

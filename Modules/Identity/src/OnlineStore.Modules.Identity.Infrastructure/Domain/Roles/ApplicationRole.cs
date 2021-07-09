@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Common.Utils.Extensions;
+using Common.Extensions;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;

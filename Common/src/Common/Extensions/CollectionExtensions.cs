@@ -5,7 +5,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using Common.Domain.Types;
 
-namespace Common.Utils.Extensions
+namespace Common.Extensions
 {
     /// <summary>
     /// Class that provides extension methods to Collection

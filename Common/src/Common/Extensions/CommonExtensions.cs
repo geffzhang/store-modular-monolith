@@ -31,9 +31,9 @@ using IMailService = Common.Mail.IMailService;
 [assembly: InternalsVisibleTo("OnlineStore.Tests.Benchmarks")]
 [assembly: InternalsVisibleTo("OnlineStore.Common.Tests.Integration")]
 
-namespace Common
+namespace Common.Extensions
 {
-    public static class Extensions
+    public static class CommonExtensions
     {
         public static IServiceCollection AddCommon(this IServiceCollection services, IConfiguration configuration,
             IList<Assembly> assemblies = null
@@ -85,7 +85,6 @@ namespace Common
             // services.TryDecorate(typeof(IEventHandler<>), typeof(LoggingDomainEventHandlerDecorator<>));
             // services.TryDecorate(typeof(IEventHandler<>), typeof(LoggingNotificationEventHandlerDecorator<>));
 
-
             return services;
         }
 
@@ -107,17 +106,14 @@ namespace Common
             services.AddScoped<IDomainEventNotificationDispatcher, DomainEventNotificationDispatcher>();
 
             services.Scan(s => s.FromAssemblies(assemblies)
-                .AddClasses(c => c.AssignableTo(typeof(IEventHandler<>)))
+                .AddClasses(c => c.AssignableTo(typeof(IEventHandler<>))
+                    .WithoutAttribute(typeof(DecoratorAttribute)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());
 
             services.Scan(s => s.FromAssemblies(assemblies)
-                .AddClasses(c => c.AssignableTo(typeof(IDomainEventNotificationHandler<>)))
-                .AsImplementedInterfaces()
-                .WithScopedLifetime());
-
-            services.Scan(s => s.FromAssemblies(assemblies)
-                .AddClasses(c => c.AssignableTo(typeof(IDomainEventNotification<>)))
+                .AddClasses(c => c.AssignableTo(typeof(IDomainEventNotificationHandler<>))
+                    .WithoutAttribute(typeof(DecoratorAttribute)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());
 
@@ -143,7 +139,8 @@ namespace Common
             services.AddSingleton<IQueryDispatcher, QueryDispatcher>();
 
             services.Scan(s => s.FromAssemblies(assemblies)
-                .AddClasses(c => c.AssignableTo(typeof(IQueryHandler<,>)))
+                .AddClasses(c => c.AssignableTo(typeof(IQueryHandler<,>))
+                    .WithoutAttribute(typeof(DecoratorAttribute)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());
 

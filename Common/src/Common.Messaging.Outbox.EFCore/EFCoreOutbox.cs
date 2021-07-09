@@ -5,10 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Common.Domain;
 using Common.Domain.Dispatching;
+using Common.Extensions;
 using Common.Messaging.Serialization;
-using Common.Modules;
 using Common.Persistence.MSSQL;
-using Common.Utils.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,14 +22,12 @@ namespace Common.Messaging.Outbox.EFCore
     {
         private readonly ILogger<EFCoreOutbox<TContext>> _logger;
 
-        // private readonly string[] _modules;
         private readonly IDomainNotificationsMapper _domainNotificationsMapper;
         private readonly ICommandProcessor _commandProcessor;
         private readonly TContext _dbContext;
         private readonly IMessageSerializer _messageSerializer;
 
         public EFCoreOutbox(IOptions<OutboxOptions> options,
-            // IModuleRegistry moduleRegistry,
             ILogger<EFCoreOutbox<TContext>> logger,
             IDomainNotificationsMapper domainNotificationsMapper,
             IMessageSerializer messageSerializer,
@@ -43,7 +40,6 @@ namespace Common.Messaging.Outbox.EFCore
             _commandProcessor = commandProcessor;
             _dbContext = dbContext;
             Enabled = options.Value.Enabled;
-            // _modules = moduleRegistry.Modules.ToArray();
         }
 
         public bool Enabled { get; }
@@ -65,14 +61,15 @@ namespace Common.Messaging.Outbox.EFCore
             await _dbContext.OutboxMessages.AddRangeAsync(outboxMessages, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation($"Saved {outboxMessages.Count} messages to the outbox.");
+            _logger.LogInformation("Saved {outboxMessages.Count} messages to the outbox.", outboxMessages.Count);
             _logger.LogInformation(
                 $"Saved outbox messages id are '{string.Join(',', outboxMessages.Select(x => x.Id.ToString()))}' in '{string.Join(',', outboxMessages.Select(x => x.ModuleName))}' modules");
         }
 
         public async Task<IEnumerable<OutboxMessage>> GetAllOutboxMessages(string moduleName = default)
         {
-            var messages = await _dbContext.OutboxMessages.Where(x => moduleName.IsNullOrEmpty() || x.ModuleName == moduleName)
+            var messages = await _dbContext.OutboxMessages
+                .Where(x => moduleName.IsNullOrEmpty() || x.ModuleName == moduleName)
                 .AsQueryable()
                 .ToListAsync();
 
@@ -94,33 +91,39 @@ namespace Common.Messaging.Outbox.EFCore
 
             if (!unsentMessages.Any())
             {
-                _logger.LogTrace($"No unsent messages found in outbox.");
+                _logger.LogTrace("No unsent messages found in outbox.");
                 return;
             }
 
-            _logger.LogInformation($"Found {unsentMessages.Count} unsent messages in outbox, sending...");
+            _logger.LogInformation("Found {unsentMessages.Count} unsent messages in outbox, sending...",
+                unsentMessages.Count);
 
             foreach (var outboxMessage in unsentMessages)
             {
-                var type = _domainNotificationsMapper.GetType(outboxMessage.Type);
+                var type = _domainNotificationsMapper.GetType(outboxMessage.Type) ?? Type.GetType(outboxMessage.Type);
 
-                var domainEventNotification = _messageSerializer.Deserialize(outboxMessage.Payload, type) as IDomainEventNotification;
+                var domainEventNotification =
+                    _messageSerializer.Deserialize(outboxMessage.Payload, type) as IDomainEventNotification;
                 if (domainEventNotification is null)
                 {
-                    _logger.LogError($"Invalid DomainNotification type: {type?.Name} (cannot cast to {nameof(IDomainEventNotification)}).");
+                    _logger.LogError(
+                        "Invalid DomainNotification type: {type?.Name} (cannot cast to {nameof(IDomainEventNotification)}).",
+                        type?.Name, nameof(IDomainEventNotification));
                     continue;
                 }
 
                 using (LogContext.Push(new OutboxMessageContextEnricher(domainEventNotification)))
                 {
                     _logger.LogInformation(
-                        $"Publishing a DomainNotification : '{outboxMessage.Name}' with ID: '{domainEventNotification.Id}' (outbox)...");
+                        "Publishing a DomainNotification : '{outboxMessage.Name}' with ID: '{domainEventNotification.Id}' (outbox)...",
+                        outboxMessage.Name, domainEventNotification.Id);
 
                     await _commandProcessor.PublishDomainEventNotificationAsync(domainEventNotification);
                     outboxMessage.SentAt = DateTime.UtcNow;
 
                     _logger.LogInformation(
-                        $"Published a message: '{outboxMessage.Name}' with ID: '{domainEventNotification.Id} (outbox)'.");
+                        "Published a message: '{outboxMessage.Name}' with ID: '{domainEventNotification.Id} (outbox)'.",
+                        outboxMessage.Name, domainEventNotification.Id);
                 }
             }
 

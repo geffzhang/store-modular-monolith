@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using Common.Domain.Types;
-using Common.Utils.Extensions;
+using Common.Extensions;
 using Newtonsoft.Json;
 using OnlineStore.Modules.Identity.Domain.Constants;
 

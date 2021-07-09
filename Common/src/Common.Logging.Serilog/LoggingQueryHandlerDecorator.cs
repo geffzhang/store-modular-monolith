@@ -1,7 +1,8 @@
 using System.Threading.Tasks;
+using Common.Extensions;
 using Common.Messaging.Queries;
 using Common.Utils;
-using Common.Utils.Extensions;
+using Humanizer;
 using Microsoft.Extensions.Logging;
 
 namespace Common.Logging.Serilog

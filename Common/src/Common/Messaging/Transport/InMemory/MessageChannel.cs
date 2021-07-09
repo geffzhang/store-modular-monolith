@@ -5,8 +5,8 @@ namespace Common.Messaging.Transport.InMemory
 {
     internal class MessageChannel : IMessageChannel
     {
-        private readonly Channel<IMessage> _messages = Channel.CreateUnbounded<IMessage>();
-        public ChannelReader<IMessage> Reader => _messages.Reader;
-        public ChannelWriter<IMessage> Writer => _messages.Writer;
+        private readonly Channel<IIntegrationEvent> _messages = Channel.CreateUnbounded<IIntegrationEvent>();
+        public ChannelReader<IIntegrationEvent> Reader => _messages.Reader;
+        public ChannelWriter<IIntegrationEvent> Writer => _messages.Writer;
     }
 }

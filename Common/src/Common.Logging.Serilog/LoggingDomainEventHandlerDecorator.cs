@@ -1,12 +1,14 @@
 using System.Threading.Tasks;
 using Common.Domain;
+using Common.Extensions;
 using Common.Messaging.Events;
-using Common.Utils.Extensions;
+using Humanizer;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
 
 namespace Common.Logging.Serilog
 {
+    [Decorator]
     internal sealed class LoggingDomainEventHandlerDecorator<T> : IDomainEventHandler<T>
         where T : class, IDomainEvent
     {

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Net;
+using Common.Extensions;
 using Common.Utils;
-using Common.Utils.Extensions;
 
 namespace Common.Exceptions
 {

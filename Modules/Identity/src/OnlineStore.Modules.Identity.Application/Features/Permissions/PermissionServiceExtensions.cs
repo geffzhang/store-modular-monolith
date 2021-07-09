@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Common.Utils.Extensions;
+using Common.Extensions;
 using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
 using OnlineStore.Modules.Identity.Domain.Users;
 

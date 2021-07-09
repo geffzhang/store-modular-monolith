@@ -1,7 +1,7 @@
 using System;
-using System.Linq;
+using Humanizer;
 
-namespace Common.Utils.Extensions
+namespace Common.Extensions
 {
     public static class Extensions
     {

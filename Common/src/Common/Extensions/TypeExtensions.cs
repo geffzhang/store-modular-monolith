@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
-namespace Common.Utils.Extensions
+namespace Common.Extensions
 {
     public static class TypeExtensions
     {

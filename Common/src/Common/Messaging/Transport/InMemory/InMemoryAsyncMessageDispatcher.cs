@@ -12,7 +12,7 @@ namespace Common.Messaging.Transport.InMemory
             _channel = channel;
         }
 
-        public async Task PublishAsync<T>(T message) where T : class, IMessage
+        public async Task PublishAsync<T>(T message) where T : class, IIntegrationEvent
         {
             await _channel.Writer.WriteAsync(message);
         }
