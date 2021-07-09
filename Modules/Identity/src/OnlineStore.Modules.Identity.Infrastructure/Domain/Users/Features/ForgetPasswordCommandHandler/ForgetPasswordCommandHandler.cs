@@ -7,7 +7,7 @@ using OnlineStore.Modules.Identity.Application.Features.Users.Exceptions;
 using OnlineStore.Modules.Identity.Application.Features.Users.ForgotPassword;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.ForgetPasswordCommandHandler
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Features.ForgetPasswordCommandHandler
 {
     public class ForgetPasswordCommandHandler:ICommandHandler<ForgetPasswordCommand>
     {

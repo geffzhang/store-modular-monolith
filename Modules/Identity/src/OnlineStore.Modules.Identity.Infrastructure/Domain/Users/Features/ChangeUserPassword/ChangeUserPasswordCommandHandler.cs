@@ -3,11 +3,10 @@ using Common.Messaging.Commands;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Features.Users.ChangeUserPassword;
 using OnlineStore.Modules.Identity.Application.Features.Users.Exceptions;
-using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Domain.Users.Services;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.ChangeUserPassword
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Features.ChangeUserPassword
 {
     public class ChangeCurrentUserPasswordCommandHandler : ICommandHandler<ChangeUserPasswordCommand>
     {

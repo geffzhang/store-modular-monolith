@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Tests.Integration.Constants;
@@ -9,6 +10,7 @@ using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
 namespace OnlineStore.Modules.Identity.IntegrationTests
 {
     public class IdentityTestSeeder : IDataSeeder
@@ -33,24 +35,26 @@ namespace OnlineStore.Modules.Identity.IntegrationTests
 
         private async Task SeedUsersAsync()
         {
-            var user = await _userManager.FindByNameAsync(UsersConstants.AdminUser.Name);
+            var user = await _userManager.FindByNameAsync(UsersConstants.AdminUserMock.Name);
             if (user == null)
             {
+
                 var admin = new ApplicationUser
                 {
-                    Id = UsersConstants.AdminUser.UserId,
-                    IsAdministrator = UsersConstants.AdminUser.IsAdministrator,
-                    Name = UsersConstants.AdminUser.Name,
-                    FirstName = UsersConstants.AdminUser.FirstName,
-                    LastName = UsersConstants.AdminUser.LastName,
-                    UserName = UsersConstants.AdminUser.UserName,
+                    Id = UsersConstants.AdminUserMock.UserId,
+                    IsAdministrator = UsersConstants.AdminUserMock.IsAdministrator,
+                    Name = UsersConstants.AdminUserMock.Name,
+                    FirstName = UsersConstants.AdminUserMock.FirstName,
+                    LastName = UsersConstants.AdminUserMock.LastName,
+                    UserName = UsersConstants.AdminUserMock.UserName,
                     PasswordExpired = true,
-                    Email = UsersConstants.AdminUser.UserEmail,
-                    IsActive = UsersConstants.AdminUser.IsActive,
-                    UserType = UsersConstants.AdminUser.UserType
+                    Email = UsersConstants.AdminUserMock.UserEmail,
+                    IsActive = UsersConstants.AdminUserMock.IsActive,
+                    UserType = UsersConstants.AdminUserMock.UserType,
+                    Roles = UsersConstants.AdminUserMock.Roles
                 };
 
-                admin.PasswordHash = _userManager.PasswordHasher.HashPassword(admin, UsersConstants.AdminUser.Password);
+                admin.PasswordHash = _userManager.PasswordHasher.HashPassword(admin, UsersConstants.AdminUserMock.Password);
 
                 var adminUser = await _userManager.FindByIdAsync(admin.Id);
                 if (adminUser == null)

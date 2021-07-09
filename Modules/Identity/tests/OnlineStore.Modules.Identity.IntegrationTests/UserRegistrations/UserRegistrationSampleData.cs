@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
@@ -20,7 +22,7 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
         public static string Status { get; }
         public static bool LockoutEnabled => true;
         public static bool IsActive => true;
-        public static IEnumerable<string> Roles => new List<string> {"admin"};
-        public static IEnumerable<string> Permissions => new List<string> {"admin:view"};
+        public static IEnumerable<string> Roles => new List<string> {Role.Admin.Name};
+        public static IEnumerable<string> Permissions => Role.Admin.Permissions.Select(x => x.Name);
     }
 }

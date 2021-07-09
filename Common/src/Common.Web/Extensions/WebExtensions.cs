@@ -15,21 +15,18 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace Common.Web
+namespace Common.Web.Extensions
 {
-    public static class Extensions
+    public static class WebExtensions
     {
         private const string AppOptionsSectionName = "AppOptions";
         private const string ExecutionContextSection = "ExecutionContextOptions";
-        private static ExecutionContextOptions _contextOptions;
 
         public static IServiceCollection AddWebApi(this IServiceCollection services, IConfiguration configuration,
             string appOptionSection = AppOptionsSectionName, string executionContextSection = ExecutionContextSection)
@@ -37,11 +34,11 @@ namespace Common.Web
             services.AddHttpContextAccessor();
             services.AddOptions<ExecutionContextOptions>().Bind(configuration.GetSection(executionContextSection))
                 .ValidateDataAnnotations();
-            _contextOptions = configuration.GetSection(executionContextSection).Get<ExecutionContextOptions>();
 
             services.AddScoped<ICorrelationContextAccessor, CorrelationContextAccessor>();
             services.AddScoped<IExecutionContextAccessor, ExecutionContextAccessor>();
             services.AddScoped<IExecutionContextFactory, ExecutionContextFactory>();
+            services.AddScoped<IHttpTraceId, HttpTraceId>();
 
             services.AddProblemDetails(x =>
             {
@@ -66,7 +63,7 @@ namespace Common.Web
                     disabledModules.Add(key.Split(":")[0]);
                 }
             }
-            
+
             //https://andrewlock.net/using-serilog-aspnetcore-in-asp-net-core-3-logging-mvc-propertis-with-serilog/
             services.AddControllers(options => options.Filters.Add<Common.Logging.Serilog.SerilogLoggingActionFilter>())
                 .ConfigureApplicationPartManager(manager =>
@@ -104,7 +101,6 @@ namespace Common.Web
                 .AddScoped<LogContextMiddleware>()
                 .AddScoped<AddCorrelationContextToResponseMiddleware>();
 
-            //https://dominikjeske.github.io/configure-httpclients/
             services.AddHttpClient();
             services.AddScoped<CorrelationContextMessageHandler>();
             services.ConfigureAll<HttpClientFactoryOptions>(options =>
@@ -133,7 +129,7 @@ namespace Common.Web
             app.UseMiddleware<LogContextMiddleware>();
             app.UseMiddleware<AddCorrelationContextToResponseMiddleware>();
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsTest())
             {
                 app.UseProblemDetails();
             }
@@ -146,28 +142,8 @@ namespace Common.Web
             return app;
         }
 
-
-        public static void SetResourceId(this JObject jObject, string id)
-        {
-            var idProperty = jObject.Property("id", StringComparison.InvariantCultureIgnoreCase);
-            if (idProperty is null)
-            {
-                jObject.Add("id", id);
-                return;
-            }
-
-            idProperty.Value = id;
-        }
-
-        public static string GetResourceIdFoRequest(this HttpContext context)
-            => context.Items.TryGetValue(_contextOptions?.ResourceIdHeaderKey ?? "resource-id", out var id)
-                ? id as string
-                : string.Empty;
-
-        public static void SetResourceIdFoRequest(this HttpContext context, string id)
-            => context.Items.TryAdd(_contextOptions?.ResourceIdHeaderKey ?? "resource-id", id);
-
-        public static void SetOperationHeader(this HttpResponse response, string id)
-            => response.Headers.Add(_contextOptions?.OperationHeaderKey ?? "x-operation", $"operations/{id}");
+        public static void SetOperationHeader(this HttpResponse response, string id,
+            ExecutionContextOptions options = null)
+            => response.Headers.Add(options?.OperationHeaderKey ?? "x-operation", $"operations/{id}");
     }
 }

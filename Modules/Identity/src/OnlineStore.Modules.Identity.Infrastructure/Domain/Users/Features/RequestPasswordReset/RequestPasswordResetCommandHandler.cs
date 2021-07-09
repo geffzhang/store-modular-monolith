@@ -5,7 +5,7 @@ using OnlineStore.Modules.Identity.Application.Features.Users.RequestPasswordRes
 using OnlineStore.Modules.Identity.Domain.Users.Services;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.RequestPasswordReset
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Features.RequestPasswordReset
 {
     public class RequestPasswordResetCommandHandler : ICommandHandler<RequestPasswordResetCommand>
     {

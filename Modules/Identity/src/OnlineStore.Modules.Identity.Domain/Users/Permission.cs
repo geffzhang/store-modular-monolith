@@ -33,15 +33,11 @@ namespace OnlineStore.Modules.Identity.Domain.Users
         // Admin Permissions
         public static readonly Permission SeeAdminsDetail =
             new(SecurityConstants.Permissions.SeeAdminsDetail, "admin");
-
         public static readonly Permission EditAdmins = new(SecurityConstants.Permissions.EditAdmins, "admin");
-
         public static readonly Permission CreateAdmins =
             new(SecurityConstants.Permissions.CreateAdmins, "admin");
-
         public static readonly Permission DeleteAdmins =
             new(SecurityConstants.Permissions.DeleteAdmins, "admin");
-
         public static readonly Permission ViewAdmins = new(SecurityConstants.Permissions.ViewAdmins, "admin");
 
         public static readonly Permission SecurityQuery = new(SecurityConstants.Permissions.SecurityQuery, "security");

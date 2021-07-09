@@ -25,6 +25,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.7" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.3.0" />
     <PackageReference Include="OpenIddict.Abstractions" Version="3.0.3" />
     <PackageReference Include="OpenIddict.AspNetCore" Version="3.0.3" />
@@ -37,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Decorators" />
+    <Folder Include="Domain\Users\Features" />
     <Folder Include="Migrations" />
   </ItemGroup>
 

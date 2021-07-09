@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using OnlineStore.Modules.Identity.Application.Features.Users.SendVerificationEmail;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.SendVerificationEmail
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Features.SendVerificationEmail
 {
     public class SendVerificationEmailCommandHandler : ICommandHandler<SendVerificationEmailCommand>
     {

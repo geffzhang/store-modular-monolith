@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Utils.Reflection;
@@ -8,6 +9,7 @@ using OnlineStore.Modules.Identity.Application.Features.System;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
@@ -49,7 +51,11 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
                     PasswordExpired = true,
                     Email = "admin@admin.com",
                     IsActive = true,
-                    UserType = UserType.Administrator.ToString()
+                    UserType = UserType.Administrator.ToString(),
+                    Roles = new List<ApplicationRole>()
+                    {
+                        Role.Admin.ToApplicationRole()
+                    }
                 };
 
                 admin.PasswordHash = _userManager.PasswordHasher.HashPassword(admin, "admin");
@@ -58,7 +64,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.System
                 if (adminUser == null)
                 {
                     await _userManager.CreateAsync(admin);
-                    await _userManager.AddToRoleAsync(admin, "admin");
                 }
             }
         }

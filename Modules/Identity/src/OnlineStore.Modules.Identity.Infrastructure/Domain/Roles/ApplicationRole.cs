@@ -3,6 +3,7 @@ using System.Linq;
 using Common.Utils.Extensions;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Domain.Users;
+using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles
 {
@@ -15,7 +16,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Roles
 
         public string Description { get; set; }
         public IList<Permission> Permissions { get; set; }
-        public ICollection<IdentityUserRole<string>> UserRoles { get; set; }
+        public virtual ICollection<ApplicationUserRole> UserRoles { get; set; }
         
         public virtual void Patch(ApplicationRole target)
         {

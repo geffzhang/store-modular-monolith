@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using OnlineStore.Modules.Identity.Application.Features.Users.ConfirmEmail;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.ConfirmEmail
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Features.ConfirmEmail
 {
     public class ConfirmEmailCommandHandler:ICommandHandler<ConfirmEmailCommand>
     {

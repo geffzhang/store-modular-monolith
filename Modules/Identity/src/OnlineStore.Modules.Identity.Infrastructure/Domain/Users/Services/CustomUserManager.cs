@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Common;
 using Common.Caching.Caching;
+using Common.Domain.Types;
+using Common.Messaging.Events;
 using EasyCaching.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 using OnlineStore.Modules.Identity.Infrastructure.Extensions;
 
@@ -144,6 +143,22 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
             return result;
         }
 
+        protected override async Task<IdentityResult> UpdateUserAsync(ApplicationUser user)
+        {
+            var existentUser = await LoadExistingUser(user);
+
+            //We cant update not existing user
+            if (existentUser == null)
+            {
+                return IdentityResult.Failed(ErrorDescriber.DefaultError());
+            }
+
+            user.Patch(existentUser);
+
+            var result = await base.UpdateUserAsync(existentUser);
+
+            return result;
+        }
         public override async Task<IdentityResult> UpdateAsync(ApplicationUser user)
         {
             ApplicationUser existUser = null;
@@ -153,11 +168,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
                 existUser = await base.FindByIdAsync(user.Id);
             }
 
-            if (existUser == null)
-            {
-                //It is important to call base.FindByNameAsync method to avoid of update a cached user.
-                existUser = await base.FindByNameAsync(user.UserName);
-            }
+            existUser ??= await base.FindByNameAsync(user.UserName);
 
             //We cant update not existing user
             if (existUser == null)
@@ -173,10 +184,13 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
             var result = await base.UpdateAsync(existUser);
             if (result.Succeeded)
             {
-                if (user.Roles != null)
+                var permissions = user.Permissions;
+                var roles = user.Roles;
+
+                if (roles != null)
                 {
                     var targetRoles = (await GetRolesAsync(existUser));
-                    var sourceRoles = user.Roles.Select(x => x.Name).ToList();
+                    var sourceRoles = roles.Select(x => x.Name).ToList();
                     //Add
                     foreach (var newRole in sourceRoles.Except(targetRoles))
                     {
@@ -202,26 +216,28 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
             userResult.LogResult($"a new user with userId '{user.Id}' added successfully.");
             if (userResult.Succeeded)
             {
-                if (user.Permissions != null && user.Permissions.Any())
+                var permissions = user.Permissions;
+                var roles = user.Roles;
+                if (permissions != null && permissions.Any())
                 {
                     //Add
-                    foreach (var permission in user.Permissions)
+                    foreach (var permission in permissions)
                     {
-                       var claimResult = await AddClaimAsync(user,
+                        var claimResult = await AddClaimAsync(user,
                             new Claim(SecurityConstants.Claims.PermissionClaimType, permission.Name));
-                       claimResult.LogResult($"claim {permission.Name} added to user '{user.Id}' successfully.");
+                        claimResult.LogResult($"claim {permission.Name} added to user '{user.Id}' successfully.");
                     }
                 }
 
-                if (user.Roles != null && user.Roles.Any())
+                if (roles != null && roles.Any())
                 {
                     //Add
-                    foreach (var newRole in user.Roles)
+                    foreach (var newRole in roles)
                     {
                         if (await _roleManager.RoleExistsAsync(newRole.Name))
                         {
-                          var roleResult =  await AddToRoleAsync(user, newRole.Name);
-                          roleResult.LogResult($"role '{newRole.Id}' added to user '{user.Id}' successfully.");
+                            var roleResult = await AddToRoleAsync(user, newRole.Name);
+                            roleResult.LogResult($"role '{newRole.Id}' added to user '{user.Id}' successfully.");
                         }
                     }
                 }
@@ -230,6 +246,14 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
             return userResult;
         }
 
+        public override async Task<IdentityResult> CreateAsync(ApplicationUser user, string password)
+        {
+            var userResult = await base.CreateAsync(user, password);
+
+            userResult.LogResult($"a new user with userId '{user.Id}' added successfully.", $"there is an exception in creating user with id '{user.Id}'");
+
+            return userResult;
+        }
 
         /// <summary>
         /// Load detailed user information: Roles, external logins, claims (permissions)
@@ -257,8 +281,40 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services
 
             // Read associated logins (compatibility with v2)
             var logins = await base.GetLoginsAsync(user);
-            user.Logins = logins.Select(x =>
-                new ApplicationUserLogin() {LoginProvider = x.LoginProvider, ProviderKey = x.ProviderKey}).ToArray();
+            user.Logins = logins.Select(x => new IdentityUserLogin<string>
+            {
+                LoginProvider = x.LoginProvider, ProviderKey = x.ProviderKey
+            }).ToArray();
+        }
+
+
+        /// <summary>
+        /// Finds existing user and loads its details
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns>Returns null, if no user found, otherwise user with details.</returns>
+        protected virtual async Task<ApplicationUser> LoadExistingUser(ApplicationUser user)
+        {
+            ApplicationUser result = null;
+
+            if (!string.IsNullOrEmpty(user.Id))
+            {
+                //It is important to call base.FindByIdAsync method to avoid of update a cached user.
+                result = await base.FindByIdAsync(user.Id);
+            }
+
+            if (result == null)
+            {
+                //It is important to call base.FindByNameAsync method to avoid of update a cached user.
+                result = await base.FindByNameAsync(user.UserName);
+            }
+
+            if (result != null)
+            {
+                await LoadUserDetailsAsync(result);
+            }
+
+            return result;
         }
     }
 }

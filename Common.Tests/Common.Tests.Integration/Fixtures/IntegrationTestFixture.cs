@@ -1,13 +1,19 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Common.Messaging;
 using Common.Messaging.Commands;
 using Common.Messaging.Outbox;
 using Common.Messaging.Queries;
 using Common.Persistence.MSSQL;
+using Common.Tests.Integration.Constants;
 using Common.Tests.Integration.Factory;
 using Common.Tests.Integration.Helpers;
+using Common.Tests.Integration.Mocks;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +54,30 @@ namespace Common.Tests.Integration.Fixtures
             };
         }
 
+        public MockAuthUser CreateAdminUserMock()
+        {
+            var roleClaims = UsersConstants.AdminUserMock.Roles.Select(role => new Claim(ClaimTypes.Role, role.Name));
+            var otherClaims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, UsersConstants.AdminUserMock.UserId),
+                new(ClaimTypes.Name, UsersConstants.AdminUserMock.UserName),
+                new(ClaimTypes.Email, UsersConstants.AdminUserMock.UserEmail)
+            };
+            return _ = new MockAuthUser(roleClaims.Concat(otherClaims).ToArray());
+        }
+
+        public MockAuthUser CreateNormalUserMock()
+        {
+            var roleClaims = UsersConstants.NormalUserMock.Roles.Select(role => new Claim(ClaimTypes.Role, role.Name));
+            var otherClaims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, UsersConstants.NormalUserMock.UserId),
+                new(ClaimTypes.Name, UsersConstants.NormalUserMock.UserName),
+                new(ClaimTypes.Email, UsersConstants.NormalUserMock.UserEmail)
+            };
+            return _ = new MockAuthUser(roleClaims.Concat(otherClaims).ToArray());
+        }
+
         public void SetOutput(ITestOutputHelper output)
         {
             _factory.OutputHelper = output;
@@ -58,11 +88,19 @@ namespace Common.Tests.Integration.Fixtures
             _factory.TestRegistrationServices = services;
         }
 
-        public async Task ResetState()
+        private async Task ResetState()
         {
-            await _checkpoint.Reset(OptionsHelper.GetOptions<MssqlOptions>("mssql", "appsettings.tests.json")
-                .ConnectionString);
+            try
+            {
+                var connection = OptionsHelper.GetOptions<MssqlOptions>("mssql", "appsettings.tests.json").ConnectionString;
+                await _checkpoint.Reset(connection);
+            }
+            catch (Exception e)
+            {
+                // ignored
+            }
         }
+
 
         public async Task ExecuteScopeAsync(Func<IServiceProvider, Task> action)
         {
@@ -211,8 +249,8 @@ namespace Common.Tests.Integration.Fixtures
 
                 return commandProcessor.SendCommandAsync(request);
             });
-        }  
-        
+        }
+
         public Task<TResponse> QueryAsync<TResponse>(IQuery<TResponse> query) where TResponse : class
         {
             return ExecuteScopeAsync(sp =>
@@ -222,7 +260,7 @@ namespace Common.Tests.Integration.Fixtures
                 return queryProcessor.QueryAsync(query);
             });
         }
-        
+
         public async Task InitializeAsync()
         {
             await ResetState();

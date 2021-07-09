@@ -13,7 +13,7 @@ using OnlineStore.Modules.Identity.Domain.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 using OpenIddict.Abstractions;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.GetUserInfo
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Features.GetUserInfo
 {
     public class GetUserInfoQueryHandler : IQueryHandler<GetUserInfoQuery, IList<Claim>>
     {

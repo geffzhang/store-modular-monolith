@@ -19,8 +19,10 @@ using Serilog;
 using Common.Dependency;
 using Common.Domain.Types;
 using Common.Logging.Serilog;
+using Common.Web.Extensions;
 using EntityFrameworkCore.Triggered;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using OnlineStore.Modules.Identity.Application.Features.System;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Triggers;
@@ -94,12 +96,13 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
             });
         }
 
-        public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app,
-            IWebHostEnvironment env)
+        public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
             //https://andrewlock.net/using-serilog-aspnetcore-in-asp-net-core-3-logging-the-selected-endpoint-name-with-serilog/
-            app.UseSerilogRequestLogging(opts => opts.EnrichDiagnosticContext = RequestLoggingHelper.EnrichFromRequest);
+            if (env.IsTest() == false)
+                app.UseSerilogRequestLogging(opts =>
+                    opts.EnrichDiagnosticContext = RequestLoggingHelper.EnrichFromRequest);
             app.UseCustomExceptionHandler();
 
             return app;

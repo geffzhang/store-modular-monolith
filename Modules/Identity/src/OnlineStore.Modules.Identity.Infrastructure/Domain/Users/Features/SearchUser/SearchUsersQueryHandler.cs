@@ -12,7 +12,7 @@ using OnlineStore.Modules.Identity.Application.Features.Users.SearchUsers.Except
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.SearchUser
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Features.SearchUser
 {
     public class SearchUsersQueryHandler : IQueryHandler<SearchUsersQuery, UserSearchResponse>
     {

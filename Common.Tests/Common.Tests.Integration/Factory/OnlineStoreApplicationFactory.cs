@@ -1,12 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using Common.Persistence.MSSQL;
 using Common.Tests.Integration.Constants;
 using Common.Tests.Integration.Extensions;
 using Common.Tests.Integration.Mocks;
+using Common.Web.Contexts;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +21,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NSubstitute;
 using OnlineStore.Modules.Identity.Application.Features.System;
 using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineStore.Modules.Identity.Infrastructure;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using Serilog.Templates;
 using Xunit.Abstractions;
@@ -32,7 +39,6 @@ namespace Common.Tests.Integration.Factory
         where TEntryPoint : class
     {
         public IConfiguration Configuration => Services.GetRequiredService<IConfiguration>();
-        public string CurrentUserId { get; set; }
         public ITestOutputHelper OutputHelper { get; set; }
         public IEnumerable<IDataSeeder> DataSeeders { get; set; }
         public Action<IServiceCollection> TestRegistrationServices { get; set; }
@@ -50,7 +56,12 @@ namespace Common.Tests.Integration.Factory
         protected override IHostBuilder CreateHostBuilder()
         {
             var builder = base.CreateHostBuilder();
-            //https://github.com/yorchideas/Serilog.Sinks.Xunit2
+
+            // // to remove logging in serilog
+            // Log.Logger = Logger.None; //Log.Logger = new LoggerConfiguration().CreateLogger();
+            // builder = builder.UseSerilog();
+
+            // to log in xunit output
             builder = builder.UseSerilog((_, _, configuration) => configuration.WriteTo.Xunit(OutputHelper));
 
             return builder;
@@ -58,30 +69,22 @@ namespace Common.Tests.Integration.Factory
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            //Be careful: configuration in ConfigureWebHost will override configuration in CreateHostBuilder
-            // we can use settings that defined on CreateHostBuilder but some on them maybe override in ConfigureWebHost both of them add its configurations to `IHostBuilder`
-
-            builder.UseEnvironment(
-                "tests"); //https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests#set-the-environment
+            //https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests#set-the-environment
+            builder.UseEnvironment("tests");
             //The test app's builder.ConfigureTestServices callback is executed after the app's Startup.ConfigureServices code is executed.
             builder.ConfigureTestServices((services) =>
             {
                 services.RemoveAll(typeof(IHostedService));
-                services.ReplaceScoped(_ => Mock.Of<ICurrentUserService>(s => s.UserId == CurrentUserId));
+
+                services.AddScoped(_ => CreateAnonymouslyUserMock());
 
                 services.AddTestAuthentication();
 
-                var roleClaims = UsersConstants.AdminUser.Roles.Select(role => new Claim(ClaimTypes.Role, role));
-                var otherClaims = new List<Claim>
-                {
-                    new(ClaimTypes.NameIdentifier, UsersConstants.AdminUser.UserId),
-                    new(ClaimTypes.Name, UsersConstants.AdminUser.UserName),
-                    new(ClaimTypes.Email, UsersConstants.AdminUser.UserEmail)
-                };
-                var user = new MockAuthUser(roleClaims.Concat(otherClaims).ToArray());
-                services.AddScoped(_ => user);
-
                 TestRegistrationServices?.Invoke(services);
+
+                services.ReplaceScoped(CreateHttpContextAccessorMock);
+
+                services.ReplaceScoped(CreateExecutionContextAccessorMock);
             });
 
             //The test app's builder.ConfigureServices callback is executed before the SUT's Startup.ConfigureServices code.
@@ -92,7 +95,7 @@ namespace Common.Tests.Integration.Factory
                 using var scope = sp.CreateScope();
                 var identityContext = scope.ServiceProvider.GetRequiredService<IDbFacadeResolver>();
                 var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
-                identityContext.Database.MigrateAsync();
+                identityContext.Database.MigrateAsync().GetAwaiter().GetResult();
                 IdentityDbUpInitializer.Initialize(identityContext.Database.GetConnectionString());
 
                 seeder.SeedAllAsync().GetAwaiter().GetResult();
@@ -104,9 +107,45 @@ namespace Common.Tests.Integration.Factory
             //     config.AddInMemoryCollection(new[]
             //     {
             //         new KeyValuePair<string, string>(
-            //             "mssql:ConnectionStrings", "")
+            //             "mssql:ConnectionStrings", "Data Source=.\sqlexpress;Initial Catalog=OnlineStore-Test;Integrated Security=True;Connect Timeout=30")
             //     });
             // });
+        }
+
+        public HttpClient CreateClientWithTestAuth()
+        {
+            var client = CreateClient(new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = false
+            });
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthConstants.Scheme);
+
+            return client;
+        }
+
+        private static IHttpContextAccessor CreateHttpContextAccessorMock(IServiceProvider serviceProvider)
+        {
+            var httpContextAccessorMock = Substitute.For<IHttpContextAccessor>();
+            httpContextAccessorMock.HttpContext = new DefaultHttpContext
+            {
+                RequestServices = serviceProvider
+            };
+            var res = httpContextAccessorMock.HttpContext.AuthenticateAsync(AuthConstants.Scheme).GetAwaiter()
+                .GetResult();
+            httpContextAccessorMock.HttpContext.User = res.Ticket?.Principal!;
+            return httpContextAccessorMock;
+        }
+
+        private MockAuthUser CreateAnonymouslyUserMock()
+        {
+            return new MockAuthUser();
+        }
+
+        private static IExecutionContextAccessor CreateExecutionContextAccessorMock(IServiceProvider serviceProvider)
+        {
+            var executionContextFactory = serviceProvider.GetService<IExecutionContextFactory>();
+            return _ = new ExecutionContextAccessorMock(executionContextFactory?.Create());
         }
     }
 }

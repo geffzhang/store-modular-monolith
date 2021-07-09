@@ -1,13 +1,18 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Common.Messaging;
 using Common.Messaging.Commands;
 using Common.Messaging.Outbox;
 using Common.Messaging.Queries;
 using Common.Persistence.MSSQL;
+using Common.Tests.Integration.Constants;
 using Common.Tests.Integration.Factory;
 using Common.Tests.Integration.Helpers;
+using Common.Tests.Integration.Mocks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -69,6 +74,31 @@ namespace Common.Tests.Integration.Fixtures
             OutboxMessagesHelper = new OutboxMessagesHelper(outbox);
             ResetState().GetAwaiter().GetResult();
         }
+
+        public MockAuthUser CreateAdminUserMock()
+        {
+            var roleClaims = UsersConstants.AdminUserMock.Roles.Select(role => new Claim(ClaimTypes.Role, role.Name));
+            var otherClaims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, UsersConstants.AdminUserMock.UserId),
+                new(ClaimTypes.Name, UsersConstants.AdminUserMock.UserName),
+                new(ClaimTypes.Email, UsersConstants.AdminUserMock.UserEmail)
+            };
+            return _ = new MockAuthUser(roleClaims.Concat(otherClaims).ToArray());
+        }
+
+        public MockAuthUser CreateNormalUserMock()
+        {
+            var roleClaims = UsersConstants.NormalUserMock.Roles.Select(role => new Claim(ClaimTypes.Role, role.Name));
+            var otherClaims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, UsersConstants.NormalUserMock.UserId),
+                new(ClaimTypes.Name, UsersConstants.NormalUserMock.UserName),
+                new(ClaimTypes.Email, UsersConstants.NormalUserMock.UserEmail)
+            };
+            return _ = new MockAuthUser(roleClaims.Concat(otherClaims).ToArray());
+        }
+
 
         protected virtual void ConfigureTestServices(IServiceCollection services)
         {

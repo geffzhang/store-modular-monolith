@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Features.Users.ValidatePasswordResetToken;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.ValidatePasswordResetToken
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Features.ValidatePasswordResetToken
 {
     public class ValidatePasswordResetTokenCommandHandler : ICommandHandler<ValidatePasswordResetTokenCommand>
     {

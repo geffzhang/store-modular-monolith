@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 
-namespace Common.Utils.Extensions
+namespace Common.Web.Extensions
 {
     //https://khalidabuhakmeh.com/read-and-convert-querycollection-values-in-aspnet
     public static class QueryCollectionExtensions

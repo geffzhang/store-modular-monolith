@@ -6,7 +6,7 @@ using OnlineStore.Modules.Identity.Application.Features.Users.ResetUserPassword;
 using OnlineStore.Modules.Identity.Domain.Users.Services;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.ResetUserPassword
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Features.ResetUserPassword
 {
     public class ResetUserPasswordCommandHandler : ICommandHandler<ResetUserPasswordCommand>
     {

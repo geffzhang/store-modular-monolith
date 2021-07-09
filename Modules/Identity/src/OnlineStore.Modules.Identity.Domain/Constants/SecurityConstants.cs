@@ -54,7 +54,7 @@ namespace OnlineStore.Modules.Identity.Domain.Constants
             public const string ViewUsers = "user:view";
 
             // Admin Permissions
-            public const string SeeAdminsDetail = "admin:view";
+            public const string SeeAdminsDetail = "admin:detail";
             public const string EditAdmins = "admin:edit";
             public const string CreateAdmins = "admin:create";
             public const string DeleteAdmins = "admin:delete";

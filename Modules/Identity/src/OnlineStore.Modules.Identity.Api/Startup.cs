@@ -1,26 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using Common.Modules;
 using Common.Web;
-using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
-using Microsoft.OpenApi.Models;
 using OnlineStore.Modules.Identity.Api.Extensions;
-using OnlineStore.Modules.Identity.Application;
 using OnlineStore.Modules.Identity.Application.Extensions;
-using OnlineStore.Modules.Identity.Domain.Configurations.Settings;
 using OnlineStore.Modules.Identity.Infrastructure.Extensions;
+using Common.Web.Extensions;
 
 namespace OnlineStore.Modules.Identity.Api
 {

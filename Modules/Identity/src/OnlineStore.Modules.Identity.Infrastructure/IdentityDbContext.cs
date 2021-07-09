@@ -22,7 +22,13 @@ namespace OnlineStore.Modules.Identity.Infrastructure
     /// https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity
     /// https://docs.microsoft.com/en-us/dotnet/architecture/microservices/secure-net-microservices-web-applications
     /// </summary>
-    public sealed class IdentityDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>, ISqlDbContext
+    public sealed class IdentityDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string,
+            IdentityUserClaim<string>,
+            ApplicationUserRole,
+            IdentityUserLogin<string>,
+            IdentityRoleClaim<string>,
+            IdentityUserToken<string>>,
+        ISqlDbContext
     {
         private IDbContextTransaction _currentTransaction;
 
@@ -36,15 +42,42 @@ namespace OnlineStore.Modules.Identity.Infrastructure
         {
             base.OnModelCreating(builder);
             builder.ApplyConfiguration(new OutboxMessageEntityTypeConfiguration());
-            builder.Entity<IdentityUserRole<string>>(userRole =>
-            {
-                userRole.HasOne<ApplicationRole>()
-                    .WithMany(r => r.UserRoles)
-                    .HasForeignKey(ur => ur.RoleId);
 
-                userRole.HasOne<ApplicationUser>()
-                    .WithMany(r => r.UserRoles)
-                    .HasForeignKey(ur => ur.UserId);
+            //https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model#add-navigation-properties
+            builder.Entity<ApplicationUser>(b =>
+            {
+                // Each User can have many UserClaims
+                b.HasMany(e => e.Claims)
+                    .WithOne()
+                    .HasForeignKey(uc => uc.UserId)
+                    .IsRequired();
+
+                // Each User can have many UserLogins
+                b.HasMany(e => e.Logins)
+                    .WithOne()
+                    .HasForeignKey(ul => ul.UserId)
+                    .IsRequired();
+
+                // Each User can have many UserTokens
+                b.HasMany(e => e.Tokens)
+                    .WithOne()
+                    .HasForeignKey(ut => ut.UserId)
+                    .IsRequired();
+
+                // Each User can have many entries in the UserRole join table
+                b.HasMany(e => e.UserRoles)
+                    .WithOne(e => e.User)
+                    .HasForeignKey(ur => ur.UserId)
+                    .IsRequired();
+            });
+
+            builder.Entity<ApplicationRole>(b =>
+            {
+                // Each Role can have many entries in the UserRole join table
+                b.HasMany(e => e.UserRoles)
+                    .WithOne(e => e.Role)
+                    .HasForeignKey(ur => ur.RoleId)
+                    .IsRequired();
             });
 
             builder.Entity<ApplicationUser>()
@@ -60,9 +93,10 @@ namespace OnlineStore.Modules.Identity.Infrastructure
             builder.Entity<IdentityUserLogin<string>>().Property(x => x.UserId).HasMaxLength(128);
             builder.Entity<IdentityUserLogin<string>>().Property(x => x.LoginProvider).HasMaxLength(128);
             builder.Entity<IdentityUserLogin<string>>().Property(x => x.ProviderKey).HasMaxLength(128);
-            builder.Entity<IdentityUserRole<string>>().Property(x => x.UserId).HasMaxLength(128);
-            builder.Entity<IdentityUserRole<string>>().Property(x => x.RoleId).HasColumnName("RoleCode").HasMaxLength(50);
-            builder.Entity<IdentityRoleClaim<string>>().Property(x => x.RoleId).HasColumnName("RoleCode").HasMaxLength(50);
+            builder.Entity<ApplicationUserRole>().Property(x => x.UserId).HasMaxLength(128);
+            builder.Entity<ApplicationUserRole>().Property(x => x.RoleId).HasColumnName("RoleCode").HasMaxLength(50);
+            builder.Entity<IdentityRoleClaim<string>>().Property(x => x.RoleId).HasColumnName("RoleCode")
+                .HasMaxLength(50);
             builder.Entity<IdentityUserToken<string>>().Property(x => x.UserId).HasMaxLength(128);
 
             MapsTables(builder);
@@ -75,7 +109,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure
             builder.Entity<IdentityUserLogin<string>>(b => { b.ToTable("UserLogin"); }).HasDefaultSchema("identities");
             builder.Entity<IdentityUserToken<string>>(b => { b.ToTable("UserToken"); }).HasDefaultSchema("identities");
             builder.Entity<ApplicationRole>(b => { b.ToTable("Role"); }).HasDefaultSchema("identities");
-            builder.Entity<IdentityUserRole<string>>(b => { b.ToTable("UserRoles"); }).HasDefaultSchema("identities");
+            builder.Entity<ApplicationUserRole>(b => { b.ToTable("UserRoles"); }).HasDefaultSchema("identities");
             builder.Entity<IdentityRoleClaim<string>>(b => { b.ToTable("RoleClaim"); }).HasDefaultSchema("identities");
         }
 

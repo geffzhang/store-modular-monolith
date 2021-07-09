@@ -25,15 +25,15 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models
         public bool PasswordExpired { get; set; }
         public DateTime? LastPasswordChangedDate { get; set; }
         public IList<Permission> Permissions { get; set; }
-        public IList<ApplicationRole> Roles { get; set; }
+        public IList<ApplicationRole> Roles { get; set; } // will be used in UserManager for create a user role and add it to UserRoles property of this class
 
         // .Net identity navigations -> https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model#add-navigation-properties
-        public virtual ICollection<IdentityUserRole<string>> UserRoles { get; set; }
+        // Only Used by DbContext
+        public virtual ICollection<ApplicationUserRole> UserRoles { get; set; }
+        public virtual ICollection<IdentityUserClaim<string>> Claims { get; set; }
+        public virtual ICollection<IdentityUserLogin<string>> Logins { get; set; }
+        public virtual ICollection<IdentityUserToken<string>> Tokens { get; set; }
 
-        /// <summary>
-        /// External provider logins.
-        /// </summary>
-        public virtual ApplicationUserLogin[] Logins { get; set; }
 
         public virtual void Patch(ApplicationUser target)
         {
