@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineStore.Modules.Identity.Api;
 using OnlineStore.Modules.Identity.Application.Features.System;
+using OnlineStore.Modules.Identity.Application.Features.Users.GetUserById;
 using OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser;
 using OnlineStore.Modules.Identity.Infrastructure;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
@@ -57,17 +58,15 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
             await _fixture.SendAsync(registerUserCommand);
 
             //Assert
-            // var query = new GetUserByIdQuery(registerUserCommand.Id);
-            var userManager = _fixture.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var created = await userManager.FindByIdAsync(registerUserCommand.Id.ToString());
-            // var created = await _fixture.QueryAsync(query);
+            var query = new GetUserByIdQuery(registerUserCommand.Id);
+            var created = await _fixture.QueryAsync(query);
 
             created.Should().NotBeNull();
             created.Id.Should().Be(registerUserCommand.Id.ToString());
             created.CreatedBy.Should().BeEquivalentTo(UsersConstants.AdminUserMock.UserName);
             created.Roles.Should().NotBeNull();
-            created.Roles.Select(role => role.Name).Should().BeEquivalentTo(UserRegistrationSampleData.Roles);
-            created.Permissions.Select(permission => permission.Name).Should()
+            created.Roles.Select(role => role).Should().BeEquivalentTo(UserRegistrationSampleData.Roles);
+            created.Permissions.Select(permission => permission).Should()
                 .BeEquivalentTo(UserRegistrationSampleData.Permissions);
 
             var messagesList = await _fixture.OutboxMessagesHelper.GetOutboxMessages();
