@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using AutoMapper;
-using Common.Messaging.Queries;
+using Common.Core.Messaging.Queries;
 using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 

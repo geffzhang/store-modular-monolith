@@ -1,4 +1,4 @@
-﻿using Common.Types;
+﻿using Common.Core.Types;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses

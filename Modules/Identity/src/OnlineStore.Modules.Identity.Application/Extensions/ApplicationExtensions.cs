@@ -1,8 +1,6 @@
 ﻿using System.Reflection;
-using Common.Domain;
-using Common.Domain.Dispatching;
+using Common.Core.Domain.Dispatching;
 using Microsoft.Extensions.DependencyInjection;
-using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
 using OnlineStore.Modules.Identity.Application.Features.Users;
 using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 

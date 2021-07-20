@@ -1,0 +1,11 @@
+﻿namespace Common.Core.Messaging.Queries
+{
+    //Marker
+    public interface IQuery
+    {
+    }
+
+    public interface IQuery<T> : IQuery
+    {
+    }
+}

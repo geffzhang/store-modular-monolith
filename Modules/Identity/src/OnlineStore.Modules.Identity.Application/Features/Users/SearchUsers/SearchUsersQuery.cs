@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Common.Domain.Types;
-using Common.Messaging.Queries;
-using Common.Types;
+using Common.Core.Messaging.Queries;
+using Common.Core.Types;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.SearchUsers
 {

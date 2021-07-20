@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Ardalis.GuardClauses;
-using Common.Extensions;
-using Common.Messaging.Commands;
+using Common.Core.Extensions;
+using Common.Core.Messaging.Commands;
 using Microsoft.AspNetCore.Http;
 using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineStore.Modules.Identity.Application.Features.Users.Exceptions;

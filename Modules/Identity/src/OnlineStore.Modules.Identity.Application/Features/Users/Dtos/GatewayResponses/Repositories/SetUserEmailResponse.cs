@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Common.Types;
+using Common.Core.Types;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.Dtos.GatewayResponses.Repositories
 {

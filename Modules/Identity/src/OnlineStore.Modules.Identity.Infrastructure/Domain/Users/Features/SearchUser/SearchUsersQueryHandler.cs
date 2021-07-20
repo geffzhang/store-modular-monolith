@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Common.Messaging.Queries;
-using Common.Utils.Reflection;
+using Common.Core.Messaging.Queries;
+using Common.Core.Utils.Reflection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Modules.Identity.Application.Features.Users.Exceptions;

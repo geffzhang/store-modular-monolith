@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Common.Domain.Types;
+using Common.Core.Domain.Types;
 using OnlineStore.Modules.Identity.Domain.Constants;
 
 namespace OnlineStore.Modules.Identity.Domain.Users

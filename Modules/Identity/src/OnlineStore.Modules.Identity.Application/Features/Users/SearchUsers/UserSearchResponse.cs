@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
-using Common.Domain.Types;
-using Common.Types;
+using Common.Core.Types;
 using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.SearchUsers

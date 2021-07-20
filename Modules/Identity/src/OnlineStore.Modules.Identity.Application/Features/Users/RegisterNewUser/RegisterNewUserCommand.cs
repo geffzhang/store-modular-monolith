@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using Common.Messaging.Commands;
+using Common.Core.Messaging;
+using Common.Core.Messaging.Commands;
+using Common.Messaging;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser
 {
-    public class RegisterNewUserCommand : ICommand
+    public class RegisterNewUserCommand : IMessage, ICommand
     {
-        public RegisterNewUserCommand(Guid id, string email, string firstName, string lastName,
-            string name, string userName, string password, 
+        public RegisterNewUserCommand(string email, string firstName, string lastName,
+            string name, string userName, string password,
             IReadOnlyList<string> permissions, UserType userType, bool isAdmin = false, bool isActive = true,
             IReadOnlyList<string>? roles = null, bool locked = false, bool emailConfirmed = false,
             string? photoUrl = null, string? status = null)
         {
             UserName = userName;
             IsActive = true;
-            Id = id;
             Email = email.ToLowerInvariant();
             FirstName = firstName;
             LastName = lastName;
@@ -31,6 +32,7 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
             IsAdministrator = isAdmin;
             IsActive = isActive;
         }
+
         public string UserName { get; }
         public bool EmailConfirmed { get; }
         public string Email { get; }
@@ -46,7 +48,8 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
         public bool IsActive { get; }
         public IEnumerable<string>? Roles { get; }
         public IEnumerable<string>? Permissions { get; }
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public Guid CorrelationId { get; set; }
+        public DateTime OccurredOn { get; set; } = DateTime.Now;
     }
 }

@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Ardalis.GuardClauses;
-using Common;
-using Common.Messaging.Commands;
+using Common.Core;
+using Common.Core.Messaging.Commands;
 using Microsoft.Extensions.Logging;
 using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineStore.Modules.Identity.Application.Features.Users.Exceptions;
@@ -82,7 +82,7 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
             });
 
             //Option1: Using our decorators for handling these operations automatically
-            //Option 2: Explicit calling domain events 
+            //Option 2: Explicit calling domain events
 
             // var domainEvents = user.Events.ToArray();
             // await _commandProcessor.PublishDomainEventAsync(domainEvents); // will raise our notification event

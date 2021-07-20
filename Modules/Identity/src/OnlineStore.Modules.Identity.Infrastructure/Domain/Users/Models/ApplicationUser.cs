@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Common.Domain.Types;
+using Common.Core.Domain.Types;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;

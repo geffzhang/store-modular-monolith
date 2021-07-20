@@ -1,4 +1,4 @@
-using Common.Domain.Types;
+using Common.Core.Domain.Types;
 using OnlineStore.Modules.Identity.Domain.Users;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Events

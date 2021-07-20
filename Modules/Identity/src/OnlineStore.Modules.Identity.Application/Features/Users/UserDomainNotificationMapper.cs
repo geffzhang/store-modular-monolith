@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Common.Domain;
-using Common.Domain.Dispatching;
+using Common.Core.Domain.Dispatching;
 using OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users

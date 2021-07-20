@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
-using Common.Domain.Types;
-using Common.Types;
+using Common.Core.Types;
 using OnlineStore.Modules.Identity.Domain.Users;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Roles.Dtos

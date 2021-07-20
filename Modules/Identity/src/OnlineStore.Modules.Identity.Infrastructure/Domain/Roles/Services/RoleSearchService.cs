@@ -1,8 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Common.Domain;
-using Common.Utils.Reflection;
+using Common.Core.Utils.Reflection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Modules.Identity.Application.Features.Roles.Dtos;

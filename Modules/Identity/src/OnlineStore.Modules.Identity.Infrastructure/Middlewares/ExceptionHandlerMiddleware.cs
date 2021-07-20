@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Common.Exceptions;
+using Common.Core.Exceptions;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Middlewares
 {

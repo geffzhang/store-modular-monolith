@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Common.Domain;
-using Common.Domain.Types;
-using Common.Messaging.Outbox;
+using Common.Core.Domain;
+using Common.Core.Domain.Types;
+using Common.Core.Messaging.Outbox;
 using Common.Persistence.MSSQL;
 using Common.Persistence.MSSQL.Configurations;
+using EntityFramework.Exceptions.SqlServer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +37,12 @@ namespace OnlineStore.Modules.Identity.Infrastructure
         }
 
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            //https://github.com/Giorgi/EntityFramework.Exceptions
+            optionsBuilder.UseExceptionProcessor();
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

@@ -1,5 +1,5 @@
 using System;
-using Common.Messaging.Queries;
+using Common.Core.Messaging.Queries;
 using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.GetUserById

@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Common.Messaging.Queries;
+using Common.Core.Messaging.Queries;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;

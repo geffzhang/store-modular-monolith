@@ -1,5 +1,5 @@
 using System;
-using Common.Messaging.Commands;
+using Common.Core.Messaging.Commands;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.ForgotPassword
 {

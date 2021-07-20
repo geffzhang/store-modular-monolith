@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
-using Common.Extensions;
+using Common.Core.Extensions;
 using Common.Persistence.MSSQL;
 using Common.Tests.Integration.Constants;
 using Common.Tests.Integration.Extensions;
@@ -63,7 +63,11 @@ namespace Common.Tests.Integration.Factory
             // builder = builder.UseSerilog();
 
             // to log in xunit output
-            builder = builder.UseSerilog((_, _, configuration) => configuration.WriteTo.Xunit(OutputHelper));
+            builder = builder.UseSerilog((_, _, configuration) =>
+            {
+                if (OutputHelper is not null)
+                    configuration.WriteTo.Xunit(OutputHelper);
+            });
 
             return builder;
         }

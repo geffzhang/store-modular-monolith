@@ -1,5 +1,5 @@
 using System;
-using Common.Exceptions;
+using Common.Core.Exceptions;
 
 namespace OnlineStore.Modules.Identity.Domain.Exceptions
 {

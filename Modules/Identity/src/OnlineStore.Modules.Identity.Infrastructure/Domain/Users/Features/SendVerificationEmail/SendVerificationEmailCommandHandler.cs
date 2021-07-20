@@ -1,8 +1,7 @@
 using System.Text;
 using System.Threading.Tasks;
-using Common.Mail;
-using Common.Messaging.Commands;
-using Common.Scheduling;
+using Common.Core.Mail;
+using Common.Core.Messaging.Commands;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using OnlineStore.Modules.Identity.Application.Features.Users.SendVerificationEmail;

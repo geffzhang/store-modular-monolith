@@ -1,5 +1,5 @@
 using System;
-using Common.Domain.Types;
+using Common.Core.Domain.Types;
 using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser

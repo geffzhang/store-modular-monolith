@@ -1,4 +1,4 @@
-﻿using Common.Types;
+﻿using Common.Core.Types;
 using OpenIddict.Abstractions;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Search.Dtos

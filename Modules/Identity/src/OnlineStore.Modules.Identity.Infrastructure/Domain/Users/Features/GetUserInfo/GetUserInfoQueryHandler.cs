@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
-using Common.Messaging.Queries;
+using Common.Core.Messaging.Queries;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;

@@ -1,5 +1,4 @@
-﻿using Common.Domain.Types;
-using Common.Types;
+﻿using Common.Core.Types;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Roles.Dtos
 {

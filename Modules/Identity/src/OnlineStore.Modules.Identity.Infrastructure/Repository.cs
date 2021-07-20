@@ -1,5 +1,5 @@
 using System;
-using Common.Domain.Types;
+using Common.Core.Domain.Types;
 using Common.Persistence.MSSQL;
 
 namespace OnlineStore.Modules.Identity.Infrastructure

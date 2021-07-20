@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Common.Messaging.Commands;
+using Common.Core.Messaging.Commands;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Features.Users.RequestPasswordReset;
 using OnlineStore.Modules.Identity.Domain.Users.Services;

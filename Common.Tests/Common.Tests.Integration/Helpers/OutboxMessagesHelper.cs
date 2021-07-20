@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Common.Domain;
-using Common.Messaging.Outbox;
+using Common.Core.Domain;
+using Common.Core.Messaging.Outbox;
 using Common.Web;
 using Dapper;
 using Newtonsoft.Json;

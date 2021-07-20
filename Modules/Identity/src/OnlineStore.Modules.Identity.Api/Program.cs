@@ -2,10 +2,12 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Common;
+using Common.Core;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using OnlineStore.Modules.Identity.Application.Features.System;
 using OnlineStore.Modules.Identity.Infrastructure;
 using Serilog;
@@ -21,7 +23,23 @@ namespace OnlineStore.Modules.Identity.Api
     {
         public static async Task Main(string[] args)
         {
+            //in .net 5 this is default format
             Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+            Activity.ForceDefaultIdFormat = true;
+
+            var listener = new ActivityListener
+            {
+                ShouldListenTo = _ => true, // listener names
+                ActivityStopped = activity =>
+                {
+                    foreach (var (key, value) in activity.Baggage)
+                    {
+                        activity.AddTag(key, value);
+                    }
+                }
+            };
+            ActivitySource.AddActivityListener(listener);
+
             //https://github.com/serilog/serilog-aspnetcore
             // The initial "bootstrap" logger is able to log errors during start-up. It's completely replaced by the
             // logger configured in `UseSerilog()` below, once configuration and dependency-injection have both been

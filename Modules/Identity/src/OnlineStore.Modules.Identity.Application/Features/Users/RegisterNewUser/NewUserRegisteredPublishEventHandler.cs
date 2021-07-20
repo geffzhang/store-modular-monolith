@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Common;
-using Common.Domain;
+using Common.Core;
+using Common.Core.Domain;
 using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser
@@ -24,7 +24,10 @@ namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUse
         public async Task HandleAsync(NewUserRegisteredNotification notification)
         {
             var integrationEvents = _userDomainToIntegrationEventMapper.Map(notification.DomainEvent).ToArray();
-            await _commandProcessor.PublishMessageAsync(integrationEvents);
+            foreach (var integrationEvent in integrationEvents)
+            {
+                await _commandProcessor.PublishMessageAsync(integrationEvent);
+            }
         }
     }
 }

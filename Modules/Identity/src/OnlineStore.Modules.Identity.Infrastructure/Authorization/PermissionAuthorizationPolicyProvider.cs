@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Common.Caching.Caching;
+using Common.Core.Caching;
 using EasyCaching.Core;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;

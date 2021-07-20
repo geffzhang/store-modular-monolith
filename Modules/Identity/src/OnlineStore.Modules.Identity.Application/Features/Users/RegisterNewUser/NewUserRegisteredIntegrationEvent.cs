@@ -1,5 +1,5 @@
 using System;
-using Common.Messaging.Events;
+using Common.Core.Messaging.Events;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser
 {

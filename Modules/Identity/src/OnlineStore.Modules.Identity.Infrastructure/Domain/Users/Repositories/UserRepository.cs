@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Common.Domain.Types;
-using Common.Types;
+using Common.Core.Types;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.GatewayResponses.Repositories;

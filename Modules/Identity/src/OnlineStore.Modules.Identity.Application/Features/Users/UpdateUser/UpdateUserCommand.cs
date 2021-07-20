@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Common.Messaging.Commands;
+using Common.Core.Messaging.Commands;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.UpdateUser

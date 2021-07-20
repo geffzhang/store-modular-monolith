@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Common.Messaging.Commands;
+using Common.Core.Messaging.Commands;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Features.Users.ChangeUserPassword;
 using OnlineStore.Modules.Identity.Application.Features.Users.Exceptions;

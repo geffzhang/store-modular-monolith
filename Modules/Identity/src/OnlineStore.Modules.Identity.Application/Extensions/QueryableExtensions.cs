@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Common.Domain.Types;
-using Common.Exceptions;
-using Common.Persistence;
-using Common.Persistence.Specification;
-using Common.Types;
+using Common.Core.Domain.Types;
+using Common.Core.Exceptions;
+using Common.Core.Persistence.Specification;
+using Common.Core.Types;
 using Microsoft.EntityFrameworkCore;
 
 namespace OnlineStore.Modules.Identity.Application.Extensions

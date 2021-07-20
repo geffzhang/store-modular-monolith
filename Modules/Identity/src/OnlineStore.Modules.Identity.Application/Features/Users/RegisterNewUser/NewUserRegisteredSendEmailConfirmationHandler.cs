@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using Common.Domain;
-using Common.Scheduling;
+using Common.Core.Domain;
+using Common.Core.Scheduling;
 using Microsoft.AspNetCore.Http;
 using OnlineStore.Modules.Identity.Application.Features.Users.SendVerificationEmail;
 

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using AspNet.Security.OAuth.Validation;
 using AutoMapper;
 using Common;
-using Common.Extensions;
+using Common.Core;
+using Common.Core.Messaging;
 using Common.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -214,7 +215,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [ProducesDefaultResponseType]
         public async Task<ActionResult> CreateAsync([FromBody] RegisterNewUserRequest request)
         {
-            var command = new RegisterNewUserCommand(request.Id.BindId(),
+            var command = new RegisterNewUserCommand(
                 request.Email,
                 request.FirstName,
                 request.LastName,
@@ -231,7 +232,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
                 request.PhotoUrl,
                 request.Status);
 
-            await _commandProcessor.SendCommandAsync(command);
+            // await _commandProcessor.SendCommandAsync(command);
 
             return CreatedAtAction(nameof(GetUserById), new {id = command.Id}, command);
         }

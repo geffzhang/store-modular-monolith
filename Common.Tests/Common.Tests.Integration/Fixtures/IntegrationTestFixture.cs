@@ -1,13 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Common.Core;
+using Common.Core.Messaging;
+using Common.Core.Messaging.Commands;
+using Common.Core.Messaging.Diagnostics.Events;
+using Common.Core.Messaging.Outbox;
+using Common.Core.Messaging.Queries;
+using Common.Core.Messaging.Transport;
 using Common.Messaging;
-using Common.Messaging.Commands;
 using Common.Messaging.Outbox;
-using Common.Messaging.Queries;
 using Common.Persistence.MSSQL;
 using Common.Tests.Integration.Constants;
 using Common.Tests.Integration.Factory;
@@ -44,6 +52,7 @@ namespace Common.Tests.Integration.Fixtures
         public IServiceProvider ServiceProvider => _factory.Services;
         public IConfiguration Configuration => _factory.Configuration;
         public ISqlConnectionFactory ConnectionFactory => ServiceProvider.GetRequiredService<ISqlConnectionFactory>();
+        public ITransport Transport => ServiceProvider.GetRequiredService<ITransport>();
 
         public IntegrationTestFixture()
         {
@@ -92,7 +101,8 @@ namespace Common.Tests.Integration.Fixtures
         {
             try
             {
-                var connection = OptionsHelper.GetOptions<MssqlOptions>("mssql", "appsettings.tests.json").ConnectionString;
+                var connection = OptionsHelper.GetOptions<MssqlOptions>("mssql", "appsettings.tests.json")
+                    .ConnectionString;
                 await _checkpoint.Reset(connection);
             }
             catch (Exception e)
@@ -239,6 +249,159 @@ namespace Common.Tests.Integration.Fixtures
         public Task<T> FindAsync<T>(object id) where T : class
         {
             return ExecuteDbContextAsync(db => db.Set<T>().FindAsync(id).AsTask());
+        }
+
+        public Task PublishAsync<TMessage>(TMessage message) where TMessage : class, IMessage
+        {
+            return ExecuteScopeAsync(sp =>
+            {
+                var commandProcessor = sp.GetRequiredService<ICommandProcessor>();
+
+                return commandProcessor.PublishMessageAsync(message);
+            });
+        }
+
+        public Task Subscribe()
+        {
+            return ExecuteScopeAsync(sp =>
+            {
+                var transport = sp.GetRequiredService<ITransport>();
+                return transport.StartAsync();
+            });
+        }
+
+
+        public Task UnSubscribe()
+        {
+            return ExecuteScopeAsync(sp =>
+            {
+                var transport = sp.GetRequiredService<ITransport>();
+                return transport.StopAsync();
+            });
+        }
+        public Task<ObservedMessageContexts> ExecuteAndWaitForHandled<TMessageHandled>(
+            Func<Task> testAction,
+            TimeSpan? timeout = null) =>
+            ExecuteAndWait<IMessage>(
+                testAction,
+                timeout);
+
+        public Task<ObservedMessageContexts> ExecuteAndWaitForSent<TMessage>(
+            Func<Task> testAction,
+            TimeSpan? timeout = null) =>
+            ExecuteAndWait<IMessage>(
+                testAction,
+                timeout);
+
+        public Task<ObservedMessageContexts> ExecuteAndWait(
+            Func<Task> testAction,
+            TimeSpan? timeout = null) =>
+            ExecuteAndWait<IMessage>(testAction, timeout);
+
+        public async Task<ObservedMessageContexts> ExecuteAndWait<TMessage>(
+            Func<Task> testAction,
+            TimeSpan? timeout = null)
+            where TMessage : IMessage
+        {
+            timeout ??= TimeSpan.FromSeconds(120);
+            var taskCompletionSource = new TaskCompletionSource();
+
+            var incomingMessages = new List<IMessage>();
+            var outgoingMessages = new List<IMessage>();
+
+            var obs = Observable.Empty<IMessage>();
+
+            DiagnosticListener.AllListeners.Subscribe(delegate(DiagnosticListener listener)
+            {
+                // listen for 'MySampleLibrary' DiagnosticListener which inherits from abstract class DiagnosticSource
+                if (listener.Name == Core.Messaging.Diagnostics.Constants.Activities.InMemoryConsumerActivityName)
+                {
+                    //listen to specific event of listener
+                    listener.Subscribe((pair) =>
+                    {
+                        if (pair.Key == Core.Messaging.Diagnostics.Constants.Events.AfterProcessInMemoryMessage)
+                        {
+                            var incomingObs = listener
+                                .Select(e => e.Value)
+                                .Cast<IMessage>();
+
+                            incomingObs.Subscribe(incomingMessages.Add);
+                            obs = obs.Merge(incomingObs);
+                        }
+                    });
+                }
+
+                if (listener.Name == Core.Messaging.Diagnostics.Constants.Activities.InMemoryProducerActivityName)
+                {
+                    listener.Subscribe((pair) =>
+                    {
+                        if (pair.Key == Core.Messaging.Diagnostics.Constants.Events.AfterSendInMemoryMessage)
+                        {
+                            var outgoingObs = listener
+                                .Select(e => e.Value)
+                                .Cast<IMessage>();
+
+                            outgoingObs.Subscribe(outgoingMessages.Add);
+                            obs = obs.Merge(outgoingObs);
+                        }
+                    });
+                }
+            });
+
+
+            var finalObs = obs.Cast<TMessage>().TakeUntil(x => x.GetType() == typeof(TMessage));
+            finalObs = finalObs.Timeout(timeout.Value);
+
+            await testAction();
+
+            // Force the observable to complete
+            await finalObs.LastOrDefaultAsync();
+
+            return new ObservedMessageContexts(
+                incomingMessages,
+                outgoingMessages);
+        }
+
+
+        public TaskCompletionSource  EnsureReceivedMessageToConsumer<TMessage>(TMessage message = null,
+            TimeSpan? timeout = null)
+            where TMessage : class, IMessage
+        {
+            var taskCompletionSource = new TaskCompletionSource();
+
+            DiagnosticListener.AllListeners.Subscribe(delegate(DiagnosticListener listener)
+            {
+                if (listener.Name == Core.Messaging.Diagnostics.Constants.Activities.InMemoryConsumerActivityName)
+                {
+                    //listen to specific event of listener
+                    listener.Subscribe((pair) =>
+                    {
+                        if (pair.Key == Core.Messaging.Diagnostics.Constants.Events.AfterProcessInMemoryMessage)
+                        {
+                            taskCompletionSource.TrySetResult();
+                        }
+                    });
+                }
+
+                if (listener.Name == Core.Messaging.Diagnostics.Constants.Activities.InMemoryProducerActivityName)
+                {
+                    listener.Subscribe((pair) =>
+                    {
+                        if (pair.Key == Core.Messaging.Diagnostics.Constants.Events.AfterSendInMemoryMessage)
+                        {
+                            var sentMessage = pair.Value as AfterSendMessage;
+                            if (sentMessage?.EventData.Id == message?.Id)
+                            {
+                            }
+                        }
+                    });
+                }
+            });
+
+            Observable.Interval(timeout ?? TimeSpan.FromSeconds(120))
+                .Subscribe(_ => taskCompletionSource.TrySetCanceled());
+
+            return taskCompletionSource;
         }
 
         public Task SendAsync<TRequest>(TRequest request) where TRequest : class, ICommand

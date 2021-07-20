@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Common.Domain.Types;
-using Common.Types;
+using Common.Core.Types;
 
 namespace OnlineStore.Modules.Identity.Api.Users.Models.Requests
 {

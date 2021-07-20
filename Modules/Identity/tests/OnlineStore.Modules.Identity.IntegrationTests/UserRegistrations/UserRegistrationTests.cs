@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Common;
-using Common.Extensions;
+using Common.Core.Extensions;
 using Common.Tests.Integration.Constants;
 using Common.Tests.Integration.Fixtures;
 using FluentAssertions;
@@ -28,7 +29,7 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
             ITestOutputHelper outputHelper)
         {
             _fixture = fixture;
-            _fixture.SetOutput(outputHelper);
+            //_fixture.SetOutput(outputHelper);
             var user = _fixture.CreateAdminUserMock();
 
             //setup the swaps for our tests
@@ -43,7 +44,7 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
         public async Task RegisterNewUserCommand_Test()
         {
             //Arrange
-            var registerUserCommand = new RegisterNewUserCommand(UserRegistrationSampleData.Id.BindId(),
+            var registerUserCommand = new RegisterNewUserCommand(
                 UserRegistrationSampleData.Email,
                 UserRegistrationSampleData.FirstName, UserRegistrationSampleData.LastName,
                 UserRegistrationSampleData.Name,
@@ -54,8 +55,14 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
                 UserRegistrationSampleData.EmailConfirmed, UserRegistrationSampleData.PhotoUrl,
                 UserRegistrationSampleData.Status);
 
-            //Act
-            await _fixture.SendAsync(registerUserCommand);
+            //async operation test simulation
+            // var tsc = _fixture.EnsureReceivedMessageToConsumer(registerUserCommand);
+            // await _fixture.PublishAsync(registerUserCommand); // send command asynchronously
+            // await tsc.Task;
+
+            await _fixture.SendAsync(registerUserCommand); // send command synchronously
+            var tsc = _fixture.EnsureReceivedMessageToConsumer<NewUserRegisteredIntegrationEvent>();
+            await tsc.Task;
 
             //Assert
             var query = new GetUserByIdQuery(registerUserCommand.Id);
@@ -68,7 +75,6 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
             created.Roles.Select(role => role).Should().BeEquivalentTo(UserRegistrationSampleData.Roles);
             created.Permissions.Select(permission => permission).Should()
                 .BeEquivalentTo(UserRegistrationSampleData.Permissions);
-
             var messagesList = await _fixture.OutboxMessagesHelper.GetOutboxMessages();
             messagesList.Count.Should().Be(1);
             var newUserRegisteredNotification =

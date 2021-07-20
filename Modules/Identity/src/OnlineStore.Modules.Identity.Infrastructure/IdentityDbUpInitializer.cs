@@ -1,4 +1,5 @@
 using System.Reflection;
+using Common.Core.Messaging.Outbox;
 using Common.Messaging.Outbox;
 using DbUp;
 

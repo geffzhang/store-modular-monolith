@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Security.Claims;
-using Common.Messaging.Queries;
+using Common.Core.Messaging.Queries;
 
 namespace OnlineStore.Modules.Identity.Application.Features.Users.GetUserInfo
 {

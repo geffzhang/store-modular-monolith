@@ -1,5 +1,5 @@
 using System.Linq;
-using Common.Extensions;
+using Common.Core.Extensions;
 using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Domain.Configurations.Options;
 using OnlineStore.Modules.Identity.Domain.Users.Services;

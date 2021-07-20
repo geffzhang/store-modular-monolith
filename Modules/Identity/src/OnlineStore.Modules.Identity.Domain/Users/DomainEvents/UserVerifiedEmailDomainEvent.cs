@@ -1,4 +1,4 @@
-﻿using Common.Domain.Types;
+﻿using Common.Core.Domain.Types;
 
 namespace OnlineStore.Modules.Identity.Domain.Users.DomainEvents
 {

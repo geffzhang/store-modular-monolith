@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Common.Domain.Types;
+using Common.Core.Domain.Types;
 using EntityFrameworkCore.Triggered;
-using OnlineStore.Modules.Identity.Domain.Users;
 using OnlineStore.Modules.Identity.Domain.Users.Services;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Triggers

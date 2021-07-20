@@ -1,9 +1,9 @@
-﻿using System.Reflection;
-using Common;
+﻿using System;
+using Common.Core.Extensions;
+using Common.Core.Scheduling;
 using Common.Messaging.Outbox.EFCore;
 using Common.Messaging.Scheduling.Hangfire.MessagesScheduler;
 using Common.Persistence.MSSQL;
-using Common.Scheduling;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -16,18 +16,13 @@ using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.System;
 using OnlineStore.Modules.Identity.Infrastructure.Middlewares;
 using Serilog;
-using Common.Dependency;
-using Common.Domain.Types;
-using Common.Extensions;
+using Common.Diagnostics;
 using Common.Logging.Serilog;
 using Common.Web.Extensions;
-using EntityFrameworkCore.Triggered;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
+using Messaging.Transport.InMemory;
 using OnlineStore.Modules.Identity.Application.Features.System;
-using OnlineStore.Modules.Identity.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Triggers;
-using Serilog.Events;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
 {
@@ -38,6 +33,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
         {
             services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
             services.AddCommon(configuration);
+
+            AddOTel(services);
+
             services.AddMssqlPersistence<IdentityDbContext>(configuration,
                 configurator: s => { s.AddRepository(typeof(Repository<>)); },
                 optionBuilder: options =>
@@ -46,6 +44,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
                     //     triggerOptions.AddTrigger<AuditTrigger>();
                     // });
                 });
+            services.AddInMemoryMessaging(configuration, "messaging");
             services.AddEntityFrameworkOutbox<IdentityDbContext>(configuration);
 
             AddScopeServices(services);
@@ -56,6 +55,23 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
             services.AddCaching(configuration);
 
             return services;
+        }
+
+        private static void AddOTel(IServiceCollection services)
+        {
+            services.AddInMemoryMessagingTelemetry();
+            services.AddOpenTelemetryTracing(builder => builder
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Identity.Api"))
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddSqlClientInstrumentation(opt => opt.SetDbStatementForText = true)
+                .AddZipkinExporter(o => { o.Endpoint = new Uri("http://localhost:9411/api/v2/spans"); })
+                .AddJaegerExporter(c =>
+                {
+                    c.AgentHost = "localhost";
+                    c.AgentPort = 6831;
+                })
+            );
         }
 
         private static void AddScopeServices(IServiceCollection services)

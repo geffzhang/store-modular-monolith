@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Common.Extensions;
+using Common.Core.Extensions;
 using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
 using OnlineStore.Modules.Identity.Application.Features.Users.Services;
 using OnlineStore.Modules.Identity.Domain.Configurations.Options;

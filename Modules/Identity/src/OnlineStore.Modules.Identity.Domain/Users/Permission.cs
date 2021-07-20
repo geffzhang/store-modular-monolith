@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using Common.Domain.Types;
-using Common.Extensions;
+using Common.Core.Domain.Types;
+using Common.Core.Extensions;
 using Newtonsoft.Json;
 using OnlineStore.Modules.Identity.Domain.Constants;
 

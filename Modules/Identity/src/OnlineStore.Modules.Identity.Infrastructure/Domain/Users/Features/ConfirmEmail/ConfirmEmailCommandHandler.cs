@@ -1,6 +1,6 @@
 using System.Text;
 using System.Threading.Tasks;
-using Common.Messaging.Commands;
+using Common.Core.Messaging.Commands;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using OnlineStore.Modules.Identity.Application.Features.Users.ConfirmEmail;

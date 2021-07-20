@@ -1,4 +1,4 @@
-using Common.Domain;
+using Common.Core.Domain;
 using OnlineStore.Modules.Identity.Domain.Users.Services;
 
 namespace OnlineStore.Modules.Identity.Domain.Users.Rules

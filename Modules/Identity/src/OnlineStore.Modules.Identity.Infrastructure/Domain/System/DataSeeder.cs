@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Common.Utils.Reflection;
+using Common.Core.Utils.Reflection;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
 using OnlineStore.Modules.Identity.Application.Features.System;
