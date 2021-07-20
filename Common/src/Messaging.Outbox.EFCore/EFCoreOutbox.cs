@@ -104,8 +104,7 @@ namespace Common.Messaging.Outbox.EFCore
             {
                 var type = _domainNotificationsMapper.GetType(outboxMessage.Type) ?? Type.GetType(outboxMessage.Type);
 
-                var domainEventNotification =
-                    _messageSerializer.Deserialize(outboxMessage.Payload, type) as IDomainEventNotification;
+                var domainEventNotification = _messageSerializer.Deserialize(outboxMessage.Payload, type);
                 if (domainEventNotification is null)
                 {
                     _logger.LogError(
@@ -118,14 +117,14 @@ namespace Common.Messaging.Outbox.EFCore
                 {
                     _logger.LogInformation(
                         "Publishing a DomainNotification : '{outboxMessage.Name}' with ID: '{domainEventNotification.Id}' (outbox)...",
-                        outboxMessage.Name, domainEventNotification.Id);
+                        outboxMessage.Name, (Guid) domainEventNotification.Id);
 
                     await _commandProcessor.PublishDomainEventNotificationAsync(domainEventNotification);
                     outboxMessage.SentAt = DateTime.UtcNow;
 
                     _logger.LogInformation(
                         "Published a message: '{outboxMessage.Name}' with ID: '{domainEventNotification.Id} (outbox)'.",
-                        outboxMessage.Name, domainEventNotification.Id);
+                        outboxMessage.Name, (Guid) domainEventNotification.Id);
                 }
             }
 

@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Common.Core.Utils.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.Core.Domain.Dispatching
@@ -15,19 +14,22 @@ namespace Common.Core.Domain.Dispatching
             _serviceProvider = serviceProvider;
         }
 
-        public async Task DispatchAsync(params IDomainEventNotification[] events)
+        public Task DispatchAsync(params IDomainEventNotification[] events)
         {
-            List<Task> tasks = new List<Task>();
             foreach (var @event in events)
             {
                 var handlerType = typeof(IDomainEventNotificationHandler<>).MakeGenericType(@event.GetType());
-                var handlers = _serviceProvider.GetServices(handlerType);
 
-                 tasks = handlers.Select(x => (Task) handlerType
-                    .GetMethod(nameof(IDomainEventNotificationHandler<IDomainEventNotification>.HandleAsync))
-                    ?.Invoke(x, new[] {@event})).ToList();
+                var handlers = _serviceProvider.GetServices(handlerType);
+                foreach (var handler in handlers)
+                {
+                    handlerType.GetMethod(
+                            nameof(IDomainEventNotificationHandler<IDomainEventNotification>.HandleAsync))
+                        ?.InvokeAsync(handler, new object[] {@event});
+                }
             }
-            await Task.WhenAll(tasks);
+
+            return Task.CompletedTask;
         }
     }
 }

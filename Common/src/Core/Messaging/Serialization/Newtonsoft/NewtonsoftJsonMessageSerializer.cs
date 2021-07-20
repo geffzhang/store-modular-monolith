@@ -36,7 +36,7 @@ namespace Common.Core.Messaging.Serialization.Newtonsoft
             return JsonConvert.DeserializeObject<T>(payload, CreateSerializerSettings(camelCase));
         }
 
-        public object Deserialize(string payload, Type type, bool camelCase = true)
+        public dynamic Deserialize(string payload, Type type, bool camelCase = true)
         {
             return JsonConvert.DeserializeObject(payload, type, CreateSerializerSettings(camelCase));
         }
