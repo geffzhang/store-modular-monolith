@@ -19,10 +19,11 @@ namespace Common.Core.Messaging
             {
                 return;
             }
-
-            var handlerType = typeof(IMessageHandler<>).MakeGenericType(message.GetType());
-            dynamic handler = _serviceProvider.GetRequiredService(handlerType);
-            await handler.HandleAsync(message);
+            var handler = _serviceProvider.GetRequiredService<IMessageHandler<T>>();
+            await handler?.HandleAsync(message);
+            // var handlerType = typeof(IMessageHandler<>).MakeGenericType(message.GetType());
+            // dynamic handler = _serviceProvider.GetRequiredService(handlerType);
+            // await handler.HandleAsync(message);
         }
     }
 }

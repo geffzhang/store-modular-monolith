@@ -56,13 +56,13 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
                 UserRegistrationSampleData.Status);
 
             //async operation test simulation
-            // var tsc = _fixture.EnsureReceivedMessageToConsumer(registerUserCommand);
-            // await _fixture.PublishAsync(registerUserCommand); // send command asynchronously
-            // await tsc.Task;
-
-            await _fixture.SendAsync(registerUserCommand); // send command synchronously
-            var tsc = _fixture.EnsureReceivedMessageToConsumer<NewUserRegisteredIntegrationEvent>();
+            var tsc = _fixture.EnsureReceivedMessageToConsumer(registerUserCommand);
+            await _fixture.PublishAsync(registerUserCommand); // send command asynchronously
             await tsc.Task;
+
+            // await _fixture.SendAsync(registerUserCommand); // send command synchronously
+            // var tsc = _fixture.EnsureReceivedMessageToConsumer<NewUserRegisteredIntegrationEvent>();
+            // await tsc.Task;
 
             //Assert
             var query = new GetUserByIdQuery(registerUserCommand.Id);
