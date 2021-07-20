@@ -14,7 +14,7 @@ namespace Common.Core.Domain.Dispatching
             _serviceProvider = serviceProvider;
         }
 
-        public Task DispatchAsync(params IDomainEventNotification[] events)
+        public Task DispatchAsync<T>(params T[] events) where T : class, IDomainEventNotification
         {
             foreach (var @event in events)
             {

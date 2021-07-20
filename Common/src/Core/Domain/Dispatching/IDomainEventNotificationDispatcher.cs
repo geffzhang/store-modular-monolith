@@ -4,6 +4,6 @@ namespace Common.Core.Domain.Dispatching
 {
     public interface IDomainEventNotificationDispatcher
     {
-        Task DispatchAsync(params IDomainEventNotification[] events);
+        Task DispatchAsync<T>(params T[] events) where T : class, IDomainEventNotification;
     }
 }

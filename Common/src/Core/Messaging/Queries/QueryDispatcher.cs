@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Common.Core.Utils.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.Core.Messaging.Queries
@@ -18,9 +19,9 @@ namespace Common.Core.Messaging.Queries
             var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResult));
             var handler = scope.ServiceProvider.GetRequiredService(handlerType);
 
-            return await (Task<TResult>) handlerType
+            return await handlerType
                 .GetMethod(nameof(IQueryHandler<IQuery<TResult>, TResult>.HandleAsync))?
-                .Invoke(handler, new[] {query});
+                .InvokeAsync(handler, new[] {query});
         }
 
         public async Task<TResult> QueryAsync<TQuery, TResult>(TQuery query) where TQuery : class, IQuery<TResult>

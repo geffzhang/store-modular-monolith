@@ -19,11 +19,7 @@ namespace Common.Core.Messaging.Commands
             {
                 return;
             }
-
-            var scope = _serviceProvider.CreateScope();
-            var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
-            dynamic handler = scope.ServiceProvider.GetRequiredService(handlerType);
-
+            var handler = _serviceProvider.GetRequiredService<ICommandHandler<T>>();
             await handler.HandleAsync(command);
         }
     }

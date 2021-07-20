@@ -234,20 +234,23 @@ namespace Common.Core.Utils.Reflection
         }
 
         //https://stackoverflow.com/a/39679855/581476
-        public static async Task<object> InvokeAsync(this MethodInfo methodInfo, object obj, params object[] parameters)
+        public static async Task<dynamic> InvokeAsync(this MethodInfo methodInfo, object obj,
+            params object[] parameters)
         {
             dynamic awaitable = methodInfo.Invoke(obj, parameters);
             return await awaitable;
         }
 
-        public static T CastTo<T>(this object o) => (T)o;
+        public static T CastTo<T>(this object o) => (T) o;
+
         //https://stackoverflow.com/a/55852845/581476
         public static dynamic CastToReflected(this object o, Type type)
         {
-            var methodInfo = typeof(ReflectionHelper).GetMethod(nameof(CastTo), BindingFlags.Static | BindingFlags.Public);
-            var genericArguments = new[] { type };
+            var methodInfo =
+                typeof(ReflectionHelper).GetMethod(nameof(CastTo), BindingFlags.Static | BindingFlags.Public);
+            var genericArguments = new[] {type};
             var genericMethodInfo = methodInfo?.MakeGenericMethod(genericArguments);
-            return genericMethodInfo?.Invoke(null, new[] { o });
+            return genericMethodInfo?.Invoke(null, new[] {o});
         }
 
         public static bool IsAssignableFromGenericList(this Type type)

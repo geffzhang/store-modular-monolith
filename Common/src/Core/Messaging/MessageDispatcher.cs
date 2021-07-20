@@ -20,10 +20,7 @@ namespace Common.Core.Messaging
                 return;
             }
             var handler = _serviceProvider.GetRequiredService<IMessageHandler<T>>();
-            await handler?.HandleAsync(message);
-            // var handlerType = typeof(IMessageHandler<>).MakeGenericType(message.GetType());
-            // dynamic handler = _serviceProvider.GetRequiredService(handlerType);
-            // await handler.HandleAsync(message);
+            await handler.HandleAsync(message);
         }
     }
 }

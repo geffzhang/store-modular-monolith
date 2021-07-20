@@ -5,14 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.Core.Messaging.Events
 {
-    public class
-
-
-
-
-
-
-        EventDispatcher : IEventDispatcher
+    public class EventDispatcher : IEventDispatcher
     {
         private readonly IServiceProvider _serviceProvider;
 
@@ -28,9 +21,7 @@ namespace Common.Core.Messaging.Events
                 return;
             }
 
-            var handlerType = typeof(ICommandHandler<>).MakeGenericType(@event.GetType());
-            dynamic handler = _serviceProvider.GetRequiredService(handlerType);
-
+            var handler = _serviceProvider.GetRequiredService<IEventHandler<T>>();
             await handler.HandleAsync(@event);
         }
     }
