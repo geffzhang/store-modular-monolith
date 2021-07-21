@@ -4,7 +4,7 @@
     {
         public static class CustomEnvironments
         {
-            public const string Tests = "Tests";
+            public const string Test = "test";
         }
     }
 }

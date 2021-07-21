@@ -1,4 +1,5 @@
 using Common.Tests.Integration.Fixtures;
+using OnlineStore.API;
 using OnlineStore.Modules.Identity.Api;
 using OnlineStore.Modules.Identity.Infrastructure;
 using Xunit;

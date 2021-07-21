@@ -48,7 +48,7 @@ namespace Common.Tests.Integration.Fixtures
 
 
         protected IntegrationTest(OnlineStoreApplicationFactory<TEntryPoint> fixture, ITestOutputHelper outputHelper,
-            string environment = "tests")
+            string environment = "test")
         {
             //https://adamstorr.azurewebsites.net/blog/integration-testing-with-aspnetcore-3-1-remove-the-boiler-plate
             //a way to swap out dependencies or we can handle this swap easier in our custom WebApplicationFactory

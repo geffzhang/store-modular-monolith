@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using AspNet.Security.OAuth.Validation;
 using AutoMapper;
-using Common;
 using Common.Core;
 using Common.Core.Messaging;
-using Common.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -30,14 +27,10 @@ using OnlineStore.Modules.Identity.Application.Features.Users.RequestPasswordRes
 using OnlineStore.Modules.Identity.Application.Features.Users.ResetUserPassword;
 using OnlineStore.Modules.Identity.Application.Features.Users.SearchUsers;
 using OnlineStore.Modules.Identity.Application.Features.Users.ValidatePasswordResetToken;
-using OnlineStore.Modules.Identity.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Mappings;
-using OnlineStore.Modules.Identity.Domain.Users.DomainEvents;
 using OnlineStore.Modules.Identity.Domain.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
 using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
-using OnlineStore.Modules.Identity.Infrastructure.Extensions;
 using AuthorizationOptions = OnlineStore.Modules.Identity.Domain.Configurations.Options.AuthorizationOptions;
 
 namespace OnlineStore.Modules.Identity.Api.Users
@@ -109,7 +102,6 @@ namespace OnlineStore.Modules.Identity.Api.Users
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
         [Route("userinfo")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

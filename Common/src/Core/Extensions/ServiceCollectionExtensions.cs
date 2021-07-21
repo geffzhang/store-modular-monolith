@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Common.Core.Dependency.ServiceLocator;
 using Common.Core.Domain;
 using Common.Core.Domain.Dispatching;
 using Common.Core.Exceptions;
@@ -18,8 +17,6 @@ using Common.Core.Messaging.Transport;
 using Common.Core.Scheduling;
 using Common.Persistence.Mongo;
 using Common.Web.Contexts;
-using Humanizer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -35,7 +32,7 @@ namespace Common.Core.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddCommon(this IServiceCollection services, IConfiguration configuration,
+        public static IServiceCollection AddCore(this IServiceCollection services, IConfiguration configuration,
             IList<Assembly> assemblies = null
             // IList<IModule> modules = null,
         )
@@ -48,10 +45,6 @@ namespace Common.Core.Extensions
                 options.Converters = new List<JsonConverter> {new StringEnumConverter(new CamelCaseNamingStrategy())};
                 //options.UnSupportedTypes.Add<Test>();
             });
-
-            //Adding Auto Mapper
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
 
             services.AddCommand(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
             services.AddEvent(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
@@ -70,19 +63,7 @@ namespace Common.Core.Extensions
                 .AddSingleton<ICommandProcessor, CommandProcessor>()
                 .AddSingleton<IQueryProcessor, QueryProcessor>()
                 .AddSingleton<IMessagesExecutor, MessagesExecutor>()
-                .AddSingleton<IExecutionContextAccessor, ExecutionContextAccessor>()
-                .AddSingleton<IDependencyResolver, DefaultDependencyResolver>();
-
-
-            // services.TryDecorate(typeof(ICommandHandler<>), typeof(DomainEventsDispatcherCommandHandlerDecorator<>));
-            // services.TryDecorate(typeof(IEventHandler<>), typeof(DomainEventsDispatcherEventHandlerDecorator<>));
-
-            // services.TryDecorate(typeof(IIntegrationEventHandler<>), typeof(LoggingIntegrationEventHandlerDecorator<>));
-            // services.TryDecorate(typeof(IQueryHandler<,>), typeof(LoggingQueryHandlerDecorator<,>));
-            // services.TryDecorate(typeof(ICommandHandler<>), typeof(LoggingCommandHandlerDecorator<>));
-            // services.TryDecorate(typeof(IEventHandler<>), typeof(LoggingEventHandlerDecorator<>));
-            // services.TryDecorate(typeof(IEventHandler<>), typeof(LoggingDomainEventHandlerDecorator<>));
-            // services.TryDecorate(typeof(IEventHandler<>), typeof(LoggingNotificationEventHandlerDecorator<>));
+                .AddSingleton<IExecutionContextAccessor, ExecutionContextAccessor>();
 
             return services;
         }

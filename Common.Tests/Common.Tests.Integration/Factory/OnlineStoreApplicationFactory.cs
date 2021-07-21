@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -57,7 +59,6 @@ namespace Common.Tests.Integration.Factory
         protected override IHostBuilder CreateHostBuilder()
         {
             var builder = base.CreateHostBuilder();
-
             // // to remove logging in serilog
             // Log.Logger = Logger.None; //Log.Logger = new LoggerConfiguration().CreateLogger();
             // builder = builder.UseSerilog();
@@ -72,10 +73,17 @@ namespace Common.Tests.Integration.Factory
             return builder;
         }
 
+        //https://github.com/dotnet/aspnetcore/issues/17707
+        protected override IHost CreateHost(IHostBuilder builder)
+        {
+            builder.UseContentRoot(Directory.GetCurrentDirectory());
+            return base.CreateHost(builder);
+        }
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             //https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests#set-the-environment
-            builder.UseEnvironment("tests");
+            builder.UseEnvironment("test");
+
             //The test app's builder.ConfigureTestServices callback is executed after the app's Startup.ConfigureServices code is executed.
             builder.ConfigureTestServices((services) =>
             {

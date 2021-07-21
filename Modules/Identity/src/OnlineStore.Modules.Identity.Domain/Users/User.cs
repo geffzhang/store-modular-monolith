@@ -20,20 +20,20 @@ namespace OnlineStore.Modules.Identity.Domain.Users
 
         private readonly IUserEditable _userEditable;
         public string UserName { get; private set; }
-        public bool EmailConfirmed { get; private set;}
-        public string Email { get; private set;}
-        public string FirstName { get; private set;}
-        public string LastName { get; private set;}
-        public string Name { get; private set;}
-        public bool IsAdministrator { get; private set;}
-        public string? PhotoUrl { get; private set;}
-        public UserType UserType { get; private set;}
-        public string? Status { get; private set;}
-        public string Password { get; private set;}
-        public bool LockoutEnabled { get; private set;}
-        public bool IsActive { get; private set;}
-        public bool PasswordExpired { get; private set;}
-        public DateTime? LastPasswordChangedDate { get; private set;}
+        public bool EmailConfirmed { get; private set; }
+        public string Email { get; private set; }
+        public string FirstName { get; private set; }
+        public string LastName { get; private set; }
+        public string Name { get; private set; }
+        public bool IsAdministrator { get; private set; }
+        public string? PhotoUrl { get; private set; }
+        public UserType UserType { get; private set; }
+        public string? Status { get; private set; }
+        public string Password { get; private set; }
+        public bool LockoutEnabled { get; private set; }
+        public bool IsActive { get; private set; }
+        public bool PasswordExpired { get; private set; }
+        public DateTime? LastPasswordChangedDate { get; private set; }
         public DateTime CreatedDate { get; init; }
         public DateTime? ModifiedDate { get; init; }
         public string? CreatedBy { get; init; }
@@ -84,14 +84,13 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             CreatedBy = createdBy;
             ModifiedBy = modifiedBy;
             ModifiedDate = modifiedDate;
-
-            AddDomainEvent(new NewUserRegisteredDomainEvent(this));
         }
 
         private User()
         {
             // Only for deserialization 
         }
+
         public static User Of(UserId id,
             string email,
             string firstName,
@@ -112,7 +111,7 @@ namespace OnlineStore.Modules.Identity.Domain.Users
             string? modifiedBy = null,
             DateTime? modifiedDate = null)
         {
-            return new(id,
+            var user = new User(id,
                 email,
                 firstName,
                 lastName,
@@ -131,6 +130,10 @@ namespace OnlineStore.Modules.Identity.Domain.Users
                 createdDate,
                 modifiedBy,
                 modifiedDate);
+
+            user.AddDomainEvent(new NewUserRegisteredDomainEvent(user));
+            
+            return user;
         }
 
         public void AssignRole(params Role[]? roles)

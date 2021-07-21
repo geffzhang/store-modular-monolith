@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Common.Core;
@@ -14,14 +13,12 @@ using Common.Core.Messaging.Diagnostics.Events;
 using Common.Core.Messaging.Outbox;
 using Common.Core.Messaging.Queries;
 using Common.Core.Messaging.Transport;
-using Common.Messaging;
-using Common.Messaging.Outbox;
+using Common.Diagnostics.Transports;
 using Common.Persistence.MSSQL;
 using Common.Tests.Integration.Constants;
 using Common.Tests.Integration.Factory;
 using Common.Tests.Integration.Helpers;
 using Common.Tests.Integration.Mocks;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -101,7 +98,7 @@ namespace Common.Tests.Integration.Fixtures
         {
             try
             {
-                var connection = OptionsHelper.GetOptions<MssqlOptions>("mssql", "appsettings.tests.json")
+                var connection = OptionsHelper.GetOptions<MssqlOptions>("mssql", "appsettings.test.json")
                     .ConnectionString;
                 await _checkpoint.Reset(connection);
             }
@@ -314,12 +311,12 @@ namespace Common.Tests.Integration.Fixtures
             DiagnosticListener.AllListeners.Subscribe(delegate(DiagnosticListener listener)
             {
                 // listen for 'MySampleLibrary' DiagnosticListener which inherits from abstract class DiagnosticSource
-                if (listener.Name == Core.Messaging.Diagnostics.Constants.Activities.InMemoryConsumerActivityName)
+                if (listener.Name == OTelTransportOptions.InMemoryConsumerActivityName)
                 {
                     //listen to specific event of listener
                     listener.Subscribe((pair) =>
                     {
-                        if (pair.Key == Core.Messaging.Diagnostics.Constants.Events.AfterProcessInMemoryMessage)
+                        if (pair.Key == OTelTransportOptions.Events.AfterProcessInMemoryMessage)
                         {
                             var incomingObs = listener
                                 .Select(e => e.Value)
@@ -331,11 +328,11 @@ namespace Common.Tests.Integration.Fixtures
                     });
                 }
 
-                if (listener.Name == Core.Messaging.Diagnostics.Constants.Activities.InMemoryProducerActivityName)
+                if (listener.Name == OTelTransportOptions.InMemoryProducerActivityName)
                 {
                     listener.Subscribe((pair) =>
                     {
-                        if (pair.Key == Core.Messaging.Diagnostics.Constants.Events.AfterSendInMemoryMessage)
+                        if (pair.Key == OTelTransportOptions.Events.AfterSendInMemoryMessage)
                         {
                             var outgoingObs = listener
                                 .Select(e => e.Value)
@@ -371,23 +368,23 @@ namespace Common.Tests.Integration.Fixtures
 
             DiagnosticListener.AllListeners.Subscribe(delegate(DiagnosticListener listener)
             {
-                if (listener.Name == Core.Messaging.Diagnostics.Constants.Activities.InMemoryConsumerActivityName)
+                if (listener.Name == OTelTransportOptions.InMemoryConsumerActivityName)
                 {
                     //listen to specific event of listener
                     listener.Subscribe((pair) =>
                     {
-                        if (pair.Key == Core.Messaging.Diagnostics.Constants.Events.AfterProcessInMemoryMessage)
+                        if (pair.Key == OTelTransportOptions.Events.AfterProcessInMemoryMessage)
                         {
                             taskCompletionSource.TrySetResult();
                         }
                     });
                 }
 
-                if (listener.Name == Core.Messaging.Diagnostics.Constants.Activities.InMemoryProducerActivityName)
+                if (listener.Name == OTelTransportOptions.InMemoryProducerActivityName)
                 {
                     listener.Subscribe((pair) =>
                     {
-                        if (pair.Key == Core.Messaging.Diagnostics.Constants.Events.AfterSendInMemoryMessage)
+                        if (pair.Key == OTelTransportOptions.Events.AfterSendInMemoryMessage)
                         {
                             var sentMessage = pair.Value as AfterSendMessage;
                             if (sentMessage?.EventData.Id == message?.Id)

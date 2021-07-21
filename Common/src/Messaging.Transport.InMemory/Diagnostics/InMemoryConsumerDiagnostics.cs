@@ -4,6 +4,7 @@ using System.Linq;
 using Common.Core.Messaging;
 using Common.Core.Messaging.Diagnostics;
 using Common.Core.Messaging.Diagnostics.Events;
+using Common.Diagnostics.Transports;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using OpenTelemetry;
@@ -15,7 +16,7 @@ namespace Messaging.Transport.InMemory.Diagnostics
     public class InMemoryConsumerDiagnostics
     {
         private static readonly DiagnosticSource DiagnosticListener =
-            new DiagnosticListener(Constants.Activities.InMemoryConsumerActivityName);
+            new DiagnosticListener(OTelTransportOptions.InMemoryConsumerActivityName);
 
         private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -27,7 +28,7 @@ namespace Messaging.Transport.InMemory.Diagnostics
 
         public Activity StartActivity<T>(T message) where T : class, IMessage
         {
-            var activity = new Activity(Constants.Activities.InMemoryConsumerActivityName);
+            var activity = new Activity(OTelTransportOptions.InMemoryConsumerActivityName);
             var context = _httpContextAccessor.HttpContext;
 
             //https://www.mytechramblings.com/posts/getting-started-with-opentelemetry-and-dotnet-core/
@@ -77,7 +78,7 @@ namespace Messaging.Transport.InMemory.Diagnostics
 
             DiagnosticListener.OnActivityImport(activity, message);
 
-            if (DiagnosticListener.IsEnabled(Constants.Events.BeforeProcessInMemoryMessage))
+            if (DiagnosticListener.IsEnabled(OTelTransportOptions.Events.BeforeProcessInMemoryMessage))
             {
                 activity.Start();
                 DiagnosticListener.StartActivity(activity, new
@@ -101,7 +102,7 @@ namespace Messaging.Transport.InMemory.Diagnostics
                 activity.SetEndTime(DateTime.UtcNow);
             }
 
-            if (DiagnosticListener.IsEnabled(Constants.Events.AfterProcessInMemoryMessage))
+            if (DiagnosticListener.IsEnabled(OTelTransportOptions.Events.AfterProcessInMemoryMessage))
             {
                 DiagnosticListener.StopActivity(activity, new
                 {

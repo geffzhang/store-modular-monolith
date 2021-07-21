@@ -30,9 +30,8 @@ namespace Common.Persistence.Mongo
             return services;
         }
 
-        public static IServiceCollection AddMongoPersistence(this IServiceCollection services, IConfiguration configuration,
-            string sectionName = SectionName,
-            Type seederType = null)
+        public static IServiceCollection AddMongoPersistence(this IServiceCollection services,
+            IConfiguration configuration, string sectionName = SectionName, Type seederType = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
 

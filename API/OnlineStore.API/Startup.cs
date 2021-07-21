@@ -1,74 +1,100 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Common.Extensions.DependencyInjection;
-using Common.Modules;
+using Common.Core.Extensions;
+using Common.Core.Modules;
+using Common.Diagnostics;
+using Common.Logging.Serilog;
+using Common.Persistence.MSSQL;
+using Common.Web;
+using Common.Web.Extensions;
+using Messaging.Transport.InMemory;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-namespace Shopping.API
+using Microsoft.FeatureManagement;
+using Serilog;
+using Shopping.API.Extensions;
+
+namespace OnlineStore.API
 {
     public class Startup
     {
-        private readonly ISet<string> _devEnvironments = new HashSet<string> {"development", "local", "test"};
-        private readonly IList<IModule> _modules;
-        private readonly IList<Assembly> _assemblies;
+        private IConfiguration Configuration { get; }
+        private Cors Cors { get; }
+        private AppOptions AppOptions { get; }
+        private IList<IModule> Modules { get; }
 
         public Startup(IConfiguration configuration)
         {
-            _assemblies = ModuleLoader.LoadAssemblies(configuration);
-            _modules = ModuleLoader.LoadModules(_assemblies);
+            Configuration = configuration;
+            Cors = Configuration.GetSection("CORS").Get<Cors>();
+            AppOptions = Configuration.GetSection("AppOptions").Get<AppOptions>();
+
+            var assemblies = ModuleLoader.LoadAssemblies(configuration);
+            Modules = ModuleLoader.LoadModules(assemblies);
+            Modules.ToList().ForEach(x => x.Init(Configuration));
         }
 
+
+        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddReverseProxy()
-                .LoadFromConfig(Configuration.GetSection("ReverseProxy"));
-				
-            services.AddCommon(_assemblies, _modules);
-            foreach (var module in _modules)
+            services.AddWebApi(Configuration);
+            services.AddCore(Configuration);
+            services.AddOTel(Configuration);
+            services.AddSwaggerDocumentation();
+            services.AddCors(Cors);
+            services.AddHealthCheck(Configuration, AppOptions.ApiAddress);
+            services.AddVersioning();
+            services.AddCaching(Configuration);
+            services.AddInMemoryMessaging(Configuration, "messaging");
+            services.AddFeatureManagement();
+
+            foreach (var module in Modules)
             {
-                module.Register(services);
+                module.ConfigureServices(services);
             }
         }
 
-        public void Configure(IApplicationBuilder app, IHostEnvironment env, ILogger<Startup> logger)
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            logger.LogInformation($"Modules: {string.Join(", ", _modules.Select(x => x.Name))}");
-            if (_devEnvironments.Contains(env.EnvironmentName))
+            if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseCommon();
-            foreach (var module in _modules)
-            {
-                logger.LogInformation($"Configuring the middleware for: '{module.Name}'...");
-                module.Use(app);
-            }
+            app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
+            //https://andrewlock.net/using-serilog-aspnetcore-in-asp-net-core-3-logging-the-selected-endpoint-name-with-serilog/
+            if (env.IsTest() == false)
+                app.UseSerilogRequestLogging(opts =>
+                    opts.EnrichDiagnosticContext = RequestLoggingHelper.EnrichFromRequest);
+            app.UseCustomExceptionHandler();
 
-            app.ValidateContracts();
+            app.UseStaticFiles();
+            app.UserWebApi(env);
             app.UseRouting();
-            app.UseAuthentication();
+
             app.UseAuthorization();
+            app.UseSwaggerDocumentation();
+            app.UseHealthCheck();
+
+            app.UseCors("Open");
+            app.UseCors(Cors.AllowAnyOrigin ? "AllowAnyOrigin" : "AllowedOrigins");
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapGet("/", ctx => ctx.Response.WriteAsync("Online Store API"));
-                endpoints.MapModuleInfo();
-
-                foreach (var module in _modules)
-                {
-                    logger.LogInformation($"Configuring the endpoints for: '{module.Name}', path: '/{module.Path}'...");
-                    module.ConfigureEndpoints(endpoints);
-                }
+                endpoints.MapGet("/", context => context.Response.WriteAsync("Online Store API!"));
             });
 
-            _assemblies.Clear();
-            _modules.Clear();
+            foreach (var module in Modules)
+            {
+                module.Configure(app, env);
+            }
         }
     }
 }

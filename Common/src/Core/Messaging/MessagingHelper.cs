@@ -12,6 +12,7 @@ namespace Common.Core.Messaging
         public static IEnumerable<Type> GetHandledMessageTypes(params Assembly[] assemblies)
         {
             var messageHandlerTypes = typeof(IMessageHandler<>).GetAllTypesImplementingOpenGenericInterface(assemblies)
+                .Where(x => x.GetCustomAttributes<DecoratorAttribute>().Any() == false)
                 .ToList();
 
             foreach (var i in messageHandlerTypes.SelectMany(x => x.GetInterfaces()))

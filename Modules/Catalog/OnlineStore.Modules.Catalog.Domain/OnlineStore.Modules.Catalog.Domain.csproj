@@ -8,10 +8,4 @@
     <ProjectReference Include="..\..\..\Common\src\Common.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Entities\Aggregates\Category" />
-    <Folder Include="Entities\Aggregates\Product" />
-    <Folder Include="Entities\Aggregates\Brand" />
-  </ItemGroup>
-
 </Project>

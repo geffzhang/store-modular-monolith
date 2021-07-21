@@ -10,12 +10,12 @@ namespace Common.Diagnostics.Transports
     public class InMemoryTransportListener
     {
         public static string InBoundName =>
-            Constants.Activities.InMemoryConsumerActivityName;
+            OTelTransportOptions.InMemoryConsumerActivityName;
 
         public static string OutBoundName =>
-            Constants.Activities.InMemoryConsumerActivityName;
+            OTelTransportOptions.InMemoryConsumerActivityName;
 
-        [DiagnosticName(Constants.Events.BeforeProcessInMemoryMessage)]
+        [DiagnosticName(OTelTransportOptions.Events.BeforeProcessInMemoryMessage)]
         //Published message parameter name and published property name should be identical
         public virtual void BeforeProcessInMemoryMessage(BeforeProcessMessage payload)
         {
@@ -23,7 +23,7 @@ namespace Common.Diagnostics.Transports
                 $"raising BeforeProcessInMemoryMessage event for message with message id: {payload.EventData.Id} - activity id: '{Activity.Current?.Id}'");
         }
 
-        [DiagnosticName(Constants.Events.AfterProcessInMemoryMessage)]
+        [DiagnosticName(OTelTransportOptions.Events.AfterProcessInMemoryMessage)]
         public virtual void AfterProcessInMemoryMessage(AfterProcessMessage payload)
         {
             Console.WriteLine(
@@ -31,7 +31,7 @@ namespace Common.Diagnostics.Transports
         }
 
 
-        [DiagnosticName(Constants.Events.AfterSendInMemoryMessage)]
+        [DiagnosticName(OTelTransportOptions.Events.AfterSendInMemoryMessage)]
         public virtual void AfterSendInMemoryMessage(AfterSendMessage payload)
         {
             Console.WriteLine(
@@ -39,7 +39,7 @@ namespace Common.Diagnostics.Transports
         }
 
 
-        [DiagnosticName(Constants.Events.BeforeSendInMemoryMessage)]
+        [DiagnosticName(OTelTransportOptions.Events.BeforeSendInMemoryMessage)]
         public virtual void BeforeSendInMemoryMessage(BeforeSendMessage payload)
         {
             Console.WriteLine(

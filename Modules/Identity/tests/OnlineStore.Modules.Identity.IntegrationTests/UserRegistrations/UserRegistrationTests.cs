@@ -1,20 +1,16 @@
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Common;
 using Common.Core.Extensions;
 using Common.Tests.Integration.Constants;
 using Common.Tests.Integration.Fixtures;
 using FluentAssertions;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
-using OnlineStore.Modules.Identity.Api;
+using OnlineStore.API;
 using OnlineStore.Modules.Identity.Application.Features.System;
 using OnlineStore.Modules.Identity.Application.Features.Users.GetUserById;
 using OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser;
 using OnlineStore.Modules.Identity.Infrastructure;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
 using Xunit;
 using Xunit.Abstractions;
 

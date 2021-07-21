@@ -5,6 +5,7 @@ using System.Net;
 using Common.Core.Messaging;
 using Common.Core.Messaging.Diagnostics;
 using Common.Core.Messaging.Diagnostics.Events;
+using Common.Diagnostics.Transports;
 using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Context.Propagation;
 using NameValueHeaderValue = Microsoft.Net.Http.Headers.NameValueHeaderValue;
@@ -17,7 +18,7 @@ namespace Messaging.Transport.InMemory.Diagnostics
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         private static readonly DiagnosticSource DiagnosticListener =
-            new DiagnosticListener(Constants.Activities.InMemoryProducerActivityName);
+            new DiagnosticListener(OTelTransportOptions.InMemoryProducerActivityName);
 
         private static readonly TextMapPropagator Propagator = new TraceContextPropagator();
 
@@ -28,9 +29,9 @@ namespace Messaging.Transport.InMemory.Diagnostics
 
         public Activity StartActivity<T>(T message) where T : class, IMessage
         {
-            var activity = new Activity(Constants.Activities.InMemoryProducerActivityName);
+            var activity = new Activity(OTelTransportOptions.InMemoryProducerActivityName);
 
-            if (DiagnosticListener.IsEnabled(Constants.Events.BeforeSendInMemoryMessage))
+            if (DiagnosticListener.IsEnabled(OTelTransportOptions.Events.BeforeSendInMemoryMessage))
             {
                 DiagnosticListener.StartActivity(activity, new
                 {
@@ -69,7 +70,7 @@ namespace Messaging.Transport.InMemory.Diagnostics
                 activity.SetEndTime(DateTime.UtcNow);
             }
 
-            if (DiagnosticListener.IsEnabled(Constants.Events.AfterSendInMemoryMessage))
+            if (DiagnosticListener.IsEnabled(OTelTransportOptions.Events.AfterSendInMemoryMessage))
             {
                 DiagnosticListener.StopActivity(activity,  new
                 {

@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Common.Modules;
+using Common.Core.Modules;
 using Microsoft.Extensions.Configuration;
 
-namespace Shopping.API
+namespace OnlineStore.API
 {
-    internal static class ModuleLoader
+    public static class ModuleLoader
     {
+        const string ModulePart = "OnlineStore.Modules.";
         public static IList<Assembly> LoadAssemblies(IConfiguration configuration)
         {
-            const string modulePart = "OnlineStore.Modules.";
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(x => x.FullName?.Contains(ModulePart) ?? false)
+                .ToList();
             var locations = assemblies.Where(x => !x.IsDynamic).Select(x => x.Location).ToArray();
             var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll")
                 .Where(x => !locations.Contains(x, StringComparer.InvariantCultureIgnoreCase))
@@ -22,57 +25,34 @@ namespace Shopping.API
             var disabledModules = new List<string>();
             foreach (var file in files)
             {
-                if (!file.Contains(modulePart))
-                {
+                if (Path.GetFileName(file).Contains(ModulePart) == false)
                     continue;
-                }
 
-                var moduleName = file.Split(modulePart)[1].Split(".")[0].ToLowerInvariant();
-                var enabled = configuration.GetValue<bool>($"{moduleName}:module:enabled");
-                if (!enabled)
+                var moduleName = file.Split(ModulePart)[1].Split(".")[0].ToLowerInvariant();
+                var enabled = configuration.GetValue(typeof(bool), $"{moduleName}:module:enabled");
+                if (enabled is not null && (bool) enabled == false)
                 {
                     disabledModules.Add(file);
                 }
+
+                assemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(file)));
             }
 
             foreach (var disabledModule in disabledModules)
             {
                 files.Remove(disabledModule);
             }
-            
-            files.ForEach(x => assemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(x))));
 
             return assemblies;
         }
-        
+
         public static IList<IModule> LoadModules(IEnumerable<Assembly> assemblies)
-        {
-            var moduleType = typeof(IModule);
-            var modules = assemblies
+            => assemblies
                 .SelectMany(x => x.GetTypes())
-                .Where(x => moduleType.IsAssignableFrom(x) && !x.IsInterface)
+                .Where(x => typeof(IModule).IsAssignableFrom(x) && !x.IsInterface)
                 .OrderBy(x => x.Name)
                 .Select(Activator.CreateInstance)
                 .Cast<IModule>()
                 .ToList();
-
-            ValidateModules(modules);
-
-            return modules;
-        }
-
-        private static void ValidateModules(IEnumerable<IModule> modules)
-        {
-            var duplicatedModulePaths = modules
-                .Where(x => !string.IsNullOrWhiteSpace(x.Path))
-                .GroupBy(x => x.Path)
-                .Where(x => x.Count() > 1)
-                .Select(x => $"'/{x.Key}'")
-                .ToArray();
-            if (duplicatedModulePaths.Any())
-            {
-                throw new Exception($"Duplicated module paths: {string.Join(",", duplicatedModulePaths)}");
-            }
-        }
     }
 }
