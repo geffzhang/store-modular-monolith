@@ -82,7 +82,7 @@ namespace Common.Diagnostics
             services.TryDecorate(typeof(ICommandHandler<>), typeof(OTelCommandTracingDecorator<>));
             services.TryDecorate(typeof(IDomainEventNotificationHandler<>),
                 typeof(OTelNotificationEventTracingDecorator<>));
-            // services.TryDecorate(typeof(IMessageHandler<>), typeof(OTelMessageTracingDecorator<>));
+            services.TryDecorate(typeof(IMessageHandler<>), typeof(OTelMessageTracingDecorator<>));
             services.TryDecorate(typeof(IQueryHandler<,>), typeof(OTelQueryTracingDecorator<,>));
 
             return services;
