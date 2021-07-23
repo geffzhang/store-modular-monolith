@@ -68,6 +68,8 @@ namespace Common.Core.Extensions
             services.TryDecorate(typeof(IMessageHandler<>), typeof(MessageHandlerLoggingDecorator<>));
             services.TryDecorate(typeof(IQueryHandler<,>), typeof(QueryHandlerLoggingDecorator<,>));
 
+            DomainEvents.CommandProcessor = () => ServiceActivator.GetService<ICommandProcessor>();
+
             doMoreActions?.Invoke(services);
 
             return services;

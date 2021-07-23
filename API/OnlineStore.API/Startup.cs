@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using Common.Authentication.Jwt;
+using Common.Core;
 using Common.Core.Extensions;
 using Common.Core.Modules;
 using Common.Diagnostics;
@@ -55,6 +57,7 @@ namespace OnlineStore.API
             services.AddCaching(Configuration);
             services.AddInMemoryMessaging(Configuration, "messaging");
             services.AddFeatureManagement();
+            services.AddJwtAuthentication(Configuration, Modules);
 
             foreach (var module in Modules)
             {
@@ -65,6 +68,9 @@ namespace OnlineStore.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            ServiceActivator.Configure(app.ApplicationServices);
+            ServiceLocator.SetLocatorProvider(app.ApplicationServices);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -80,10 +86,9 @@ namespace OnlineStore.API
             app.UseStaticFiles();
             app.UserWebApi(env);
             app.UseRouting();
-
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseHealthCheck();
-
             app.UseCors("Open");
             app.UseCors(Cors.AllowAnyOrigin ? "AllowAnyOrigin" : "AllowedOrigins");
 

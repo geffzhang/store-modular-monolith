@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Http;
 
-namespace Common.Auth
+namespace Common.Authentication.Jwt
 {
     internal sealed class DisabledAuthenticationPolicyEvaluator : IPolicyEvaluator
     {

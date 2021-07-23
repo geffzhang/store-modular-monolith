@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Common.Auth;
+using Common.Authentication.Jwt;
 
 namespace Common.Tests.Integration.Helpers
 {

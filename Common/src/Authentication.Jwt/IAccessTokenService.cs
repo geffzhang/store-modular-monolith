@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Common.Auth
+namespace Common.Authentication.Jwt
 {
     public interface IAccessTokenService
     {

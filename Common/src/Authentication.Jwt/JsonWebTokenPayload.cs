@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Common.Auth
+namespace Common.Authentication.Jwt
 {
     public class JsonWebTokenPayload
     {

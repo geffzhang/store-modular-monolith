@@ -34,7 +34,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models
         public virtual ICollection<IdentityUserLogin<string>> Logins { get; set; }
         public virtual ICollection<IdentityUserToken<string>> Tokens { get; set; }
 
-
+        public List<RefreshToken> RefreshTokens { get; set; }
         public virtual void Patch(ApplicationUser target)
         {
             target.UserName = UserName;

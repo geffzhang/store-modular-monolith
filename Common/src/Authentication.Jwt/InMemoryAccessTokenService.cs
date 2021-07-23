@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 
-namespace Common.Auth
+namespace Common.Authentication.Jwt
 {
     internal sealed class InMemoryAccessTokenService : IAccessTokenService
     {
@@ -19,7 +19,7 @@ namespace Common.Auth
         {
             _cache = cache;
             _httpContextAccessor = httpContextAccessor;
-            _expires = jwtOptions.Expiry ?? TimeSpan.FromMinutes(jwtOptions.ExpiryMinutes);
+            _expires =  TimeSpan.FromMinutes(jwtOptions.ExpiryMinutes);
         }
 
         public Task<bool> IsCurrentActiveToken()
@@ -49,8 +49,7 @@ namespace Common.Auth
 
         private string GetCurrentAsync()
         {
-            var authorizationHeader = _httpContextAccessor
-                .HttpContext.Request.Headers["authorization"];
+            var authorizationHeader = _httpContextAccessor.HttpContext.Request.Headers["authorization"];
 
             return authorizationHeader == StringValues.Empty
                 ? string.Empty

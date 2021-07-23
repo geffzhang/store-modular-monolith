@@ -9,6 +9,7 @@ using Serilog.Enrichers.Span;
 using Serilog.Events;
 using Serilog.Formatting.Elasticsearch;
 using Serilog.Templates;
+using Shopping.API.Extensions;
 
 namespace OnlineStore.API
 {
@@ -87,6 +88,9 @@ namespace OnlineStore.API
                         .Enrich.WithSpan()
                         .WriteTo.Stackify();
                 })
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
     }
 }

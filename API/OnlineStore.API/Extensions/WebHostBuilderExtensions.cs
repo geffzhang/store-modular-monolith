@@ -1,7 +1,7 @@
 ﻿namespace Shopping.API.Extensions
 {
-    public class WebHostBuilderExtensions
+    public static class WebHostBuilderExtensions
     {
-        
+
     }
 }

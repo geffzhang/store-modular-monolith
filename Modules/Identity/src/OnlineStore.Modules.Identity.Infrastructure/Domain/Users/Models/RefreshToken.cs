@@ -1,6 +1,7 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Domain.RefreshToken
+namespace OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models
 {
     public class RefreshToken
     {

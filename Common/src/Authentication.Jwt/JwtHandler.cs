@@ -6,7 +6,7 @@ using System.Security.Claims;
 using Common.Core.Extensions;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Common.Auth
+namespace Common.Authentication.Jwt
 {
     public sealed class JwtHandler : IJwtHandler
     {
@@ -70,9 +70,7 @@ namespace Common.Auth
                 jwtClaims.AddRange(customClaims);
             }
 
-            var expires = _options.Expiry.HasValue
-                ? now.AddMilliseconds(_options.Expiry.Value.TotalMilliseconds)
-                : now.AddMinutes(_options.ExpiryMinutes);
+            var expires = now.AddMinutes(_options.ExpiryMinutes);
 
             var jwt = new JwtSecurityToken(
                 _issuer,

@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Common.Core.Modules;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
@@ -8,13 +11,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Common.Auth
+namespace Common.Authentication.Jwt
 {
     internal static class Extensions
     {
         private const string SectionName = "jwt";
 
-        public static IServiceCollection AddJwt(this IServiceCollection services, IConfiguration configuration,
+        public static IServiceCollection AddJwtAuthentication(this IServiceCollection services,
+            IConfiguration configuration,
+            IList<IModule> modules,
             string sectionName = SectionName,
             Action<JwtBearerOptions> optionsFactory = null)
         {
@@ -126,6 +131,16 @@ namespace Common.Auth
 
             services.AddSingleton(options);
             services.AddSingleton(tokenValidationParameters);
+
+            var policies = modules?.SelectMany(x => x.Policies ?? Enumerable.Empty<string>()) ??
+                           Enumerable.Empty<string>();
+            services.AddAuthorization(authorization =>
+            {
+                foreach (var policy in policies)
+                {
+                    authorization.AddPolicy(policy, x => x.RequireClaim("permissions", policy));
+                }
+            });
 
             return services;
         }

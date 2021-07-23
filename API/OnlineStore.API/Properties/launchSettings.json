@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "Shopping.API": {
+    "OnlineStore.API": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,

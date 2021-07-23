@@ -4,7 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace Common.Auth
+namespace Common.Authentication.Jwt
 {
     public class AccessTokenValidatorMiddleware : IMiddleware
     {
