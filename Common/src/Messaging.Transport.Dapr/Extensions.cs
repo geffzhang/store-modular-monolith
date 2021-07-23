@@ -2,14 +2,13 @@ using System;
 using System.Text.Json;
 using Common.Core.Messaging.Outbox;
 using Common.Core.Messaging.Transport;
-using Common.Messaging.Outbox;
 using Dapr.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RestEase;
 using RestEase.HttpClientFactory;
 
-namespace Common.Transport.Dapr
+namespace Common.Messaging.Transport.Dapr
 {
     public static class Extensions
     {

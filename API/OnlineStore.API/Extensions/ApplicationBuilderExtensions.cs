@@ -27,18 +27,5 @@ namespace Shopping.API.Extensions
             });
             return app;
         }
-
-        public static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app)
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "OnlineStore.IdentityModule.Api");
-                options.RoutePrefix = "swagger";
-                options.DisplayRequestDuration();
-            });
-
-            return app;
-        }
     }
 }

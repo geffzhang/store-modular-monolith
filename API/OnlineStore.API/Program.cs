@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Common.Logging.Serilog;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -59,6 +60,7 @@ namespace OnlineStore.API
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 //we could use our extension method for serilog 'UseLogging' from common for less code
+                // .UseCustomSerilog(configuration => { })
                 .UseSerilog((context, services, configuration) =>
                 {
                     if (context.HostingEnvironment.IsDevelopment())
@@ -86,6 +88,5 @@ namespace OnlineStore.API
                         .WriteTo.Stackify();
                 })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
-
     }
 }

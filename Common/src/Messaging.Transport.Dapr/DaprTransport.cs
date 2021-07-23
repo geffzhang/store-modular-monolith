@@ -8,7 +8,7 @@ using Dapr.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Common.Transport.Dapr
+namespace Common.Messaging.Transport.Dapr
 {
     public class DaprTransport : ITransport
     {

@@ -15,6 +15,7 @@ using Common.Core.Messaging.Serialization;
 using Common.Core.Messaging.Serialization.Newtonsoft;
 using Common.Core.Messaging.Transport;
 using Common.Core.Scheduling;
+using Common.Logging.Serilog;
 using Common.Persistence.Mongo;
 using Common.Web.Contexts;
 using Microsoft.Extensions.Configuration;
@@ -33,9 +34,7 @@ namespace Common.Core.Extensions
     public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddCore(this IServiceCollection services, IConfiguration configuration,
-            IList<Assembly> assemblies = null
-            // IList<IModule> modules = null,
-        )
+            IList<Assembly> assemblies = null, Action<IServiceCollection> doMoreActions = null)
         {
             services.Configure<MailConfiguration>(configuration.GetSection("MailConfiguration"));
             services.AddSingleton<IMailService, SmtpMailService>();
@@ -64,6 +63,12 @@ namespace Common.Core.Extensions
                 .AddSingleton<IQueryProcessor, QueryProcessor>()
                 .AddSingleton<IMessagesExecutor, MessagesExecutor>()
                 .AddSingleton<IExecutionContextAccessor, ExecutionContextAccessor>();
+
+            services.TryDecorate(typeof(ICommandHandler<>), typeof(CommandHandlerLoggingDecorator<>));
+            services.TryDecorate(typeof(IMessageHandler<>), typeof(MessageHandlerLoggingDecorator<>));
+            services.TryDecorate(typeof(IQueryHandler<,>), typeof(QueryHandlerLoggingDecorator<,>));
+
+            doMoreActions?.Invoke(services);
 
             return services;
         }
@@ -230,6 +235,5 @@ namespace Common.Core.Extensions
 
             services.AddSingleton(options);
         }
-
     }
 }

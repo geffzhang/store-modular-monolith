@@ -4,13 +4,15 @@ using Common.Core.Extensions;
 using Common.Core.Modules;
 using Common.Diagnostics;
 using Common.Logging.Serilog;
-using Common.Persistence.MSSQL;
+using Common.Swagger;
+using Common.Validations;
 using Common.Web;
 using Common.Web.Extensions;
 using Messaging.Transport.InMemory;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -45,7 +47,8 @@ namespace OnlineStore.API
             services.AddWebApi(Configuration);
             services.AddCore(Configuration);
             services.AddOTel(Configuration);
-            services.AddSwaggerDocumentation();
+            services.AddSwagger(typeof(ApiRoot).Assembly);
+            services.AddCustomValidators();
             services.AddCors(Cors);
             services.AddHealthCheck(Configuration, AppOptions.ApiAddress);
             services.AddVersioning();
@@ -79,7 +82,6 @@ namespace OnlineStore.API
             app.UseRouting();
 
             app.UseAuthorization();
-            app.UseSwaggerDocumentation();
             app.UseHealthCheck();
 
             app.UseCors("Open");
@@ -90,6 +92,9 @@ namespace OnlineStore.API
                 endpoints.MapControllers();
                 endpoints.MapGet("/", context => context.Response.WriteAsync("Online Store API!"));
             });
+
+            var provider = app.ApplicationServices.GetService<IApiVersionDescriptionProvider>();
+            app.UseSwagger(provider);
 
             foreach (var module in Modules)
             {

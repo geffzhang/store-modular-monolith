@@ -25,7 +25,7 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
             ITestOutputHelper outputHelper)
         {
             _fixture = fixture;
-            //_fixture.SetOutput(outputHelper);
+            _fixture.SetOutput(outputHelper);
             var user = _fixture.CreateAdminUserMock();
 
             //setup the swaps for our tests
@@ -52,13 +52,13 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
                 UserRegistrationSampleData.Status);
 
             //async operation test simulation
-            var tsc = _fixture.EnsureReceivedMessageToConsumer(registerUserCommand);
-            await _fixture.PublishAsync(registerUserCommand); // send command asynchronously
-            await tsc.Task;
-
-            // await _fixture.SendAsync(registerUserCommand); // send command synchronously
-            // var tsc = _fixture.EnsureReceivedMessageToConsumer<NewUserRegisteredIntegrationEvent>();
+            // var tsc = _fixture.EnsureReceivedMessageToConsumer(registerUserCommand);
+            // await _fixture.PublishAsync(registerUserCommand); // send command asynchronously
             // await tsc.Task;
+
+            await _fixture.SendAsync(registerUserCommand); // send command synchronously
+            var tsc = _fixture.EnsureReceivedMessageToConsumer<NewUserRegisteredIntegrationEvent>();
+            await tsc.Task;
 
             //Assert
             var query = new GetUserByIdQuery(registerUserCommand.Id);

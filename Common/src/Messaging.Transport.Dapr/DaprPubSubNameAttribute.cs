@@ -1,6 +1,6 @@
 using System;
 
-namespace Common.Transport.Dapr
+namespace Common.Messaging.Transport.Dapr
 {
     public class DaprPubSubNameAttribute : Attribute
     {

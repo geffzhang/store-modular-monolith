@@ -10,10 +10,10 @@ namespace OnlineStore.Modules.Identity.Application.Extensions
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
+            services.AddAutoMapper(typeof(ApplicationRoot).Assembly);
             services.AddSingleton<IUserDomainToIntegrationEventMapper, UserDomainToIntegrationEventMapper>();
             services.AddSingleton<IDomainNotificationsMapper, UserDomainNotificationMapper>();
+
             return services;
         }
     }

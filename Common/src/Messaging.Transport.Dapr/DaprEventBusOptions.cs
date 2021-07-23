@@ -1,4 +1,4 @@
-namespace Common.Transport.Dapr
+namespace Common.Messaging.Transport.Dapr
 {
     public class DaprEventBusOptions
     {
