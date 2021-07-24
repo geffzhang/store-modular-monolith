@@ -4,13 +4,12 @@ using System.Threading.Tasks;
 using Common.Core.Utils.Reflection;
 using Common.Tests.Integration.Constants;
 using Microsoft.AspNetCore.Identity;
-using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
-using OnlineStore.Modules.Identity.Application.Features.System;
-using OnlineStore.Modules.Identity.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
+using OnlineStore.Modules.Identity.Application.Permissions.Services;
+using OnlineStore.Modules.Identity.Application.System;
+using OnlineStore.Modules.Identity.Domain.Aggregates.Users;
+using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Roles;
+using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
 namespace OnlineStore.Modules.Identity.IntegrationTests
 {
     public class IdentityTestSeeder : IDataSeeder

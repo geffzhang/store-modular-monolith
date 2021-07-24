@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OnlineStore.Modules.Identity.Domain.Users;
-using OnlineStore.Modules.Identity.Domain.Users.Types;
+using OnlineStore.Modules.Identity.Domain.Aggregates.Users;
+using OnlineStore.Modules.Identity.Domain.Aggregates.Users.Types;
 
 namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
 {

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using OnlineStore.Modules.Identity.Domain.Users;
+using OnlineStore.Modules.Identity.Domain.Aggregates.Users;
 
 namespace OnlineStore.Modules.Identity.Domain.Constants
 {

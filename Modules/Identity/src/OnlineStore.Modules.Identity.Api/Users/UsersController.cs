@@ -8,30 +8,23 @@ using Common.Core;
 using Common.Core.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Api.Users.Models.Requests;
-using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
-using OnlineStore.Modules.Identity.Application.Features.Roles.Services;
-using OnlineStore.Modules.Identity.Application.Features.Users.ChangeUserPassword;
-using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
-using OnlineStore.Modules.Identity.Application.Features.Users.GetCurrentUser;
-using OnlineStore.Modules.Identity.Application.Features.Users.GetUserByEmail;
-using OnlineStore.Modules.Identity.Application.Features.Users.GetUserById;
-using OnlineStore.Modules.Identity.Application.Features.Users.GetUserByLogin;
-using OnlineStore.Modules.Identity.Application.Features.Users.GetUserByName;
-using OnlineStore.Modules.Identity.Application.Features.Users.GetUserInfo;
-using OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser;
-using OnlineStore.Modules.Identity.Application.Features.Users.RequestPasswordReset;
-using OnlineStore.Modules.Identity.Application.Features.Users.ResetUserPassword;
-using OnlineStore.Modules.Identity.Application.Features.Users.SearchUsers;
-using OnlineStore.Modules.Identity.Application.Features.Users.ValidatePasswordResetToken;
-using OnlineStore.Modules.Identity.Domain.Users.Types;
+using OnlineStore.Modules.Identity.Application.Users.ChangeUserPassword;
+using OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Users.GetCurrentUser;
+using OnlineStore.Modules.Identity.Application.Users.GetUserByEmail;
+using OnlineStore.Modules.Identity.Application.Users.GetUserById;
+using OnlineStore.Modules.Identity.Application.Users.GetUserByLogin;
+using OnlineStore.Modules.Identity.Application.Users.GetUserByName;
+using OnlineStore.Modules.Identity.Application.Users.GetUserInfo;
+using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
+using OnlineStore.Modules.Identity.Application.Users.RequestPasswordReset;
+using OnlineStore.Modules.Identity.Application.Users.ResetUserPassword;
+using OnlineStore.Modules.Identity.Application.Users.SearchUsers;
+using OnlineStore.Modules.Identity.Application.Users.ValidatePasswordResetToken;
 using OnlineStore.Modules.Identity.Infrastructure;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
-using AuthorizationOptions = OnlineStore.Modules.Identity.Domain.Configurations.Options.AuthorizationOptions;
 
 namespace OnlineStore.Modules.Identity.Api.Users
 {
@@ -39,46 +32,24 @@ namespace OnlineStore.Modules.Identity.Api.Users
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<ApplicationRole> _roleManager;
-        private readonly IAuthorizationService _authorizationService;
 
         private readonly AuthorizationOptions
             _securityOptions;
 
-        private readonly UserOptionsExtended _userOptionsExtended;
-        private readonly IPermissionService _permissionsProvider;
-        private readonly IRoleSearchService _roleSearchService;
-        private readonly IPasswordValidator<ApplicationUser> _passwordCheckService;
         private readonly ICommandProcessor _commandProcessor;
         private readonly IQueryProcessor _queryProcessor;
         private readonly IMapper _mapper;
 
-        public UsersController(SignInManager<ApplicationUser> signInManager,
-            UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
-            IPermissionService permissionsProvider,
-            IRoleSearchService roleSearchService,
+        public UsersController(
             IOptions<AuthorizationOptions> securityOptions,
-            IOptions<UserOptionsExtended> userOptionsExtended,
-            IPasswordValidator<ApplicationUser> passwordCheckService,
-            IAuthorizationService authorizationService,
             ICommandProcessor commandProcessor,
             IQueryProcessor queryProcessor,
             IMapper mapper)
         {
-            _signInManager = signInManager;
-            _userManager = userManager;
             _securityOptions = securityOptions.Value;
-            _userOptionsExtended = userOptionsExtended.Value;
-            _passwordCheckService = passwordCheckService;
-            _permissionsProvider = permissionsProvider;
-            _roleManager = roleManager;
-            _roleSearchService = roleSearchService;
             _commandProcessor = commandProcessor;
             _queryProcessor = queryProcessor;
             _mapper = mapper;
-            _authorizationService = authorizationService;
         }
 
 
@@ -415,26 +386,6 @@ namespace OnlineStore.Modules.Identity.Api.Users
         //
         //     return Ok(IdentityResult.Success);
         // }
-
-        /// <summary>
-        /// Checks if user locked
-        /// </summary>
-        /// <param name="id">User id</param>
-        /// <returns></returns>
-        [HttpGet]
-        [Route("{id}/locked")]
-        [Authorize(SecurityConstants.Permissions.SecurityQuery)]
-        public async Task<ActionResult<UserLockedResult>> IsUserLocked([FromRoute] string id)
-        {
-            var result = new UserLockedResult(false);
-            var user = await _userManager.FindByIdAsync(id);
-            if (user != null)
-            {
-                result.Locked = await _userManager.IsLockedOutAsync(user);
-            }
-
-            return Ok(result);
-        }
 
         // /// <summary>
         // /// Lock user

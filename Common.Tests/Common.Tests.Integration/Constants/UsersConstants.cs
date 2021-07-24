@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using OnlineStore.Modules.Identity.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Mappings;
+using OnlineStore.Modules.Identity.Domain.Aggregates.Users;
+using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Roles;
 
 namespace Common.Tests.Integration.Constants
 {

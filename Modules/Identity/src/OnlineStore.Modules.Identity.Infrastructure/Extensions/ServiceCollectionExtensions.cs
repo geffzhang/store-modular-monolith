@@ -1,23 +1,13 @@
-﻿using System;
-using System.Threading.Tasks;
-using Common.Core;
-using Common.Core.Scheduling;
+﻿using Common.Core.Scheduling;
 using Common.Messaging.Outbox.EFCore;
 using Common.Messaging.Scheduling.Hangfire.MessagesScheduler;
 using Common.Persistence.MSSQL;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
-using OnlineStore.Modules.Identity.Application.Features.Users.Services;
-using OnlineStore.Modules.Identity.Domain.Configurations.Settings;
-using OnlineStore.Modules.Identity.Domain.Users.Services;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.System;
-using Common.Web.Extensions;
-using Microsoft.EntityFrameworkCore;
-using OnlineStore.Modules.Identity.Application.Features.System;
+using OnlineStore.Modules.Identity.Application.Permissions.Services;
+using OnlineStore.Modules.Identity.Application.System;
+using OnlineStore.Modules.Identity.Infrastructure.Aggregates.System;
+using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Services;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
 {
@@ -26,8 +16,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
         public static IServiceCollection AddInfrastructure(this IServiceCollection services,
             IConfiguration configuration)
         {
-            services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
-
             services.AddMssqlPersistence<IdentityDbContext>(configuration,
                 configurator: s => { s.AddRepository(typeof(Repository<>)); },
                 optionBuilder: options =>
@@ -51,7 +39,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
         private static void AddScopeServices(IServiceCollection services)
         {
             services.AddScoped<IDataSeeder, DataSeeder>();
-            services.AddScoped<IUserEditable, UserEditable>();
         }
 
         private static void AddTransientServices(IServiceCollection services)

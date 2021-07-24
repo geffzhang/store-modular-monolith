@@ -7,9 +7,9 @@ using Common.Tests.Integration.Fixtures;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineStore.API;
-using OnlineStore.Modules.Identity.Application.Features.System;
-using OnlineStore.Modules.Identity.Application.Features.Users.GetUserById;
-using OnlineStore.Modules.Identity.Application.Features.Users.RegisterNewUser;
+using OnlineStore.Modules.Identity.Application.System;
+using OnlineStore.Modules.Identity.Application.Users.GetUserById;
+using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
 using OnlineStore.Modules.Identity.Infrastructure;
 using Xunit;
 using Xunit.Abstractions;
@@ -39,6 +39,8 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
         [Fact]
         public async Task RegisterNewUserCommand_Test()
         {
+
+
             //Arrange
             var registerUserCommand = new RegisterNewUserCommand(
                 UserRegistrationSampleData.Email,

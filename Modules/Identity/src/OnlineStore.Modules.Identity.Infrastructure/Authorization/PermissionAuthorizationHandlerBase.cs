@@ -3,7 +3,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using OnlineStore.Modules.Identity.Application.Features.Users;
+using OnlineStore.Modules.Identity.Application.Users;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Authorization
 {

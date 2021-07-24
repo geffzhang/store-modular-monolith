@@ -16,18 +16,17 @@
 
   <ItemGroup>
     <Compile Remove="RegisterNewUser\**" />
+    <Compile Remove="Features\Roles\**" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Remove="RegisterNewUser\**" />
+    <EmbeddedResource Remove="Features\Roles\**" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="RegisterNewUser\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Features" />
+    <None Remove="Features\Roles\**" />
   </ItemGroup>
 
 </Project>

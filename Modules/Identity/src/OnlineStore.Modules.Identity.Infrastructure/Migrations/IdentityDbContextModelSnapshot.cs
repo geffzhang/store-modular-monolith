@@ -17,10 +17,10 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Migrations
             modelBuilder
                 .HasDefaultSchema("identities")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.7")
+                .HasAnnotation("ProductVersion", "5.0.8")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("Common.Messaging.Outbox.OutboxMessage", b =>
+            modelBuilder.Entity("Common.Core.Messaging.Outbox.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -146,7 +146,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Migrations
                     b.ToTable("UserToken");
                 });
 
-            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.ApplicationRole", b =>
+            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Roles.ApplicationRole", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(50)
@@ -178,7 +178,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Migrations
                     b.ToTable("Role");
                 });
 
-            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models.ApplicationUser", b =>
+            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -292,7 +292,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models.ApplicationUserRole", b =>
+            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.ApplicationUserRole", b =>
                 {
                     b.Property<string>("UserId")
                         .HasMaxLength(128)
@@ -312,7 +312,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
-                    b.HasOne("OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.ApplicationRole", null)
+                    b.HasOne("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Roles.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -321,7 +321,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models.ApplicationUser", null)
+                    b.HasOne("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.ApplicationUser", null)
                         .WithMany("Claims")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -330,22 +330,52 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models.ApplicationUser", null)
+                    b.HasOne("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.ApplicationUser", null)
                         .WithMany("Tokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models.ApplicationUserRole", b =>
+            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.ApplicationUser", b =>
                 {
-                    b.HasOne("OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.ApplicationRole", "Role")
+                    b.OwnsMany("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.RefreshToken", "RefreshTokens", b1 =>
+                        {
+                            b1.Property<string>("UserId")
+                                .HasColumnType("nvarchar(128)");
+
+                            b1.Property<DateTime>("Created")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<DateTime>("Expires")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<DateTime?>("Revoked")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("Token")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("UserId");
+
+                            b1.ToTable("RefreshToken", "Identities");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserId");
+                        });
+
+                    b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.ApplicationUserRole", b =>
+                {
+                    b.HasOne("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Roles.ApplicationRole", "Role")
                         .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models.ApplicationUser", "User")
+                    b.HasOne("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.ApplicationUser", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -356,12 +386,12 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.ApplicationRole", b =>
+            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Roles.ApplicationRole", b =>
                 {
                     b.Navigation("UserRoles");
                 });
 
-            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models.ApplicationUser", b =>
+            modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Claims");
 

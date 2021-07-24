@@ -1,25 +1,19 @@
 ﻿using System;
-using OnlineStore.Modules.Identity.Domain.Users.Types;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
+using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 
-namespace OnlineStore.Modules.Identity.Infrastructure.Authentication
+namespace OnlineStore.Modules.Identity.Infrastructure.Authentication.Login
 {
-    public class PasswordExpiryHelper
+    public static class PasswordExpiryHelper
     {
-        public static int ContDaysTillPasswordExpiry(ApplicationUser user, UserOptionsExtended userOptions)
+        public static int DaysTillPasswordExpiry(ApplicationUser user)
         {
             var result = -1; // not a valid expiry days number
 
-            if (!user.PasswordExpired &&
-                userOptions.RemindPasswordExpiryInDays > 0 &&
-                userOptions.MaxPasswordAge != null &&
-                userOptions.MaxPasswordAge.Value > TimeSpan.Zero)
+            if (!user.PasswordExpired)
             {
                 var lastPasswordChangeDate = user.LastPasswordChangedDate ?? user.CreatedDate;
-                var timeTillExpiry = lastPasswordChangeDate.Add(userOptions.MaxPasswordAge.Value) - DateTime.UtcNow;
-                if (timeTillExpiry > TimeSpan.Zero &&
-                    timeTillExpiry < TimeSpan.FromDays(userOptions.RemindPasswordExpiryInDays))
+                var timeTillExpiry = lastPasswordChangeDate - DateTime.UtcNow;
+                if (timeTillExpiry > TimeSpan.Zero)
                 {
                     result = timeTillExpiry.Days;
                 }

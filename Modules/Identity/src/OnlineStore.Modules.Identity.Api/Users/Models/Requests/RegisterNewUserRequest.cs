@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using OnlineStore.Modules.Identity.Domain.Users.Types;
+using OnlineStore.Modules.Identity.Domain.Aggregates.Users.Types;
 
 namespace OnlineStore.Modules.Identity.Api.Users.Models.Requests
 {

@@ -1,35 +1,19 @@
 using System;
-using System.Text;
 using AspNet.Security.OpenIdConnect.Primitives;
-using Common;
-using Common.Persistence.MSSQL;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using OnlineStore.Modules.Identity.Application.Features.Permissions.Services;
-using OnlineStore.Modules.Identity.Application.Features.Roles.Services;
-using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
-using OnlineStore.Modules.Identity.Domain.Common;
-using OnlineStore.Modules.Identity.Domain.Configurations.Settings;
-using OnlineStore.Modules.Identity.Domain.Users;
-using OnlineStore.Modules.Identity.Domain.Users.Services;
-using OnlineStore.Modules.Identity.Domain.Users.Types;
+using OnlineStore.Modules.Identity.Application.Permissions.Services;
+using OnlineStore.Modules.Identity.Application.Users.Contracts;
+using OnlineStore.Modules.Identity.Domain.Aggregates.Users.Services;
+using OnlineStore.Modules.Identity.Domain.Aggregates.Users.Types;
+using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Roles;
+using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users;
+using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
+using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Services;
 using OnlineStore.Modules.Identity.Infrastructure.Authorization;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Permissions;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Roles.Services;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Models;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Repositories;
-using OnlineStore.Modules.Identity.Infrastructure.Domain.Users.Services;
-using AuthorizationOptions = OnlineStore.Modules.Identity.Domain.Configurations.Options.AuthorizationOptions;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
 {
@@ -44,7 +28,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
         {
             services.TryAddScoped<IUserNameResolver, UserNameResolver>();
             services.TryAddScoped<IPermissionService, PermissionService>();
-            services.TryAddScoped<IRoleSearchService, RoleSearchService>();
+            // services.TryAddScoped<IRoleSearchService, RoleSearchService>();
             services.TryAddTransient<IUserRepository, UserRepository>();
 
             //Identity dependencies override
@@ -63,8 +47,6 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
             //Use custom ClaimsPrincipalFactory to add system roles claims for user principal
             services.TryAddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, CustomUserClaimsPrincipalFactory>();
 
-            // register the AuthorizationPolicyProvider which dynamically registers authorization policies for each permission defined in module manifest
-            services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
             //Platform authorization handler for policies based on permissions
             services.AddSingleton<IAuthorizationHandler, DefaultPermissionAuthorizationHandler>();
 
@@ -90,73 +72,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
 
             //https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options
             services.Configure<IdentityOptions>(configuration.GetSection("IdentityOptions"));
-            services.Configure<UserOptionsExtended>(configuration.GetSection("IdentityOptions:User"));
-            services.AddOptions<AuthorizationOptions>().Bind(configuration.GetSection("Authorization"))
-                .ValidateDataAnnotations();
             var authorizationOptions = configuration.GetSection("Authorization").Get<AuthorizationOptions>();
 
             return services;
         }
-
-
-        internal static IServiceCollection AddJwt(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.Configure<JwtSettings>(configuration.GetSection("JWTSettings"));
-            services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(o =>
-                {
-                    o.RequireHttpsMetadata = false;
-                    o.SaveToken = false;
-                    o.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuerSigningKey = true,
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.Zero,
-                        ValidIssuer = configuration["JWTSettings:Issuer"],
-                        ValidAudience = configuration["JWTSettings:Audience"],
-                        IssuerSigningKey =
-                            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWTSettings:Key"]))
-                    };
-                    o.Events = new JwtBearerEvents()
-                    {
-                        OnAuthenticationFailed = c =>
-                        {
-                            c.NoResult();
-                            c.Response.StatusCode = 500;
-                            c.Response.ContentType = "text/plain";
-                            return c.Response.WriteAsync(c.Exception.ToString());
-                        },
-                        OnChallenge = context =>
-                        {
-                            context.HandleResponse();
-                            context.Response.StatusCode = 401;
-                            context.Response.ContentType = "application/json";
-                            var result =
-                                JsonConvert.SerializeObject(
-                                    new Response<string>(
-                                        "You are not Authorized - 401 Not authorized")); // or -->   var result = JsonConvert.SerializeObject("401 Not authorized");
-                            return context.Response.WriteAsync(result);
-                        },
-                        OnForbidden = context =>
-                        {
-                            context.Response.StatusCode = 403;
-                            context.Response.ContentType = "application/json";
-                            var result = JsonConvert.SerializeObject(
-                                new Response<string>(
-                                    "You are not authorized to access this resource - 403 Not authorized")); // or -->  var result = JsonConvert.SerializeObject("403 Not authorized");
-                            return context.Response.WriteAsync(result);
-                        },
-                    };
-                });
-            return services;
-        }
-        
-        
     }
 }

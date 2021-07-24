@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using OnlineStore.Modules.Identity.Application.Features.Users.Dtos.UseCaseResponses;
+using OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses;
 
 namespace OnlineStore.Modules.Identity.Application.Authentication.Services
 {

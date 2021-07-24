@@ -33,6 +33,7 @@ namespace OnlineStore.Modules.Identity.Api
 
         public void ConfigureEndpoints(IEndpointRouteBuilder endpoints)
         {
+
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Common.Core.Domain.Types;
 using EntityFrameworkCore.Triggered;
-using OnlineStore.Modules.Identity.Domain.Users.Services;
+using OnlineStore.Modules.Identity.Domain.Aggregates.Users.Services;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Triggers
 {

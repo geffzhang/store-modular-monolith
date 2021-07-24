@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using OnlineStore.Modules.Identity.Application.Features.System;
+using OnlineStore.Modules.Identity.Application.System;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
 {

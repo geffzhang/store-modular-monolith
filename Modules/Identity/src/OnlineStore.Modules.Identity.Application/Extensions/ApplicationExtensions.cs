@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 using Common.Core.Domain.Dispatching;
 using Microsoft.Extensions.DependencyInjection;
-using OnlineStore.Modules.Identity.Application.Features.Users;
-using OnlineStore.Modules.Identity.Application.Features.Users.Contracts;
+using OnlineStore.Modules.Identity.Application.Users;
+using OnlineStore.Modules.Identity.Application.Users.Contracts;
 
 namespace OnlineStore.Modules.Identity.Application.Extensions
 {
