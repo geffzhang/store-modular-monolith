@@ -1,0 +1,26 @@
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace BuildingBlocks.Core.Messaging
+{
+    public class MessageDispatcher : IMessageDispatcher
+    {
+        private readonly IServiceProvider _serviceProvider;
+
+        public MessageDispatcher(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
+        public async Task DispatchAsync<T>(T message) where T : class, IMessage
+        {
+            if (message is null)
+            {
+                return;
+            }
+            var handler = _serviceProvider.GetRequiredService<IMessageHandler<T>>();
+            await handler.HandleAsync(message);
+        }
+    }
+}

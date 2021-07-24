@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+    <ProjectReference Include="..\OnlineStore.Modules.Identity.Application\OnlineStore.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\OnlineStore.Modules.Identity.Domain\OnlineStore.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\OnlineStore.Modules.Identity.Infrastructure\OnlineStore.Modules.Identity.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenIddict.Abstractions" Version="3.0.3" />
+    <PackageReference Include="OpenIddict.AspNetCore" Version="3.0.3" />
+    <PackageReference Include="OpenIddict.Core" Version="3.0.3" />
+    <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="3.0.3" />
+    <PackageReference Include="OpenIddict.EntityFrameworkCore.Models" Version="3.0.3" />
+    <PackageReference Include="OpenIddict.Server.AspNetCore" Version="3.0.3" />
+    <PackageReference Include="OpenIddict.Validation.AspNetCore" Version="3.0.3" />
+  </ItemGroup>
+
+</Project>
