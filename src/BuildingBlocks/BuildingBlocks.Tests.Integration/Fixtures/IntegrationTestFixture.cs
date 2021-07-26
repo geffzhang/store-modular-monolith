@@ -8,11 +8,11 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using BuildingBlocks.Core;
 using BuildingBlocks.Core.Messaging;
-using BuildingBlocks.Core.Messaging.Commands;
-using BuildingBlocks.Core.Messaging.Diagnostics.Events;
 using BuildingBlocks.Core.Messaging.Outbox;
-using BuildingBlocks.Core.Messaging.Queries;
 using BuildingBlocks.Core.Messaging.Transport;
+using BuildingBlocks.Cqrs.Commands;
+using BuildingBlocks.Cqrs.Queries;
+using BuildingBlocks.Diagnostics.Messaging.Events;
 using BuildingBlocks.Diagnostics.Transports;
 using BuildingBlocks.Persistence.MSSQL;
 using BuildingBlocks.Tests.Integration.Constants;
@@ -102,7 +102,7 @@ namespace BuildingBlocks.Tests.Integration.Fixtures
                     .ConnectionString;
                 await _checkpoint.Reset(connection);
             }
-            catch (Exception e)
+            catch
             {
                 // ignored
             }
@@ -123,7 +123,7 @@ namespace BuildingBlocks.Tests.Integration.Fixtures
 
                     await dbContext.CommitTransactionAsync();
                 }
-                catch (Exception _)
+                catch
                 {
                     dbContext?.RollbackTransaction();
                     throw;

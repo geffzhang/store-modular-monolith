@@ -1,3 +1,4 @@
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Domain.Types;
 using OnlineStore.Modules.Identity.Domain.Aggregates.Users;
 

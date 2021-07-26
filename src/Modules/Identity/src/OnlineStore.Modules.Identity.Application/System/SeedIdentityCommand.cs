@@ -1,5 +1,5 @@
 ﻿using System;
-using BuildingBlocks.Core.Messaging.Commands;
+using BuildingBlocks.Cqrs.Commands;
 
 namespace OnlineStore.Modules.Identity.Application.System
 {

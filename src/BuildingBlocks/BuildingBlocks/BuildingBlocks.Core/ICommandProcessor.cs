@@ -1,8 +1,11 @@
 using System.Threading.Tasks;
 using BuildingBlocks.Core.Domain;
+using BuildingBlocks.Core.Domain.DomainEventNotifications;
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Messaging;
-using BuildingBlocks.Core.Messaging.Commands;
 using BuildingBlocks.Core.Messaging.Events;
+using BuildingBlocks.Cqrs.Commands;
+using BuildingBlocks.Cqrs.Events;
 
 namespace BuildingBlocks.Core
 {

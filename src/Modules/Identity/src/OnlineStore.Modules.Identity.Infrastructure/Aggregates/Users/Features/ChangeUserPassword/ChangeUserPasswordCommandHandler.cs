@@ -1,8 +1,10 @@
+using System.Threading;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Commands;
+using BuildingBlocks.Cqrs;
+using BuildingBlocks.Cqrs.Commands;
 using Microsoft.AspNetCore.Identity;
-using OnlineStore.Modules.Identity.Application.Users.ChangeUserPassword;
 using OnlineStore.Modules.Identity.Application.Users.Exceptions;
+using OnlineStore.Modules.Identity.Application.Users.Features.ChangeUserPassword;
 using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.ChangeUserPassword
@@ -16,7 +18,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             _userManager = userManager;
         }
 
-        public async Task HandleAsync(ChangeUserPasswordCommand command)
+        public async Task<Unit> HandleAsync(ChangeUserPasswordCommand command,
+            CancellationToken cancellationToken = default)
         {
             var appuser = await _userManager.FindByNameAsync(command.UserName);
             if (appuser == null)
@@ -40,6 +43,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             {
                 throw new ChangeUserPasswordFailedException(command.UserName);
             }
+
+            return Unit.Result;
         }
     }
 }

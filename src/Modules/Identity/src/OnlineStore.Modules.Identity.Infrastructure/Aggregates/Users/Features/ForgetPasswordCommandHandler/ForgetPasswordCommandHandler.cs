@@ -1,10 +1,12 @@
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Commands;
+using BuildingBlocks.Cqrs;
+using BuildingBlocks.Cqrs.Commands;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using OnlineStore.Modules.Identity.Application.Users.Exceptions;
-using OnlineStore.Modules.Identity.Application.Users.ForgotPassword;
+using OnlineStore.Modules.Identity.Application.Users.Features.ForgotPassword;
 using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.ForgetPasswordCommandHandler
@@ -17,7 +19,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
         {
             _userManager = userManager;
         }
-        public async Task HandleAsync(ForgetPasswordCommand command)
+        public async Task<Unit> HandleAsync(ForgetPasswordCommand command,CancellationToken cancellationToken = default)
         {
             var user = await _userManager.FindByEmailAsync(command.Email);
             if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
@@ -32,6 +34,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
 
             //TODO: Send Email
             // await _emailSender.SendEmailAsync(user.Email, "Forget Password", callbackUrl.ToString());
+
+            return Unit.Result;
         }
     }
 }

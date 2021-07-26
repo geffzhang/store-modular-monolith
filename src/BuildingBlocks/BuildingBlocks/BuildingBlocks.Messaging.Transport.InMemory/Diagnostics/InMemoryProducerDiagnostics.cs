@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Net;
 using BuildingBlocks.Core.Messaging;
 using BuildingBlocks.Core.Messaging.Diagnostics;
-using BuildingBlocks.Core.Messaging.Diagnostics.Events;
+using BuildingBlocks.Diagnostics.Messaging.Events;
 using BuildingBlocks.Diagnostics.Transports;
 using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Context.Propagation;

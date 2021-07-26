@@ -16,6 +16,7 @@ namespace OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses
         public string MemberId { get; set; }
         public bool IsAdministrator { get; set; }
         public string PhotoUrl { get; set; }
+        public string PhoneNumber { get; set; }
         public UserType UserType { get; set; }
         public string Status { get; set; }
         public DateTime CreatedDate { get; set; }

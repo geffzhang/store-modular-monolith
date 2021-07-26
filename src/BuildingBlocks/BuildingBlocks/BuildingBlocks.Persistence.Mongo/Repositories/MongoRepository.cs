@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Queries;
+using BuildingBlocks.Cqrs.Queries;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 

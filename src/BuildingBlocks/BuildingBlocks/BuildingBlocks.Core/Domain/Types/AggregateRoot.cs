@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Domain.Exceptions;
 
 namespace BuildingBlocks.Core.Domain.Types

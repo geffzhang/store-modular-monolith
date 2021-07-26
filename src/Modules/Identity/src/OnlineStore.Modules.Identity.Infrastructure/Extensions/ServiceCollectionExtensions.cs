@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Core.Scheduling;
+using BuildingBlocks.Cqrs;
 using BuildingBlocks.Messaging.Outbox.EFCore;
 using BuildingBlocks.Messaging.Scheduling.Hangfire.MessagesScheduler;
 using BuildingBlocks.Persistence.MSSQL;
@@ -24,8 +25,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Extensions
                     //     triggerOptions.AddTrigger<AuditTrigger>();
                     // });
                 });
-
             services.AddEntityFrameworkOutbox<IdentityDbContext>(configuration);
+
             AddScopeServices(services);
             AddTransientServices(services);
             AddSingletonServices(services);

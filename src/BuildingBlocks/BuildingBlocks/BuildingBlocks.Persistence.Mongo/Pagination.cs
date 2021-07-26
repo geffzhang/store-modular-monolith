@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Queries;
+using BuildingBlocks.Cqrs.Queries;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 

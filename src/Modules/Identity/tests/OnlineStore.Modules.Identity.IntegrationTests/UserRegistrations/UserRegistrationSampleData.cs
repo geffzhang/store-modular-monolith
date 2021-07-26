@@ -14,6 +14,7 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
         public static string LastName => "test";
         public static string Name => "test";
         public static string UserName => "test";
+        public static string PhoneNumber => "test";
         public static string Password => "admin123456";
         public static bool EmailConfirmed => false;
         public static bool IsAdministrator => true;

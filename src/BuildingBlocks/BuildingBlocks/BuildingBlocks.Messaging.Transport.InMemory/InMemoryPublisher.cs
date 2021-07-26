@@ -41,6 +41,9 @@ namespace BuildingBlocks.Messaging.Transport.InMemory
                 message.Id = Guid.NewGuid();
             }
 
+            if (message.OccurredOn == default)
+                message.OccurredOn = DateTime.Now;
+
             if (_channelFactory.GetWriter<T>() is not null)
             {
                 _logger.LogInformation("publishing message '{message.Id}'...", message.Id);

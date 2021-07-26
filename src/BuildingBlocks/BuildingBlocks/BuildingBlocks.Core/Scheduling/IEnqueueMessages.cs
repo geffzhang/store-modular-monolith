@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Commands;
+using BuildingBlocks.Cqrs.Commands;
 
 namespace BuildingBlocks.Core.Scheduling
 {

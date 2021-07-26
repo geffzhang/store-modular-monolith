@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using BuildingBlocks.Core.Domain;
-using BuildingBlocks.Core.Domain.Dispatching;
+using BuildingBlocks.Core.Domain.DomainEventNotifications;
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Exceptions;
 using BuildingBlocks.Core.Mail;
 using BuildingBlocks.Core.Messaging;
-using BuildingBlocks.Core.Messaging.Commands;
-using BuildingBlocks.Core.Messaging.Events;
-using BuildingBlocks.Core.Messaging.Queries;
 using BuildingBlocks.Core.Messaging.Serialization;
 using BuildingBlocks.Core.Messaging.Serialization.Newtonsoft;
 using BuildingBlocks.Core.Messaging.Transport;
 using BuildingBlocks.Core.Scheduling;
+using BuildingBlocks.Cqrs.Commands;
+using BuildingBlocks.Cqrs.Events;
+using BuildingBlocks.Cqrs.Queries;
 using BuildingBlocks.Logging.Serilog;
 using BuildingBlocks.Persistence.Mongo;
 using BuildingBlocks.Web.Contexts;
@@ -45,10 +45,7 @@ namespace BuildingBlocks.Core.Extensions
                 //options.UnSupportedTypes.Add<Test>();
             });
 
-            services.AddCommand(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
-            services.AddEvent(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
             services.AddMessage(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
-            services.AddQuery(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
             services.AddDomainEvents(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
 
             services
@@ -59,14 +56,14 @@ namespace BuildingBlocks.Core.Extensions
                 .AddSingleton<IExceptionToMessageMapper, ExceptionToMessageMapper>()
                 .AddSingleton<IExceptionCompositionRoot, ExceptionCompositionRoot>()
                 .AddSingleton<IExceptionToMessageMapperResolver, ExceptionToMessageMapperResolver>()
-                .AddSingleton<ICommandProcessor, CommandProcessor>()
-                .AddSingleton<IQueryProcessor, QueryProcessor>()
-                .AddSingleton<IMessagesExecutor, MessagesExecutor>()
-                .AddSingleton<IExecutionContextAccessor, ExecutionContextAccessor>();
+                .AddScoped<ICommandProcessor, CommandProcessor>()
+                .AddScoped<IQueryProcessor, QueryProcessor>()
+                .AddScoped<IMessagesExecutor, MessagesExecutor>()
+                .AddScoped<IExecutionContextAccessor, ExecutionContextAccessor>();
 
-            services.TryDecorate(typeof(ICommandHandler<>), typeof(CommandHandlerLoggingDecorator<>));
+            // services.TryDecorate(typeof(ICommandHandler<>), typeof(CommandHandlerLoggingDecorator<>));
             services.TryDecorate(typeof(IMessageHandler<>), typeof(MessageHandlerLoggingDecorator<>));
-            services.TryDecorate(typeof(IQueryHandler<,>), typeof(QueryHandlerLoggingDecorator<,>));
+            // services.TryDecorate(typeof(IQueryHandler<,>), typeof(QueryHandlerLoggingDecorator<,>));
 
             DomainEvents.CommandProcessor = () => ServiceActivator.GetService<ICommandProcessor>();
 
@@ -89,8 +86,8 @@ namespace BuildingBlocks.Core.Extensions
         public static IServiceCollection AddDomainEvents(this IServiceCollection services,
             IEnumerable<Assembly> assemblies)
         {
-            services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-            services.AddScoped<IDomainEventNotificationDispatcher, DomainEventNotificationDispatcher>();
+            services.AddSingleton<IDomainEventDispatcher, DomainEventDispatcher>();
+            services.AddSingleton<IDomainEventNotificationDispatcher, DomainEventNotificationDispatcher>();
 
             services.Scan(s => s.FromAssemblies(assemblies)
                 .AddClasses(c => c.AssignableTo(typeof(IEventHandler<>))
@@ -112,47 +109,6 @@ namespace BuildingBlocks.Core.Extensions
             services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
 
             services.Scan(s => s.FromAssemblies(assemblies).AddClasses(c => c.AssignableTo(typeof(IMessageHandler<>))
-                    .WithoutAttribute(typeof(DecoratorAttribute)))
-                .AsImplementedInterfaces()
-                .WithScopedLifetime());
-
-            return services;
-        }
-
-        private static IServiceCollection AddCommand(this IServiceCollection services,
-            IList<Assembly> assemblies)
-        {
-            services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
-
-            services.Scan(s => s.FromAssemblies(assemblies)
-                .AddClasses(c => c.AssignableTo(typeof(ICommandHandler<>))
-                    .WithoutAttribute(typeof(DecoratorAttribute)))
-                .AsImplementedInterfaces()
-                .WithScopedLifetime());
-
-            return services;
-        }
-
-        private static IServiceCollection AddEvent(this IServiceCollection services,
-            IList<Assembly> assemblies)
-        {
-            services.AddSingleton<IEventDispatcher, EventDispatcher>();
-
-            services.Scan(s => s.FromAssemblies(assemblies)
-                .AddClasses(c => c.AssignableTo(typeof(IEventHandler<>))
-                    .WithoutAttribute(typeof(DecoratorAttribute)))
-                .AsImplementedInterfaces()
-                .WithScopedLifetime());
-
-            return services;
-        }
-
-        private static IServiceCollection AddQuery(this IServiceCollection services, IList<Assembly> assemblies)
-        {
-            services.AddSingleton<IQueryDispatcher, QueryDispatcher>();
-
-            services.Scan(s => s.FromAssemblies(assemblies)
-                .AddClasses(c => c.AssignableTo(typeof(IQueryHandler<,>))
                     .WithoutAttribute(typeof(DecoratorAttribute)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());

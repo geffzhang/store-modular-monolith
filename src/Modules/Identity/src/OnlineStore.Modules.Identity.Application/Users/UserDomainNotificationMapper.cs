@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BuildingBlocks.Core.Domain.Dispatching;
-using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
+using BuildingBlocks.Core.Domain.DomainEventNotifications;
+using OnlineStore.Modules.Identity.Application.Users.Features.RegisterNewUser;
 
 namespace OnlineStore.Modules.Identity.Application.Users
 {

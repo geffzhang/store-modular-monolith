@@ -28,8 +28,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Services
             ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services,
             ILogger<UserManager<ApplicationUser>> logger, RoleManager<ApplicationRole> roleManager,
             IEasyCachingProviderFactory cachingFactory, IServiceScopeFactory serviceScopeFactory)
-            : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors,
-                services, logger)
+            : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators,
+                keyNormalizer, errors, services, logger)
         {
             _cachingProvider = cachingFactory.GetCachingProvider("mem");
             _serviceScopeFactory = serviceScopeFactory;
@@ -157,6 +157,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Services
 
             return result;
         }
+
         public override async Task<IdentityResult> UpdateAsync(ApplicationUser user)
         {
             ApplicationUser existUser = null;
@@ -248,7 +249,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Services
         {
             var userResult = await base.CreateAsync(user, password);
 
-            userResult.LogResult($"a new user with userId '{user.Id}' added successfully.", $"there is an exception in creating user with id '{user.Id}'");
+            userResult.LogResult($"a new user with userId '{user.Id}' added successfully.",
+                $"there is an exception in creating user with id '{user.Id}'");
 
             return userResult;
         }

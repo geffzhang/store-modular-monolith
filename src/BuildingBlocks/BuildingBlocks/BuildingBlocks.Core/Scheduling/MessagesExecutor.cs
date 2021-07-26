@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Commands;
 using BuildingBlocks.Core.Scheduling.Helpers;
+using BuildingBlocks.Cqrs.Commands;
 using Newtonsoft.Json;
 
 namespace BuildingBlocks.Core.Scheduling

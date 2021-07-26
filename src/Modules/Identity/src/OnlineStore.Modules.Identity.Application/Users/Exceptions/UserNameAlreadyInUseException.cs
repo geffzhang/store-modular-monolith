@@ -6,7 +6,7 @@ namespace OnlineStore.Modules.Identity.Application.Users.Exceptions
     {
         public string Name { get; }
 
-        public UserNameAlreadyInUseException(string name) : base($"UserName '{name}' is already in use.")
+        public UserNameAlreadyInUseException(string name) : base($"UserName '{name}' is already in used.")
         {
             Name = name;
         }

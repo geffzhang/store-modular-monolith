@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.Core.Messaging.Commands;
-using BuildingBlocks.Core.Persistence;
-using BuildingBlocks.Persistence.Postgres.Decorators;
+﻿using BuildingBlocks.Core.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,12 +16,6 @@ namespace BuildingBlocks.Persistence.Postgres
             services.AddOptions<PostgresOptions>().Bind(configuration.GetSection(sectionName)).ValidateDataAnnotations();
             services.AddSingleton(new UnitOfWorkTypeRegistry());
 
-            return services;
-        }
-
-        public static IServiceCollection AddTransactionalDecorators(this IServiceCollection services)
-        {
-            services.TryDecorate(typeof(ICommandHandler<>), typeof(TransactionalCommandHandlerDecorator<>));
             return services;
         }
 

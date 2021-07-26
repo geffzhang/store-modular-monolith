@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using BuildingBlocks.Core;
 using BuildingBlocks.Core.Domain;
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

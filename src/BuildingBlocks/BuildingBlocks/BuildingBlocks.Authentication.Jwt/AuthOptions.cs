@@ -32,6 +32,7 @@ namespace BuildingBlocks.Authentication.Jwt
         public bool ValidateTokenReplay { get; set; }
         public bool ValidateIssuerSigningKey { get; set; }
         public bool RefreshOnIssuerKeyNotFound { get; set; } = true;
+        public int RefreshTokenExpiryInDays { get; set; }
         public bool IncludeErrorDetails { get; set; } = true;
         public string AuthenticationType { get; set; }
         public string NameClaimType { get; set; }

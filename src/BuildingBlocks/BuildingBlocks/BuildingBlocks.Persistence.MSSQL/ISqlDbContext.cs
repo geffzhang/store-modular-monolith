@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using BuildingBlocks.Core.Domain;
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Messaging.Outbox;
 using Microsoft.EntityFrameworkCore;
 

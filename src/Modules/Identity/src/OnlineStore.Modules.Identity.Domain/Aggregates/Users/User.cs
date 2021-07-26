@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using BuildingBlocks.Authentication.Jwt;
 using BuildingBlocks.Core.Domain.Types;
 using OnlineStore.Modules.Identity.Domain.Aggregates.Users.DomainEvents;
 using OnlineStore.Modules.Identity.Domain.Aggregates.Users.DomainExceptions;
@@ -12,8 +14,7 @@ namespace OnlineStore.Modules.Identity.Domain.Aggregates.Users
     {
         // Using a private collection field, better for DDD Aggregate's encapsulation
         private readonly List<Role> _roles = new();
-
-        // private readonly List<ApplicationUserLogin> _logins = new();
+        private readonly List<RefreshToken> _refreshTokens = new();
         private readonly List<Permission> _permissions = new();
         public string UserName { get; private set; }
         public bool EmailConfirmed { get; private set; }
@@ -26,23 +27,25 @@ namespace OnlineStore.Modules.Identity.Domain.Aggregates.Users
         public UserType UserType { get; private set; }
         public string? Status { get; private set; }
         public string Password { get; private set; }
+        public string PhoneNumber { get; private set; }
         public bool LockoutEnabled { get; private set; }
         public bool IsActive { get; private set; }
         public bool PasswordExpired { get; private set; }
         public DateTime? LastPasswordChangedDate { get; private set; }
-        public DateTime CreatedDate { get; init; }
-        public DateTime? ModifiedDate { get; init; }
-        public string? CreatedBy { get; init; }
-        public string? ModifiedBy { get; init; }
-        public IReadOnlyList<Role> Roles => _roles;
-        public IReadOnlyList<Permission> Permissions => _permissions;
-
+        public DateTime CreatedDate { get; private set; }
+        public DateTime? ModifiedDate { get; private set; }
+        public string? CreatedBy { get; private set; }
+        public string? ModifiedBy { get; private set; }
+        public IReadOnlyList<Role> Roles => _roles.AsReadOnly();
+        public IReadOnlyList<Permission> Permissions => _permissions.AsReadOnly();
+        public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
         private User(UserId id,
             string email,
             string firstName,
             string lastName,
             string name,
             string userName,
+            string phoneNumber,
             string password,
             UserType userType,
             bool isAdmin = false,
@@ -60,6 +63,7 @@ namespace OnlineStore.Modules.Identity.Domain.Aggregates.Users
             CheckNameValidity(name);
 
             UserName = userName;
+            PhoneNumber = phoneNumber;
             IsActive = true;
             Id = id;
             Email = email.ToLowerInvariant();
@@ -91,6 +95,7 @@ namespace OnlineStore.Modules.Identity.Domain.Aggregates.Users
             string lastName,
             string name,
             string userName,
+            string phoneNumber,
             string password,
             UserType userType,
             bool isAdmin = false,
@@ -110,6 +115,7 @@ namespace OnlineStore.Modules.Identity.Domain.Aggregates.Users
                 lastName,
                 name,
                 userName,
+                phoneNumber,
                 password,
                 userType,
                 isAdmin,
@@ -128,10 +134,13 @@ namespace OnlineStore.Modules.Identity.Domain.Aggregates.Users
             return user;
         }
 
+
+
+        #region Domain Operations
         public void AssignRole(params Role[]? roles)
         {
             if (roles is null)
-                throw new Exception("Role can't be null.");
+                throw new Exception("Roles can't be null.");
 
             foreach (var role in roles)
             {
@@ -139,11 +148,22 @@ namespace OnlineStore.Modules.Identity.Domain.Aggregates.Users
                 if (!exists) _roles.Add(role);
             }
         }
+        public void AssignRefreshToken(params RefreshToken[]? refreshTokens)
+        {
+            if (refreshTokens is null)
+                throw new Exception("RefreshTokens can't be null.");
+
+            foreach (var refreshToken in refreshTokens)
+            {
+                var exists = _refreshTokens.Contains(refreshToken);
+                if (!exists) _refreshTokens.Add(refreshToken);
+            }
+        }
 
         public void AssignPermission(params Permission[]? permissions)
         {
             if (permissions is null)
-                throw new Exception("Role can't be null.");
+                throw new Exception("Permissions can't be null.");
 
             foreach (var permission in permissions)
             {
@@ -164,9 +184,20 @@ namespace OnlineStore.Modules.Identity.Domain.Aggregates.Users
             if (!RegexConstants.Email.IsMatch(email))
                 throw new InvalidEmailException(email);
         }
+        public bool HasValidRefreshToken(string refreshToken)
+        {
+            return _refreshTokens.Any(rt => rt.Token == refreshToken && rt.IsActive);
+        }
 
-        #region Domain Operations
+        public void AddRefreshToken(RefreshToken refreshToken)
+        {
+            _refreshTokens.Add(refreshToken);
+        }
 
+        public void RemoveRefreshToken(string refreshToken)
+        {
+            _refreshTokens.Remove(_refreshTokens.First(t => t.Token == refreshToken));
+        }
         #endregion
 
         #region Domain Invariants

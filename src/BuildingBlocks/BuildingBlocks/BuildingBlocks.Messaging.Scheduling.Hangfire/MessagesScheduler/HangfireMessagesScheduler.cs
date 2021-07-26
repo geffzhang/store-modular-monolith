@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Commands;
 using BuildingBlocks.Core.Scheduling;
+using BuildingBlocks.Cqrs.Commands;
 using Hangfire;
 using Newtonsoft.Json;
 

@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
-using BuildingBlocks.Core.Messaging.Queries;
+using BuildingBlocks.Cqrs.Queries;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json.Linq;
 using OnlineStore.Modules.Identity.Application.Users.Exceptions;
-using OnlineStore.Modules.Identity.Application.Users.GetUserInfo;
+using OnlineStore.Modules.Identity.Application.Users.Features.GetUserInfo;
 using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 using OpenIddict.Abstractions;
 
@@ -25,7 +26,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<IList<Claim>> HandleAsync(GetUserInfoQuery query)
+        public async Task<IList<Claim>> HandleAsync(GetUserInfoQuery query,CancellationToken cancellationToken = default)
         {
             var currentUser = _httpContextAccessor.HttpContext?.User;
             if (currentUser == null)
@@ -36,7 +37,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             var user = await _userManager.GetUserAsync(currentUser);
             if (user == null)
             {
-                throw new UserNotFoundException(currentUser.Identity?.Name);
+                throw new UserNotFoundException();
             }
 
             var claims = new List<Claim>

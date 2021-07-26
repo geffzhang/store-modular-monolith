@@ -1,11 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Domain;
-using BuildingBlocks.Core.Domain.Dispatching;
+using BuildingBlocks.Core.Domain.DomainEventNotifications;
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Messaging;
-using BuildingBlocks.Core.Messaging.Commands;
-using BuildingBlocks.Core.Messaging.Events;
-using BuildingBlocks.Core.Messaging.Transport;
+using BuildingBlocks.Cqrs;
+using BuildingBlocks.Cqrs.Commands;
+using BuildingBlocks.Cqrs.Events;
+using IPublisher = BuildingBlocks.Core.Messaging.Transport.IPublisher;
 
 namespace BuildingBlocks.Core
 {
@@ -13,24 +14,18 @@ namespace BuildingBlocks.Core
     {
         private readonly IDomainEventDispatcher _domainEventDispatcher;
         private readonly IDomainEventNotificationDispatcher _domainEventNotificationDispatcher;
-        private readonly ICommandDispatcher _commandDispatcher;
-        private readonly IEventDispatcher _eventDispatcher;
-        private readonly IMessageDispatcher _messageDispatcher;
+        private readonly IMediator _mediator;
         private readonly IPublisher _publisher;
 
         public CommandProcessor(
             IDomainEventDispatcher domainEventDispatcher,
             IDomainEventNotificationDispatcher domainEventNotificationDispatcher,
-            ICommandDispatcher commandDispatcher,
-            IEventDispatcher eventDispatcher,
-            IMessageDispatcher messageDispatcher,
+            IMediator mediator,
             IPublisher publisher)
         {
             _domainEventDispatcher = domainEventDispatcher;
             _domainEventNotificationDispatcher = domainEventNotificationDispatcher;
-            _commandDispatcher = commandDispatcher;
-            _eventDispatcher = eventDispatcher;
-            _messageDispatcher = messageDispatcher;
+            _mediator = mediator;
             _publisher = publisher;
         }
 
@@ -56,7 +51,15 @@ namespace BuildingBlocks.Core
             if (command is null)
                 return;
 
-            await _commandDispatcher.DispatchAsync(command);
+            await _mediator.Send(command);
+        }
+
+        public async Task<TResult> SendCommandAsync<T, TResult>(T command) where T : class, ICommand<TResult>
+        {
+            if (command is null)
+                return default;
+
+            return await _mediator.Send(command);
         }
 
         public async Task SendEventAsync<T>(T @event) where T : class, IEvent
@@ -64,7 +67,7 @@ namespace BuildingBlocks.Core
             if (@event is null)
                 return;
 
-            await _eventDispatcher.DispatchAsync(@event);
+            await _mediator.Send(@event);
         }
 
         public async Task PublishMessageAsync<T>(T message) where T : class, IMessage

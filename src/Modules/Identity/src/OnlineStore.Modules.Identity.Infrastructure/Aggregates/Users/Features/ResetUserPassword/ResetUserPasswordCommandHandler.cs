@@ -1,8 +1,10 @@
+using System.Threading;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Commands;
+using BuildingBlocks.Cqrs;
+using BuildingBlocks.Cqrs.Commands;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Users.Exceptions;
-using OnlineStore.Modules.Identity.Application.Users.ResetUserPassword;
+using OnlineStore.Modules.Identity.Application.Users.Features.ResetUserPassword;
 using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.ResetUserPassword
@@ -16,7 +18,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             _userManager = userManager;
         }
 
-        public async Task HandleAsync(ResetUserPasswordCommand command)
+        public async Task<Unit> HandleAsync(ResetUserPasswordCommand command,
+            CancellationToken cancellationToken = default)
         {
             ApplicationUser appuser = null;
             if (string.IsNullOrEmpty(command.UserName) == false)
@@ -33,6 +36,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             {
                 throw new UserNotFoundException(command.UserName);
             }
+
             var token = await _userManager.GeneratePasswordResetTokenAsync(appuser);
             var result = await _userManager.ResetPasswordAsync(appuser, token, command.NewPassword);
             if (result.Succeeded)
@@ -50,6 +54,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             {
                 throw new ResetPasswordFailedException(command.UserId);
             }
+
+            return Unit.Result;
         }
     }
 }

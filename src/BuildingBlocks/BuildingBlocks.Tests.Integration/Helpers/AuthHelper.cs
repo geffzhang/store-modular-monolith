@@ -1,5 +1,6 @@
-using System.Collections.Generic;
 using BuildingBlocks.Authentication.Jwt;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace BuildingBlocks.Tests.Integration.Helpers
 {
@@ -10,11 +11,10 @@ namespace BuildingBlocks.Tests.Integration.Helpers
         static AuthHelper()
         {
             var options = OptionsHelper.GetOptions<JwtOptions>("jwt");
-            JwtHandler = new JwtHandler(options,null);
+            JwtHandler = new JwtHandler(options, null, Mock.Of<ILogger<JwtHandler>>());
         }
 
-        public static string GenerateJwt(string userId, string role = null, string audience = null,
-            IDictionary<string, IEnumerable<string>> claims = null)
-            => JwtHandler.CreateToken(userId, role, audience, claims).AccessToken;
+        public static string GenerateJwt(string userName, string email, string userId) =>
+            JwtHandler.CreateToken(userName, email, userId).AccessToken;
     }
 }

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using BuildingBlocks.Core;
 using BuildingBlocks.Core.Domain;
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;

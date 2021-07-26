@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using BuildingBlocks.Authentication.Jwt;
 using BuildingBlocks.Core.Domain.Types;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Domain.Aggregates.Users;

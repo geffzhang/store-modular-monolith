@@ -4,6 +4,7 @@ using BuildingBlocks.Authentication.Jwt;
 using BuildingBlocks.Core;
 using BuildingBlocks.Core.Extensions;
 using BuildingBlocks.Core.Modules;
+using BuildingBlocks.Cqrs;
 using BuildingBlocks.Diagnostics;
 using BuildingBlocks.Logging.Serilog;
 using BuildingBlocks.Messaging.Transport.InMemory;
@@ -56,6 +57,7 @@ namespace OnlineStore.API
             services.AddVersioning();
             services.AddCaching(Configuration);
             services.AddInMemoryMessaging(Configuration, "messaging");
+            services.AddCqrs();
             services.AddFeatureManagement();
             services.AddJwtAuthentication(Configuration, Modules);
 

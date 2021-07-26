@@ -28,5 +28,9 @@ namespace BuildingBlocks.Web.Extensions
         public static void SetResourceIdFoRequest(this HttpContext context, string id, ExecutionContextOptions
             options = null)
             => context.Items.TryAdd(options?.ResourceIdHeaderKey ?? "resource-id", id);
+
+        public static void SetOperationHeader(this HttpResponse response, string id,
+            ExecutionContextOptions options = null)
+            => response.Headers.Add(options?.OperationHeaderKey ?? "x-operation", $"operations/{id}");
     }
 }

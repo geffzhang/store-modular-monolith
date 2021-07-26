@@ -1,5 +1,5 @@
-﻿using BuildingBlocks.Core.Messaging.Commands;
-using BuildingBlocks.Core.Scheduling;
+﻿using BuildingBlocks.Core.Scheduling;
+using BuildingBlocks.Cqrs.Commands;
 using Hangfire;
 
 namespace BuildingBlocks.Messaging.Scheduling.Hangfire.MessagesScheduler

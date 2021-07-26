@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BuildingBlocks.Core;
 using BuildingBlocks.Core.Domain;
-using BuildingBlocks.Core.Domain.Dispatching;
+using BuildingBlocks.Core.Domain.DomainEventNotifications;
 using BuildingBlocks.Core.Extensions;
 using BuildingBlocks.Core.Messaging.Outbox;
 using BuildingBlocks.Core.Messaging.Serialization;

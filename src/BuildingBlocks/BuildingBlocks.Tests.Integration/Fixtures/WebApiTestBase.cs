@@ -72,9 +72,9 @@ namespace BuildingBlocks.Tests.Integration.Fixtures
         protected Task<HttpResponseMessage> SendAsync(HttpMethod method, string endpoint)
             => Client.SendAsync(new HttpRequestMessage(method, GetEndpoint(endpoint)));
 
-        protected void Authenticate(Guid userId)
+        protected void Authenticate(Guid userId, string email, string userName)
         {
-            var jwt = AuthHelper.GenerateJwt(userId.ToString());
+            var jwt = AuthHelper.GenerateJwt(userName, email, userId.ToString());
             Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
         }
 

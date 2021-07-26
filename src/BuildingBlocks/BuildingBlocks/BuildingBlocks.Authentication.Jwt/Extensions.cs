@@ -26,6 +26,7 @@ namespace BuildingBlocks.Authentication.Jwt
         {
             var options = configuration.GetSection(sectionName).Get<JwtOptions>();
             services.AddSingleton<IJwtHandler, JwtHandler>();
+            services.AddSingleton<IJwtTokenValidator, JwtTokenValidator>();
             services.AddSingleton<IAccessTokenService, InMemoryAccessTokenService>();
             services.AddScoped<AccessTokenValidatorMiddleware>();
 

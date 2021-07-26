@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using BuildingBlocks.Core.Domain;
+using BuildingBlocks.Core.Domain.DomainEventNotifications;
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Messaging;
-using BuildingBlocks.Core.Messaging.Commands;
-using BuildingBlocks.Core.Messaging.Queries;
+using BuildingBlocks.Cqrs.Commands;
+using BuildingBlocks.Cqrs.Queries;
 using BuildingBlocks.Diagnostics.Messaging;
 using BuildingBlocks.Diagnostics.Transports;
 using Microsoft.Extensions.Configuration;
@@ -76,12 +78,12 @@ namespace BuildingBlocks.Diagnostics
                     }
             });
 
-            services.TryDecorate(typeof(IDomainEventHandler<>), typeof(OTelDomainEventTracingDecorator<>));
-            services.TryDecorate(typeof(ICommandHandler<>), typeof(OTelCommandTracingDecorator<>));
-            services.TryDecorate(typeof(IDomainEventNotificationHandler<>),
-                typeof(OTelNotificationEventTracingDecorator<>));
-            services.TryDecorate(typeof(IMessageHandler<>), typeof(OTelMessageTracingDecorator<>));
-            services.TryDecorate(typeof(IQueryHandler<,>), typeof(OTelQueryTracingDecorator<,>));
+            //services.TryDecorate(typeof(IDomainEventHandler<>), typeof(OTelDomainEventTracingDecorator<>));
+            // services.TryDecorate(typeof(ICommandHandler<>), typeof(OTelCommandTracingDecorator<>));
+            // services.TryDecorate(typeof(IDomainEventNotificationHandler<>),
+            //     typeof(OTelNotificationEventTracingDecorator<>));
+            //services.TryDecorate(typeof(IMessageHandler<>), typeof(OTelMessageTracingDecorator<>));
+            //services.TryDecorate(typeof(IQueryHandler<,>), typeof(OTelQueryTracingDecorator<,>));
 
             return services;
         }

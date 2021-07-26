@@ -1,10 +1,12 @@
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BuildingBlocks.Core.Mail;
-using BuildingBlocks.Core.Messaging.Commands;
+using BuildingBlocks.Cqrs;
+using BuildingBlocks.Cqrs.Commands;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
-using OnlineStore.Modules.Identity.Application.Users.SendVerificationEmail;
+using OnlineStore.Modules.Identity.Application.Users.Features.SendVerificationEmail;
 using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.SendVerificationEmail
@@ -20,7 +22,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             _mailService = mailService;
         }
 
-        public async Task HandleAsync(SendVerificationEmailCommand command)
+        public async Task<Unit> HandleAsync(SendVerificationEmailCommand command,
+            CancellationToken cancellationToken = default)
         {
             var applicationUser = (await _userManager.FindByIdAsync(command.UserId));
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
@@ -30,10 +33,13 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
                 $"{command.RequestScheme}://{command.RequestHost}/#/confirm-email/{applicationUser.Id}/{encodedCode}";
 
             string link = $"<a href='{callbackUrl}'>link</a>";
-            string content = $"Welcome to Online Shopping application! Please confirm your registration using this {link}.";
+            string content =
+                $"Welcome to Online Shopping application! Please confirm your registration using this {link}.";
 
             // Send Email
             await _mailService.SendAsync(new MailRequest(applicationUser.Email, "Confirmation Email", content));
+
+            return Unit.Result;
         }
     }
 }

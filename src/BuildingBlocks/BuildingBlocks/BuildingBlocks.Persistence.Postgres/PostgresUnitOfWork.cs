@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Domain.Dispatching;
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Persistence;
 using Microsoft.EntityFrameworkCore;
 

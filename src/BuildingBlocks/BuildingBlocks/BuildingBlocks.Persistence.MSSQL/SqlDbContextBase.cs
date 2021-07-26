@@ -3,6 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using BuildingBlocks.Core.Domain;
+using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Domain.Types;
 using BuildingBlocks.Core.Messaging.Outbox;
 using BuildingBlocks.Persistence.MSSQL.Configurations;

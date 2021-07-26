@@ -8,8 +8,8 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineStore.API;
 using OnlineStore.Modules.Identity.Application.System;
-using OnlineStore.Modules.Identity.Application.Users.GetUserById;
-using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
+using OnlineStore.Modules.Identity.Application.Users.Features.GetUserById;
+using OnlineStore.Modules.Identity.Application.Users.Features.RegisterNewUser;
 using OnlineStore.Modules.Identity.Infrastructure;
 using Xunit;
 using Xunit.Abstractions;
@@ -42,13 +42,20 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
             //Arrange
             var registerUserCommand = new RegisterNewUserCommand(
                 UserRegistrationSampleData.Email,
-                UserRegistrationSampleData.FirstName, UserRegistrationSampleData.LastName,
+                UserRegistrationSampleData.FirstName,
+                UserRegistrationSampleData.LastName,
                 UserRegistrationSampleData.Name,
-                UserRegistrationSampleData.UserName, UserRegistrationSampleData.Password,
-                UserRegistrationSampleData.Permissions.ToImmutableList(), UserRegistrationSampleData.UserType,
-                UserRegistrationSampleData.IsAdministrator, UserRegistrationSampleData.IsActive,
-                UserRegistrationSampleData.Roles.ToImmutableList(), UserRegistrationSampleData.LockoutEnabled,
-                UserRegistrationSampleData.EmailConfirmed, UserRegistrationSampleData.PhotoUrl,
+                UserRegistrationSampleData.UserName,
+                UserRegistrationSampleData.PhoneNumber,
+                UserRegistrationSampleData.Password,
+                UserRegistrationSampleData.Permissions.ToImmutableList(),
+                UserRegistrationSampleData.UserType,
+                UserRegistrationSampleData.IsAdministrator,
+                UserRegistrationSampleData.IsActive,
+                UserRegistrationSampleData.Roles.ToImmutableList(),
+                UserRegistrationSampleData.LockoutEnabled,
+                UserRegistrationSampleData.EmailConfirmed,
+                UserRegistrationSampleData.PhotoUrl,
                 UserRegistrationSampleData.Status);
 
             //async operation test simulation

@@ -16,6 +16,7 @@ namespace OnlineStore.Modules.Identity.Api.Users.Models.Requests
         public string Name { get; set; }
         public string MemberId { get; set; }
         public bool IsAdministrator { get; set; }
+        public string PhoneNumber { get; set; }
         public string PhotoUrl { get; set; }
         public UserType UserType { get; set; }
         public string Status { get; set; }

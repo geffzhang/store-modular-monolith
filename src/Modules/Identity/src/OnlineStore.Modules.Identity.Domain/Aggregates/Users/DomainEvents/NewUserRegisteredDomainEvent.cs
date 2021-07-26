@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Core.Domain.Types;
+﻿using BuildingBlocks.Core.Domain.DomainEvents;
+using BuildingBlocks.Core.Domain.Types;
 
 namespace OnlineStore.Modules.Identity.Domain.Aggregates.Users.DomainEvents
 {

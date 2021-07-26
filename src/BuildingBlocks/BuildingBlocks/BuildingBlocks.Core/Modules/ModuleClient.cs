@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using BuildingBlocks.Core.Domain.IntegrationEvents;
 using BuildingBlocks.Core.Extensions;
 using BuildingBlocks.Core.Messaging;
-using BuildingBlocks.Core.Messaging.Commands;
 using BuildingBlocks.Core.Messaging.Events;
+using BuildingBlocks.Cqrs.Commands;
 
 namespace BuildingBlocks.Core.Modules
 {

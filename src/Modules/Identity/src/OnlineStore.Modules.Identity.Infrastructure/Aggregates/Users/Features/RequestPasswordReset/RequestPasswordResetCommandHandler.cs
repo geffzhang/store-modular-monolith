@@ -1,7 +1,9 @@
+using System.Threading;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Commands;
+using BuildingBlocks.Cqrs;
+using BuildingBlocks.Cqrs.Commands;
 using Microsoft.AspNetCore.Identity;
-using OnlineStore.Modules.Identity.Application.Users.RequestPasswordReset;
+using OnlineStore.Modules.Identity.Application.Users.Features.RequestPasswordReset;
 using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.RequestPasswordReset
@@ -15,7 +17,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             _userManager = userManager;
         }
 
-        public async Task HandleAsync(RequestPasswordResetCommand command)
+        public async Task<Unit> HandleAsync(RequestPasswordResetCommand command,
+            CancellationToken cancellationToken = default)
         {
             var user = await _userManager.FindByNameAsync(command.LoginOrEmail);
             if (user == null)
@@ -33,6 +36,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
                 //TODO: Send Email
                 // await _emailSender.SendEmailAsync(user.Email, "Reset password", callbackUrl.ToString());
             }
+
+            return Unit.Result;
         }
     }
 }

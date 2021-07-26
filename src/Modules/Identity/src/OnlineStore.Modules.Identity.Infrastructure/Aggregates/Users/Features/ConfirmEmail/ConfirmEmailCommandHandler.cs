@@ -1,14 +1,16 @@
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Commands;
+using BuildingBlocks.Cqrs;
+using BuildingBlocks.Cqrs.Commands;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
-using OnlineStore.Modules.Identity.Application.Users.ConfirmEmail;
+using OnlineStore.Modules.Identity.Application.Users.Features.ConfirmEmail;
 using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.ConfirmEmail
 {
-    public class ConfirmEmailCommandHandler:ICommandHandler<ConfirmEmailCommand>
+    public class ConfirmEmailCommandHandler : ICommandHandler<ConfirmEmailCommand>
     {
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -16,7 +18,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
         {
             _userManager = userManager;
         }
-        public async Task HandleAsync(ConfirmEmailCommand command)
+
+        public async Task<Unit> HandleAsync(ConfirmEmailCommand command, CancellationToken cancellationToken = default)
         {
             var user = await _userManager.FindByIdAsync(command.UserId);
             var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(command.Code));
@@ -25,6 +28,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             {
                 throw new ConfirmationEmailFailedException(command.UserId);
             }
+
+            return Unit.Result;
         }
     }
 }

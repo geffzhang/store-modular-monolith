@@ -11,19 +11,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using OnlineStore.Modules.Identity.Api.Users.Models.Requests;
-using OnlineStore.Modules.Identity.Application.Users.ChangeUserPassword;
 using OnlineStore.Modules.Identity.Application.Users.Dtos.UseCaseResponses;
-using OnlineStore.Modules.Identity.Application.Users.GetCurrentUser;
-using OnlineStore.Modules.Identity.Application.Users.GetUserByEmail;
-using OnlineStore.Modules.Identity.Application.Users.GetUserById;
-using OnlineStore.Modules.Identity.Application.Users.GetUserByLogin;
-using OnlineStore.Modules.Identity.Application.Users.GetUserByName;
-using OnlineStore.Modules.Identity.Application.Users.GetUserInfo;
-using OnlineStore.Modules.Identity.Application.Users.RegisterNewUser;
-using OnlineStore.Modules.Identity.Application.Users.RequestPasswordReset;
-using OnlineStore.Modules.Identity.Application.Users.ResetUserPassword;
-using OnlineStore.Modules.Identity.Application.Users.SearchUsers;
-using OnlineStore.Modules.Identity.Application.Users.ValidatePasswordResetToken;
+using OnlineStore.Modules.Identity.Application.Users.Features.ChangeUserPassword;
+using OnlineStore.Modules.Identity.Application.Users.Features.GetCurrentUser;
+using OnlineStore.Modules.Identity.Application.Users.Features.GetUserByEmail;
+using OnlineStore.Modules.Identity.Application.Users.Features.GetUserById;
+using OnlineStore.Modules.Identity.Application.Users.Features.GetUserByLogin;
+using OnlineStore.Modules.Identity.Application.Users.Features.GetUserByName;
+using OnlineStore.Modules.Identity.Application.Users.Features.GetUserInfo;
+using OnlineStore.Modules.Identity.Application.Users.Features.RegisterNewUser;
+using OnlineStore.Modules.Identity.Application.Users.Features.RequestPasswordReset;
+using OnlineStore.Modules.Identity.Application.Users.Features.ResetUserPassword;
+using OnlineStore.Modules.Identity.Application.Users.Features.SearchUsers;
+using OnlineStore.Modules.Identity.Application.Users.Features.ValidatePasswordResetToken;
 using OnlineStore.Modules.Identity.Infrastructure;
 
 namespace OnlineStore.Modules.Identity.Api.Users
@@ -184,6 +184,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
                 request.LastName,
                 request.Name,
                 request.UserName,
+                request.PhoneNumber,
                 request.Password,
                 request.Permissions.ToList(),
                 request.UserType,

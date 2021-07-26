@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BuildingBlocks.Core.Extensions;
-using BuildingBlocks.Core.Messaging.Commands;
 using BuildingBlocks.Core.Messaging.Serialization;
 using BuildingBlocks.Core.Modules;
 using BuildingBlocks.Core.Scheduling;
 using BuildingBlocks.Core.Scheduling.Helpers;
+using BuildingBlocks.Cqrs.Commands;
 using BuildingBlocks.Persistence.Mongo;
 using Humanizer;
 using Microsoft.Extensions.Logging;

@@ -1,21 +1,25 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using BuildingBlocks.Core.Types;
+using BuildingBlocks.Persistence.MSSQL;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Modules.Identity.Application.Users.Contracts;
 using OnlineStore.Modules.Identity.Application.Users.Dtos.GatewayResponses.Repositories;
 using OnlineStore.Modules.Identity.Domain.Aggregates.Users;
+using OnlineStore.Modules.Identity.Domain.Aggregates.Users.Types;
 using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users
 {
-	//Aggregate (Root) Design: Separate Behavior & Data for Persistence: https://www.youtube.com/watch?v=GtWVGJp061A
-    public class UserRepository : IUserRepository
+    //Aggregate (Root) Design: Separate Behavior & Data for Persistence: https://www.youtube.com/watch?v=GtWVGJp061A
+    public class UserRepository : Repository<User, Guid, UserId>, IUserRepository
     {
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public UserRepository(UserManager<ApplicationUser> userManager)
+        public UserRepository(IdentityDbContext dbContext, UserManager<ApplicationUser> userManager) : base(dbContext)
         {
             _userManager = userManager;
         }
@@ -42,6 +46,13 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users
                 identityResult.Errors.Select(e => new Error(e.Code, e.Description)));
         }
 
+        public async Task<User> FindByNameOrEmailAsync(string userNameOrEmail)
+        {
+            ApplicationUser appUser = await _userManager.FindByNameAsync(userNameOrEmail) ??
+                                      await _userManager.FindByEmailAsync(userNameOrEmail);
+            return appUser.ToUser();
+        }
+
         public async Task<User> FindByNameAsync(string userName)
         {
             var appUser = await _userManager.FindByNameAsync(userName);
@@ -51,7 +62,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users
         public async Task<User> FindByIdAsync(string id)
         {
             var appUser = await _userManager.FindByIdAsync(id);
-            
+
             return appUser.ToUser();
         }
 
@@ -77,8 +88,24 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users
         {
             var appUser = user.ToApplicationUser();
             var identityResult = await _userManager.SetEmailAsync(appUser, email);
-            return new SetUserEmailResponse(email,identityResult.Succeeded,
+            return new SetUserEmailResponse(email, identityResult.Succeeded,
                 identityResult.Errors.Select(e => new Error(e.Code, e.Description)));
+        }
+
+        public async Task<(IList<Claim> UserClaims, IList<string> Roles, IList<Claim> PermissionClaims)>
+            GetClaimsAsync(User user)
+        {
+            var appUser = user.ToApplicationUser();
+
+            var userClaims = await _userManager.GetClaimsAsync(appUser);
+            var roles = await _userManager.GetRolesAsync(appUser);
+            var permissionClaims = new List<Claim>();
+
+            var allPermissionsForThisRoles = await _userManager.GetClaimsAsync(appUser);
+            permissionClaims.AddRange(allPermissionsForThisRoles);
+
+
+            return (userClaims, roles, permissionClaims);
         }
     }
 }

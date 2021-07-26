@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Commands;
 using BuildingBlocks.Core.Messaging.Serialization;
 using BuildingBlocks.Core.Scheduling;
+using BuildingBlocks.Cqrs.Commands;
 using Microsoft.Extensions.Options;
 using Quartz;
 

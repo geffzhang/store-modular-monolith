@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Commands;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using BuildingBlocks.Cqrs;
+using BuildingBlocks.Cqrs.Commands;
 using OnlineStore.Modules.Identity.Application.System;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.System
@@ -13,9 +15,11 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.System
             _dataSeeder = dataSeeder;
         }
 
-        public async Task HandleAsync(SeedIdentityCommand command)
+        public async Task<Unit> HandleAsync(SeedIdentityCommand command, CancellationToken cancellationToken = default)
         {
             await _dataSeeder.SeedAllAsync();
+
+            return Unit.Result;
         }
     }
 }

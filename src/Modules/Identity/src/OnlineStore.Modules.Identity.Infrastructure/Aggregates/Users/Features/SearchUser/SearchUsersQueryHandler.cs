@@ -1,13 +1,14 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using BuildingBlocks.Core.Messaging.Queries;
 using BuildingBlocks.Core.Utils.Reflection;
+using BuildingBlocks.Cqrs.Queries;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Modules.Identity.Application.Users.Exceptions;
-using OnlineStore.Modules.Identity.Application.Users.SearchUsers;
-using OnlineStore.Modules.Identity.Application.Users.SearchUsers.Exceptions;
+using OnlineStore.Modules.Identity.Application.Users.Features.SearchUsers;
+using OnlineStore.Modules.Identity.Application.Users.Features.SearchUsers.Exceptions;
 using OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models;
 
 namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.SearchUser
@@ -21,7 +22,8 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
             _userManagerFactory = userManager;
         }
 
-        public async Task<UserSearchResponse> HandleAsync(SearchUsersQuery search)
+        public async Task<UserSearchResponse> HandleAsync(SearchUsersQuery search,
+            CancellationToken cancellationToken = default)
         {
             using var userManager = _userManagerFactory();
             if (search == null)
@@ -46,9 +48,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Features.
                 query = query.Where(x => x.ModifiedDate > search.ModifiedSinceDate);
             }
 
-            result.TotalCount = await query.CountAsync();
+            result.TotalCount = await query.CountAsync(cancellationToken);
 
-            var res = await query.Skip(search.Skip).Take(search.Take).ToArrayAsync();
+            var res = await query.Skip(search.Skip).Take(search.Take).ToArrayAsync(cancellationToken);
             result.Results = res.Select(user => user.ToUserDto()).ToList();
 
             return result;

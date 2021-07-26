@@ -339,7 +339,7 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Migrations
 
             modelBuilder.Entity("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.ApplicationUser", b =>
                 {
-                    b.OwnsMany("OnlineStore.Modules.Identity.Infrastructure.Aggregates.Users.Models.RefreshToken", "RefreshTokens", b1 =>
+                    b.OwnsMany("BuildingBlocks.Authentication.Jwt.RefreshToken", "RefreshTokens", b1 =>
                         {
                             b1.Property<string>("UserId")
                                 .HasColumnType("nvarchar(128)");
@@ -349,6 +349,9 @@ namespace OnlineStore.Modules.Identity.Infrastructure.Migrations
 
                             b1.Property<DateTime>("Expires")
                                 .HasColumnType("datetime2");
+
+                            b1.Property<string>("IpAddress")
+                                .HasColumnType("nvarchar(max)");
 
                             b1.Property<DateTime?>("Revoked")
                                 .HasColumnType("datetime2");

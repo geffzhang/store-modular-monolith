@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using BuildingBlocks.Core.Messaging.Diagnostics.Events;
+using BuildingBlocks.Diagnostics.Messaging.Events;
 using Microsoft.Extensions.DiagnosticAdapter;
 
 namespace BuildingBlocks.Diagnostics.Transports
