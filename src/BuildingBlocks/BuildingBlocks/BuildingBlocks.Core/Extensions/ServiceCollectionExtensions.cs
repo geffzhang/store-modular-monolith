@@ -57,7 +57,6 @@ namespace BuildingBlocks.Core.Extensions
                 .AddSingleton<IExceptionCompositionRoot, ExceptionCompositionRoot>()
                 .AddSingleton<IExceptionToMessageMapperResolver, ExceptionToMessageMapperResolver>()
                 .AddScoped<ICommandProcessor, CommandProcessor>()
-                .AddScoped<IQueryProcessor, QueryProcessor>()
                 .AddScoped<IMessagesExecutor, MessagesExecutor>()
                 .AddScoped<IExecutionContextAccessor, ExecutionContextAccessor>();
 

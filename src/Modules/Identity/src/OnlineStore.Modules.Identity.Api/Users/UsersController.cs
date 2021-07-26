@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using BuildingBlocks.Core;
 using BuildingBlocks.Core.Messaging;
+using BuildingBlocks.Cqrs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -37,18 +38,18 @@ namespace OnlineStore.Modules.Identity.Api.Users
             _securityOptions;
 
         private readonly ICommandProcessor _commandProcessor;
-        private readonly IQueryProcessor _queryProcessor;
+        private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UsersController(
             IOptions<AuthorizationOptions> securityOptions,
             ICommandProcessor commandProcessor,
-            IQueryProcessor queryProcessor,
+            IMediator mediator,
             IMapper mapper)
         {
             _securityOptions = securityOptions.Value;
             _commandProcessor = commandProcessor;
-            _queryProcessor = queryProcessor;
+            _mediator = mediator;
             _mapper = mapper;
         }
 
@@ -63,7 +64,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDetailDto>> GetCurrentUser()
         {
-            var result = await _queryProcessor.QueryAsync(new GetCurrentUserQuery());
+            var result = await _mediator.Send(new GetCurrentUserQuery());
 
             return Ok(result);
         }
@@ -78,7 +79,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IList<Claim>>> Userinfo()
         {
-            var result = await _queryProcessor.QueryAsync(new GetUserInfoQuery());
+            var result = await _mediator.Send(new GetUserInfoQuery());
 
             return Ok(result);
         }
@@ -95,7 +96,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         public async Task<ActionResult<UserSearchResponse>> SearchUsers([FromBody] UserSearchRequest userSearchRequest)
         {
             var searchQuery = _mapper.Map<SearchUsersQuery>(userSearchRequest);
-            var result = await _queryProcessor.QueryAsync(searchQuery);
+            var result = await _mediator.Send(searchQuery);
 
             return Ok(result);
         }
@@ -111,7 +112,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDto>> GetUserByName([FromRoute] string userName)
         {
-            var result = await _queryProcessor.QueryAsync(new GetUserByNameQuery(userName));
+            var result = await _mediator.Send(new GetUserByNameQuery(userName));
 
             return Ok(result);
         }
@@ -127,7 +128,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDto>> GetUserById([FromRoute] Guid id)
         {
-            var result = await _queryProcessor.QueryAsync(new GetUserByIdQuery(id));
+            var result = await _mediator.Send(new GetUserByIdQuery(id));
 
             return Ok(result);
         }
@@ -143,7 +144,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDto>> GetUserByEmail([FromRoute] string email)
         {
-            var result = await _queryProcessor.QueryAsync(new GetUserByEmailQuery(email));
+            var result = await _mediator.Send(new GetUserByEmailQuery(email));
 
             return Ok(result);
         }
@@ -162,7 +163,7 @@ namespace OnlineStore.Modules.Identity.Api.Users
         public async Task<ActionResult<UserDto>> GetUserByLogin([FromRoute] string loginProvider,
             [FromRoute] string providerKey)
         {
-            var result = await _queryProcessor.QueryAsync(new GetUserByLoginQuery(loginProvider, providerKey));
+            var result = await _mediator.Send(new GetUserByLoginQuery(loginProvider, providerKey));
 
             return Ok(result);
         }

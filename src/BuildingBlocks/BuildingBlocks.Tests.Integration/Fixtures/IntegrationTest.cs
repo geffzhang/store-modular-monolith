@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BuildingBlocks.Core;
 using BuildingBlocks.Core.Messaging;
 using BuildingBlocks.Core.Messaging.Outbox;
+using BuildingBlocks.Cqrs;
 using BuildingBlocks.Cqrs.Commands;
 using BuildingBlocks.Cqrs.Queries;
 using BuildingBlocks.Persistence.MSSQL;
@@ -251,9 +252,9 @@ namespace BuildingBlocks.Tests.Integration.Fixtures
         {
             return ExecuteScopeAsync(sp =>
             {
-                var queryProcessor = sp.GetRequiredService<IQueryProcessor>();
+                var mediator = sp.GetRequiredService<IMediator>();
 
-                return queryProcessor.QueryAsync(query);
+                return mediator.Send(query);
             });
         }
 
