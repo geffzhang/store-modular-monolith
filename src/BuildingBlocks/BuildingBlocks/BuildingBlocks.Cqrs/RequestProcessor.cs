@@ -16,16 +16,15 @@ namespace BuildingBlocks.Cqrs
         private readonly IEnumerable<IRequestHandler<TRequest, TResponse>> _requestHandlers;
         private readonly IEnumerable<IRequestMiddleware<TRequest, TResponse>> _middlewares;
 
-        public RequestProcessor(IServiceFactory serviceFactory)
+        public RequestProcessor(IServiceProvider serviceProvider)
         {
-            _requestHandlers = (IEnumerable<IRequestHandler<TRequest, TResponse>>)
-                serviceFactory.GetInstance(typeof(IEnumerable<IRequestHandler<TRequest, TResponse>>));
+            _requestHandlers = (IEnumerable<IRequestHandler<TRequest, TResponse>>) serviceProvider.GetService(typeof(IEnumerable<IRequestHandler<TRequest, TResponse>>));
 
             _middlewares = (IEnumerable<IRequestMiddleware<TRequest, TResponse>>)
-                serviceFactory.GetInstance(typeof(IEnumerable<IRequestMiddleware<TRequest, TResponse>>));
+                serviceProvider.GetService(typeof(IEnumerable<IRequestMiddleware<TRequest, TResponse>>));
         }
 
-        public Task<TResponse> HandleAsync(TRequest message, CancellationToken cancellationToken)
+        public Task<TResponse> ProcessAsync(TRequest message, CancellationToken cancellationToken)
         {
             return RunMiddleware(message, HandleMessage, cancellationToken);
         }

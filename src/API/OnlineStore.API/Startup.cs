@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using BuildingBlocks.Authentication.Jwt;
 using BuildingBlocks.Core;
 using BuildingBlocks.Core.Extensions;
@@ -12,6 +14,7 @@ using BuildingBlocks.Swagger;
 using BuildingBlocks.Validations;
 using BuildingBlocks.Web;
 using BuildingBlocks.Web.Extensions;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -31,6 +34,7 @@ namespace OnlineStore.API
         private Cors Cors { get; }
         private AppOptions AppOptions { get; }
         private IList<IModule> Modules { get; }
+        private IList<Assembly> Assemblies { get; }
 
         public Startup(IConfiguration configuration)
         {
@@ -38,8 +42,8 @@ namespace OnlineStore.API
             Cors = Configuration.GetSection("CORS").Get<Cors>();
             AppOptions = Configuration.GetSection("AppOptions").Get<AppOptions>();
 
-            var assemblies = ModuleLoader.LoadAssemblies(configuration);
-            Modules = ModuleLoader.LoadModules(assemblies);
+            Assemblies = ModuleLoader.LoadAssemblies(configuration);
+            Modules = ModuleLoader.LoadModules(Assemblies);
             Modules.ToList().ForEach(x => x.Init(Configuration));
         }
 
@@ -51,13 +55,14 @@ namespace OnlineStore.API
             services.AddCore(Configuration);
             services.AddOTel(Configuration);
             services.AddSwagger(typeof(ApiRoot).Assembly);
-            services.AddCustomValidators();
+            services.AddCustomValidators(Assemblies.ToArray());
             services.AddCors(Cors);
             services.AddHealthCheck(Configuration, AppOptions.ApiAddress);
             services.AddVersioning();
+            services.AddFluentValidation(x => x.RegisterValidatorsFromAssemblies(Assemblies));
             services.AddCaching(Configuration);
             services.AddInMemoryMessaging(Configuration, "messaging");
-            services.AddCqrs();
+            services.AddCqrs(Assemblies.ToArray());
             services.AddFeatureManagement();
             services.AddJwtAuthentication(Configuration, Modules);
 

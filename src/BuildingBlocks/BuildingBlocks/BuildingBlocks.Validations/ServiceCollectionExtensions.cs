@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using BuildingBlocks.Core.Messaging;
+using BuildingBlocks.Cqrs;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,13 +25,20 @@ namespace BuildingBlocks.Validations
         }
 
         public static IServiceCollection AddCustomValidators(this IServiceCollection services,
-            params Assembly[] assemblies)
+            params Assembly[] scanAssemblies)
         {
-            return services.Scan(scan =>
-                scan.FromAssemblies(assemblies ?? AppDomain.CurrentDomain.GetAssemblies())
+            var assemblies = scanAssemblies.Any() ? scanAssemblies : AppDomain.CurrentDomain.GetAssemblies();
+
+             services.Scan(scan =>
+                scan.FromAssemblies(assemblies)
                     .AddClasses(c => c.AssignableTo(typeof(IValidator<>)))
                     .AsImplementedInterfaces()
                     .WithTransientLifetime());
+
+            services.AddScoped(typeof(IMessageMiddleware<>), typeof(MessageValidationMiddleware<>));
+            services.AddScoped(typeof(IRequestMiddleware<,>), typeof(CqrsRequestValidatorMiddleware<,>));
+
+            return services;
         }
 
         private static ValidationResultModel ToValidationResultModel(this ValidationResult validationResult)

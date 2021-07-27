@@ -1,4 +1,4 @@
-﻿namespace BuildingBlocks.Core.Messaging.Diagnostics
+﻿namespace BuildingBlocks.Diagnostics
 {
     public static class Constants
     {

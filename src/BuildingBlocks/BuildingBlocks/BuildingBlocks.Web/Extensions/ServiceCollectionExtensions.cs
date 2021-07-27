@@ -31,8 +31,10 @@ namespace BuildingBlocks.Web.Extensions
         private const string AppOptionsSectionName = "AppOptions";
         private const string ExecutionContextSection = "ExecutionContextOptions";
 
-        public static IServiceCollection AddWebApi(this IServiceCollection services, IConfiguration configuration,
-            string appOptionSection = AppOptionsSectionName, string executionContextSection = ExecutionContextSection)
+        public static IServiceCollection AddWebApi(this IServiceCollection services,
+            IConfiguration configuration,
+            string appOptionSection = AppOptionsSectionName,
+            string executionContextSection = ExecutionContextSection)
         {
             services.AddHttpContextAccessor();
             services.AddOptions<ExecutionContextOptions>().Bind(configuration.GetSection(executionContextSection))
@@ -78,6 +80,7 @@ namespace BuildingBlocks.Web.Extensions
 
             //https://andrewlock.net/using-serilog-aspnetcore-in-asp-net-core-3-logging-mvc-propertis-with-serilog/
             services.AddControllers(options => options.Filters.Add<SerilogLoggingActionFilter>())
+
                 .ConfigureApplicationPartManager(manager =>
                 {
                     var removedParts = new List<ApplicationPart>();

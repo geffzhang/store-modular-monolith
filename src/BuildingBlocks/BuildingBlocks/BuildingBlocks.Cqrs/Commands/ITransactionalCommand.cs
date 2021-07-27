@@ -1,6 +1,6 @@
 ﻿namespace BuildingBlocks.Cqrs.Commands
 {
-    public interface ITransactionalCommand
+    public interface ITransactionalCommand : ITransactionalRequest
     {
     }
 }

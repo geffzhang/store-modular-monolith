@@ -7,11 +7,11 @@ namespace BuildingBlocks.Cqrs
 {
     public class Mediator : IMediator
     {
-        private readonly IServiceFactory _serviceFactory;
+        private readonly IServiceProvider _serviceProvider;
 
-        public Mediator(IServiceFactory serviceFactory)
+        public Mediator(IServiceProvider serviceProvider)
         {
-            _serviceFactory = serviceFactory;
+            _serviceProvider = serviceProvider;
         }
 
         public Task<TResponse> Send<TResponse>(IRequest<TResponse> request,
@@ -19,7 +19,7 @@ namespace BuildingBlocks.Cqrs
         {
             var targetType = request.GetType();
             var targetHandler = typeof(IRequestProcessor<,>).MakeGenericType(targetType, typeof(TResponse));
-            var instance = _serviceFactory.GetInstance(targetHandler);
+            var instance = _serviceProvider.GetService(targetHandler);
 
             var result = InvokeInstanceAsync(instance, request, targetHandler, cancellationToken);
 
@@ -31,7 +31,7 @@ namespace BuildingBlocks.Cqrs
         {
             var method = instance.GetType()
                 .GetTypeInfo()
-                .GetMethod(nameof(IRequestProcessor<IRequest<TResponse>, TResponse>.HandleAsync));
+                .GetMethod(nameof(IRequestProcessor<IRequest<TResponse>, TResponse>.ProcessAsync));
 
             if (method == null)
             {

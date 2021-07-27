@@ -4,8 +4,10 @@ using BuildingBlocks.Core.Domain;
 using BuildingBlocks.Core.Domain.DomainEventNotifications;
 using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Messaging;
+using BuildingBlocks.Cqrs;
 using BuildingBlocks.Cqrs.Commands;
 using BuildingBlocks.Cqrs.Queries;
+using BuildingBlocks.Diagnostics.Cqrs;
 using BuildingBlocks.Diagnostics.Messaging;
 using BuildingBlocks.Diagnostics.Transports;
 using Microsoft.Extensions.Configuration;
@@ -38,8 +40,6 @@ namespace BuildingBlocks.Diagnostics
             string sectionName = SectionName, Action<ZipkinExporterOptions> configureZipkin = null,
             Action<JaegerExporterOptions> configureJaeger = null)
         {
-            if (string.IsNullOrWhiteSpace(sectionName)) sectionName = SectionName;
-
             var options = configuration.GetSection(sectionName).Get<OTelOptions>();
             services.AddOptions<OTelOptions>().Bind(configuration.GetSection(sectionName)).ValidateDataAnnotations();
 
@@ -50,11 +50,10 @@ namespace BuildingBlocks.Diagnostics
                     .AddHttpClientInstrumentation()
                     .AddGrpcClientInstrumentation()
                     .AddSqlClientInstrumentation(opt => opt.SetDbStatementForText = true)
-                    .AddSource(OTeMessagingOptions.OTelCommandHandlerName)
-                    .AddSource(OTeMessagingOptions.OTelMessageHandlerName)
-                    .AddSource(OTeMessagingOptions.OTelDomainEventHandlerName)
-                    .AddSource(OTeMessagingOptions.OTelDomainEventNotificationHandlerName)
-                    .AddSource(OTeMessagingOptions.OTelQueryHandlerName)
+                    .AddSource(OTeMessagingOptions.OTelMessagingName)
+                    .AddSource(OTelCqrsOptions.OTelCqrsRequestName)
+                    .AddSource(OTelDomainOptions.OTelDomainEventHandlerName)
+                    .AddSource(OTelDomainOptions.OTelDomainEventNotificationHandlerName)
                     .AddSource(OTelTransportOptions.InMemoryConsumerActivityName)
                     .AddSource(OTelTransportOptions.InMemoryProducerActivityName)
                     .AddZipkinExporter(o =>
@@ -78,12 +77,12 @@ namespace BuildingBlocks.Diagnostics
                     }
             });
 
-            //services.TryDecorate(typeof(IDomainEventHandler<>), typeof(OTelDomainEventTracingDecorator<>));
-            // services.TryDecorate(typeof(ICommandHandler<>), typeof(OTelCommandTracingDecorator<>));
-            // services.TryDecorate(typeof(IDomainEventNotificationHandler<>),
-            //     typeof(OTelNotificationEventTracingDecorator<>));
-            //services.TryDecorate(typeof(IMessageHandler<>), typeof(OTelMessageTracingDecorator<>));
-            //services.TryDecorate(typeof(IQueryHandler<,>), typeof(OTelQueryTracingDecorator<,>));
+            services.TryDecorate(typeof(IDomainEventHandler<>), typeof(OTelDomainEventTracingDecorator<>));
+            services.TryDecorate(typeof(IDomainEventNotificationHandler<>),
+                typeof(OTelNotificationEventTracingDecorator<>));
+
+            services.AddScoped(typeof(IMessageMiddleware<>), typeof(OTelDiagnosticsMessagingMiddleware<>));
+            services.AddScoped(typeof(IRequestMiddleware<,>), typeof(OTelDiagnosticsCqrsRequestMiddleware<,>));
 
             return services;
         }

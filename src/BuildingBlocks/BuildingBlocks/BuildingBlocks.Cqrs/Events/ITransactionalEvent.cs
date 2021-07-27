@@ -1,7 +1,6 @@
 ﻿namespace BuildingBlocks.Cqrs.Events
 {
-    public class ITransactionalEvent
+    public class ITransactionalEvent : ITransactionalRequest
     {
-        
     }
 }

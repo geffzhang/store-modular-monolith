@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Ardalis.GuardClauses;
 using BuildingBlocks.Core;
@@ -32,7 +33,8 @@ namespace OnlineStore.Modules.Identity.Application.Users.Features.RegisterNewUse
             _userEventMapper = userEventMapper;
         }
 
-        public async Task HandleAsync(RegisterNewUserCommand command)
+        public async Task HandleAsync(RegisterNewUserCommand command, IMessageContext context,
+            CancellationToken cancellationToken = default)
         {
             Guard.Against.Null(command, nameof(RegisterNewUserCommand));
             User.CheckEmailValidity(command.Email);

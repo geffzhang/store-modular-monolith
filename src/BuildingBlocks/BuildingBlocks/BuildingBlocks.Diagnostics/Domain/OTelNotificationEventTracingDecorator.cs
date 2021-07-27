@@ -19,7 +19,7 @@ namespace BuildingBlocks.Diagnostics.Messaging
         private readonly IDomainEventNotificationHandler<T> _handler;
         private readonly ILogger<IDomainEventNotificationHandler<T>> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private static readonly ActivitySource ActivitySource = new(OTeMessagingOptions.OTelDomainEventNotificationHandlerName);
+        private static readonly ActivitySource DomainNotificationActivitySource = new(OTelDomainOptions.OTelDomainEventNotificationHandlerName);
 
         public OTelNotificationEventTracingDecorator(IDomainEventNotificationHandler<T> handler, ILogger<IDomainEventNotificationHandler<T>> logger,
             IHttpContextAccessor httpContextAccessor)
@@ -43,7 +43,7 @@ namespace BuildingBlocks.Diagnostics.Messaging
                     prefix, handlerName, typeof(T).Name, traceId, module);
 
                 using var activity =
-                    ActivitySource.StartActivity($"{OTeMessagingOptions.OTelDomainEventNotificationHandlerName}.{handlerName}",
+                    DomainNotificationActivitySource.StartActivity($"{OTelDomainOptions.OTelDomainEventNotificationHandlerName}.{handlerName}",
                         ActivityKind.Server);
 
                 activity?.AddEvent(new ActivityEvent(handlerName))

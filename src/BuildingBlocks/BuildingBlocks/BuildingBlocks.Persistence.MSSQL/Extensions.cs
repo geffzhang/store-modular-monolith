@@ -8,6 +8,7 @@ using BuildingBlocks.Core;
 using BuildingBlocks.Core.Domain;
 using BuildingBlocks.Core.Domain.DomainEvents;
 using BuildingBlocks.Core.Persistence;
+using BuildingBlocks.Cqrs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
@@ -39,13 +40,16 @@ namespace BuildingBlocks.Persistence.MSSQL
                     sqlOptions.MigrationsAssembly(typeof(TContext).Assembly.GetName().Name);
                     sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
                     //adding all existing triggers dynamically   
-                    options.UseTriggers(triggerOptions => triggerOptions.AddAssemblyTriggers(typeof(TContext).Assembly));
+                    options.UseTriggers(triggerOptions =>
+                        triggerOptions.AddAssemblyTriggers(typeof(TContext).Assembly));
                     optionBuilder?.Invoke(options);
                 }))
                 .AddScoped<ISqlDbContext>(ctx => ctx.GetRequiredService<TContext>())
                 .AddScoped<IDomainEventContext, DomainEventContext>()
                 .AddScoped<IDbFacadeResolver>(ctx => ctx.GetRequiredService<TContext>());
 
+
+            services.AddScoped(typeof(IRequestMiddleware<,>), typeof(TransactionalCqrsRequestMiddleware<,>));
 
             configurator?.Invoke(services);
 
@@ -64,8 +68,10 @@ namespace BuildingBlocks.Persistence.MSSQL
             var strategy = dbContext.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
-                // Achieving atomicity
-                await dbContext.BeginTransactionAsync();
+                var isInnerTransaction = dbContext.Database.CurrentTransaction is not null;
+                var transaction = dbContext.Database.CurrentTransaction ??
+                                  await dbContext.Database.BeginTransactionAsync();
+
 
                 await next();
                 var domainEvents = events == null || events.Any() == false
@@ -78,7 +84,8 @@ namespace BuildingBlocks.Persistence.MSSQL
                 });
 
                 await Task.WhenAll(tasks);
-                await dbContext.CommitTransactionAsync();
+                if (isInnerTransaction == false)
+                    await transaction.CommitAsync();
             });
         }
 

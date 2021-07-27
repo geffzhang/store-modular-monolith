@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Core.Domain.DomainEventNotifications;
+using FluentValidation.AspNetCore;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineStore.Modules.Identity.Application.Authentication.Services;
 using OnlineStore.Modules.Identity.Application.Users;
@@ -11,7 +12,8 @@ namespace OnlineStore.Modules.Identity.Application.Extensions
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             services.AddAutoMapper(typeof(ApplicationRoot).Assembly);
-            services.AddSingleton<IUserDomainEventsToIntegrationEventsMapper, UserDomainEventsToIntegrationEventsMapper>();
+            services
+                .AddSingleton<IUserDomainEventsToIntegrationEventsMapper, UserDomainEventsToIntegrationEventsMapper>();
             services.AddSingleton<IDomainNotificationsMapper, UserDomainNotificationMapper>();
             services.AddSingleton<ITokenStorageService, TokenStorageService>();
 

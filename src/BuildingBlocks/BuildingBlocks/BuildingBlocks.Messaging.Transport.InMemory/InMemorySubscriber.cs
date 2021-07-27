@@ -10,18 +10,21 @@ namespace BuildingBlocks.Messaging.Transport.InMemory
 {
     public class InMemorySubscriber<TMessage> : ISubscriber where TMessage : class, IMessage
     {
-        private readonly IMessageDispatcher _messageDispatcher;
+        private readonly IMessageProcessor _messageProcessor;
         private readonly InMemoryConsumerDiagnostics _consumerDiagnostics;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IChannelFactory _channelFactory;
         private readonly ILogger<InMemorySubscriber<TMessage>> _logger;
 
-        public InMemorySubscriber(IMessageDispatcher messageDispatcher,
+        public InMemorySubscriber(IMessageProcessor messageProcessor,
             InMemoryConsumerDiagnostics consumerDiagnostics,
+            IServiceProvider serviceProvider,
             IChannelFactory channelFactory,
             ILogger<InMemorySubscriber<TMessage>> logger)
         {
-            _messageDispatcher = messageDispatcher;
+            _messageProcessor = messageProcessor;
             _consumerDiagnostics = consumerDiagnostics;
+            _serviceProvider = serviceProvider;
             _channelFactory = channelFactory;
             _channelFactory = channelFactory;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -59,7 +62,7 @@ namespace BuildingBlocks.Messaging.Transport.InMemory
                 {
                     //ConsumerDiagnostics
                     _consumerDiagnostics.StartActivity(message);
-                    await _messageDispatcher.DispatchAsync(message);
+                    await _messageProcessor.ProcessAsync(message, null, cancellationToken);
                     _consumerDiagnostics.StopActivity(message);
                 }
                 catch (Exception e)

@@ -12,9 +12,8 @@ using BuildingBlocks.Core.Messaging.Serialization;
 using BuildingBlocks.Core.Messaging.Serialization.Newtonsoft;
 using BuildingBlocks.Core.Messaging.Transport;
 using BuildingBlocks.Core.Scheduling;
-using BuildingBlocks.Cqrs.Commands;
+using BuildingBlocks.Cqrs;
 using BuildingBlocks.Cqrs.Events;
-using BuildingBlocks.Cqrs.Queries;
 using BuildingBlocks.Logging.Serilog;
 using BuildingBlocks.Persistence.Mongo;
 using BuildingBlocks.Web.Contexts;
@@ -45,13 +44,11 @@ namespace BuildingBlocks.Core.Extensions
                 //options.UnSupportedTypes.Add<Test>();
             });
 
-            services.AddMessage(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
+            services.AddMessaging(assemblies);
             services.AddDomainEvents(assemblies ?? AppDomain.CurrentDomain.GetAssemblies());
 
             services
                 .AddMongoPersistence(configuration)
-                // .AddModuleInfo(modules)
-                // .AddModuleRequests(assemblies ?? AppDomain.CurrentDomain.GetAssemblies())
                 .AddSingleton<IExceptionToResponseMapper, ExceptionToResponseMapper>()
                 .AddSingleton<IExceptionToMessageMapper, ExceptionToMessageMapper>()
                 .AddSingleton<IExceptionCompositionRoot, ExceptionCompositionRoot>()
@@ -60,9 +57,8 @@ namespace BuildingBlocks.Core.Extensions
                 .AddScoped<IMessagesExecutor, MessagesExecutor>()
                 .AddScoped<IExecutionContextAccessor, ExecutionContextAccessor>();
 
-            // services.TryDecorate(typeof(ICommandHandler<>), typeof(CommandHandlerLoggingDecorator<>));
-            services.TryDecorate(typeof(IMessageHandler<>), typeof(MessageHandlerLoggingDecorator<>));
-            // services.TryDecorate(typeof(IQueryHandler<,>), typeof(QueryHandlerLoggingDecorator<,>));
+            services.AddScoped(typeof(IMessageMiddleware<>), typeof(MessagingLoggingMiddleware<>));
+            services.AddScoped(typeof(IRequestMiddleware<,>), typeof(CqrsRequestLoggingMiddleware<,>));
 
             DomainEvents.CommandProcessor = () => ServiceActivator.GetService<ICommandProcessor>();
 
@@ -103,11 +99,34 @@ namespace BuildingBlocks.Core.Extensions
             return services;
         }
 
-        private static IServiceCollection AddMessage(this IServiceCollection services, IList<Assembly> assemblies)
+        private static IServiceCollection AddMessaging(this IServiceCollection services, IList<Assembly> scanAssemblies)
         {
-            services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
+            var assemblies = scanAssemblies ?? AppDomain.CurrentDomain.GetAssemblies();
 
-            services.Scan(s => s.FromAssemblies(assemblies).AddClasses(c => c.AssignableTo(typeof(IMessageHandler<>))
+            services.AddScoped<IMessageProcessor, MessageProcessor>();
+
+            ScanForMessagingHandlers(services, assemblies);
+            AddMessagingMiddlewares(services, assemblies);
+
+            return services;
+        }
+
+        private static IServiceCollection AddMessagingMiddlewares(IServiceCollection services,
+            IList<Assembly> assembliesToScan)
+        {
+            services.Scan(s => s.FromAssemblies(assembliesToScan)
+                .AddClasses(c => c.AssignableTo(typeof(IMessageMiddleware<>)))
+                .AsImplementedInterfaces()
+                .WithScopedLifetime());
+
+            return services;
+        }
+
+        private static IServiceCollection ScanForMessagingHandlers(IServiceCollection services,
+            IList<Assembly> assembliesToScan)
+        {
+            services.Scan(s => s.FromAssemblies(assembliesToScan).AddClasses(c => c
+                    .AssignableTo(typeof(IMessageHandler<>))
                     .WithoutAttribute(typeof(DecoratorAttribute)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());

@@ -58,12 +58,11 @@ namespace OnlineStore.Modules.Identity.IntegrationTests.UserRegistrations
                 UserRegistrationSampleData.PhotoUrl,
                 UserRegistrationSampleData.Status);
 
-            //async operation test simulation
-            // var tsc = _fixture.EnsureReceivedMessageToConsumer(registerUserCommand);
+            // var tsc = _fixture.EnsureReceivedMessageToConsumer(registerUserCommand);//async operation test simulation
             // await _fixture.PublishAsync(registerUserCommand); // send command asynchronously
             // await tsc.Task;
 
-            await _fixture.SendAsync(registerUserCommand); // send command synchronously
+            await _fixture.SendAsync(registerUserCommand);  // send command synchronously
             var tsc = _fixture.EnsureReceivedMessageToConsumer<NewUserRegisteredIntegrationEvent>();
             await tsc.Task;
 
