@@ -25,9 +25,9 @@ Thanks a bunch for supporting me!
 
 This project is currently under development, here I will list the state of each module
 
-- Building Blocks - Under Development
-- API - Under Development
-- Identity Module - Under Development
-- Catalog Module - Not Started
-- Order Module - Not Started
-- Customer Module - Not Started
+- Building Blocks - Under Development 🚧
+- API - Under Development 🚧
+- Identity Module - Under Development 🚧
+- Catalog Module - Not Started 🚩
+- Order Module - Not Started 🚩
+- Customer Module - Not Started 🚩
