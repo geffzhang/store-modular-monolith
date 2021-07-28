@@ -58,7 +58,9 @@ namespace BuildingBlocks.Core.Extensions
                 .AddScoped<IExecutionContextAccessor, ExecutionContextAccessor>();
 
             services.AddScoped(typeof(IMessageMiddleware<>), typeof(MessagingLoggingMiddleware<>));
+            services.AddScoped(typeof(IMessageMiddleware<>), typeof(RetryMessageHandlingMiddleware<>));
             services.AddScoped(typeof(IRequestMiddleware<,>), typeof(CqrsRequestLoggingMiddleware<,>));
+            services.AddScoped(typeof(IRequestMiddleware<,>), typeof(RetryRequestHandlingMiddleware<,>));
 
             DomainEvents.CommandProcessor = () => ServiceActivator.GetService<ICommandProcessor>();
 
