@@ -36,11 +36,12 @@ Thanks a bunch for supporting me!
   - [4.7 Order Module](47-order-module)
   - [4.8 Payment Module](48-payment-module)
   - [4.9 Shipping Module](49-shipping-module)
-- [5. Architecture](#5-architecture)
-  - [5.1. Module structure](#51-module-structure)
-- [6. How to Run](#6-how-to-run)
-- [7. Contribution](#7-contribution)
-- [8. License](#8-license)
+- [5. Event Storming](#5-event-storming)
+- [6. Architecture](#6-architecture)
+  - [6.1. Project Structure](#61-project-structure)
+- [7. How to Run](#7-how-to-run)
+- [8. Contribution](#8-contribution)
+- [9. License](#9-license)
 
 ## 1. The Goals of This Project
 
@@ -149,12 +150,38 @@ The Shipping Module provides the ability to extend shipping provider list with c
 
 Some of shipping module capabilities are `Register Shipping methods`, `Edit Shipping method`, `Shipment details`, `Shipping settings`  
 
-## 5. Architecture
+## 5. Event Storming
+The first thing we started with was domain exploration with the help of Big Picture EventStorming. The description you found in the previous chapter, landed on our virtual wall.
 
-## 6. How To Run
+The EventStorming session led us to numerous discoveries, modeled with the sticky notes.
 
-## 7. Contribution
+Event storming consist of 3 main phase:
+- Big Picture EventStorming
+- Example Mapping
+- Design Level EventStorming
+
+for more information about event storming you can use [this link](https://spring.io/blog/2018/04/11/event-storming-and-spring-with-a-splash-of-ddd?utm_source=pocket_mylist).
+
+I will put some part of event storming for this project at [Miro](https://miro.com/) web site for better understanding.
+
+## 6. Architecture
+
+### 6.1 Project Structure
+At the very beginning, not to overcomplicated the project, we decided to assign each bounded context to a separate module, which means that the system is a modular monolith. There are no obstacles, though, to put contexts into .net core modules or finally if we need scaling a module convert that module into microservices.
+
+Bounded contexts should (amongst others) introduce autonomy in the sense of architecture. Thus, each module encapsulating the context has its own local architecture aligned to problem complexity. In the case of a context, where we identified true business logic (such as `order`) we introduced a domain model that is a simplified (for the purpose of the project) abstraction of the reality and utilized hexagonal architecture. In the case of a context, that during Event Storming turned out to lack any complex domain logic, we applied `CRUD-like architecture` or `Data Centric` architecture.
+
+![](assets/images/DomainDrivenHexagon.png)
+*More info about hexagonal and its components is available in [https://github.com/Sairyss/domain-driven-hexagon](https://github.com/Sairyss/domain-driven-hexagon) repository.*
+
+If we are talking about hexagonal architecture, it lets us separate domain and application logic from frameworks (and infrastructure). What do we gain with this approach? Firstly, we can unit test most important part of the application - business logic - usually without the need to stub any dependency. Secondly, we create ourselves an opportunity to adjust infrastructure layer without the worry of breaking the core functionality. In the infrastructure layer we intensively use .net core framework as probably the most mature and powerful application framework.
+
+As we already mentioned, the architecture was driven by Event Storming sessions. Apart from identifying contexts and their complexity, we could also make a decision that we separate read and write models (CQRS), in this project we cover all parts of our application with CQRS.
+
+## 7. How To Run
+
+## 8. Contribution
 The application is in development status. you are feel free to submit pull request or create the issue.
 
-## 8. Licence
+## 9. Licence
 The project is under [MIT license](https://github.com/mehdihadeli/store-modular-monolith/blob/main/LICENSE).
