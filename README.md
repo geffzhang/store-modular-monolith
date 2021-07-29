@@ -37,9 +37,10 @@ Thanks a bunch for supporting me!
   - [4.8 Payment Module](48-payment-module)
   - [4.9 Shipping Module](49-shipping-module)
 - [5. Architecture](#5-architecture)
-    + [5.1. Module structure](#51-module-structure)
-- [6. Contribution](#6-contribution)
-- [7. License](#7-license)
+  - [5.1. Module structure](#51-module-structure)
+- [6. How to Run](#6-how-to-run)
+- [7. Contribution](#7-contribution)
+- [8. License](#8-license)
 
 ## 1. The Goals of This Project
 
@@ -91,7 +92,10 @@ High-level plan is represented in the table
 - ✔️ **[`Hangfire`](https://github.com/HangfireIO/Hangfire)** - Easy way to perform fire-and-forget, delayed and recurring tasks inside ASP.NET apps
 - ✔️ **[`EasyCaching`](https://github.com/dotnetcore/EasyCaching)** - Open source caching library that contains basic usages and some advanced usages of caching which can help us to handle caching more easier.
 - ✔️ **[`AutoMapper`](https://github.com/AutoMapper/AutoMapper)** - Convention-based object-object mapper in .NET.
-
+- ✔️ **[`Hellang.Middleware.ProblemDetails`](https://github.com/khellang/Middleware/tree/master/src/ProblemDetails)** - A middleware for handling exception in .Net Core
+- ✔️ **[`NetArchTest`](https://github.com/BenMorris/NetArchTest)** - A fluent API for .Net that can enforce architectural rules in unit tests.
+- ✔️ **[`EntityFramework.Exceptions`](https://github.com/Giorgi/EntityFramework.Exceptions)** - Handle database errors easily when working with Entity Framework Core. Supports SQLServer, PostgreSQL, SQLite, Oracle and MySql
+- ✔️ **[`EntityFrameworkCore.Triggered`](https://github.com/koenbeuk/EntityFrameworkCore.Triggered)** - Triggers for EFCore. Respond to changes in your DbContext before and after they are committed to the database.
 ## 4. Domain
 
 ### 4.1 Domain Description
@@ -143,4 +147,14 @@ The payment module is responsible for payment process of our customer with diffe
 ### 4.9 Shipping Module
 The Shipping Module provides the ability to extend shipping provider list with custom providers and also provides an interface and API for managing these shipping providers.
 
-Some of shipping module capabilities are `Register shipping methods`, `Edit shipping method`, `Shipment details`, `Shipping settings`  
+Some of shipping module capabilities are `Register Shipping methods`, `Edit Shipping method`, `Shipment details`, `Shipping settings`  
+
+## 5. Architecture
+
+## 6. How To Run
+
+## 7. Contribution
+The application is in development status. you are feel free to submit pull request or create the issue.
+
+## 8. Licence
+The project is under [MIT license](https://github.com/mehdihadeli/store-modular-monolith/blob/main/LICENSE).
