@@ -30,6 +30,12 @@ Thanks a bunch for supporting me!
   - [4.1 Domain Description](#41-domain-description)
   - [4.2 Identity Module](#42-domain-description)
   - [4.3 Catalog Module](#43-catalog-module)
+  - [4.4 Customers Module](#44-customers-module)
+  - [4.5 Vendor Module](#45-vendor-module)
+  - [4.6 Inventory Module](46-inventory-module)
+  - [4.7 Order Module](47-order-module)
+  - [4.8 Payment Module](48-payment-module)
+  - [4.9 Shipping Module](49-shipping-module)
 - [5. Architecture](#5-architecture)
     + [5.1. Module structure](#51-module-structure)
 - [6. Contribution](#6-contribution)
@@ -66,6 +72,7 @@ High-level plan is represented in the table
 | Catalog Module | Not Started 🚩 |
 | Shipping Module | Not Started 🚩 |
 | Vendor Module | Not Started 🚩 |
+| Inventory Module | Not Started 🚩 |
 | Payment Module | Not Started 🚩 |
 
 ## 3. Technologies & Libraries
@@ -92,7 +99,11 @@ High-level plan is represented in the table
 **Online Store** is a simple store application that has the basic business scenario for online purchasing with some dedicated modules likes **Identity Module**, **Order Module**, **Customer Module**, **Catalog Module**, **Shipping Module**, **Vendor Module**, **Payment Module**. I will explain each module and its responsibility in separate sections
 
 ### 4.2 Identity Module
-Identity module uses to authenticate and authorize users through a token. Also, this module is responsible for creating users and their corresponding roles and permission with using [.Net Core Identity](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity) and [Identity Server](https://github.com/DuendeSoftware/BFF)
+Identity module uses to authenticate and authorize users through a token. Also, this module is responsible for creating users and their corresponding roles and permission with using [.Net Core Identity](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity) and [Identity Server](https://github.com/DuendeSoftware/BFF).
+
+Each `Administrator`, `Customer` and `Vendor` is a **User**. To be a User, User Registration is required. Each User is assigned one or more User Role.
+
+Each User Role has set of Permissions. A Permission defines whether User can invoke a particular action.
 
 ### 4.3 Catalog Module
 The Catalog module presents the ability to add items to our store, It can be electronics, foods, books or anything else. Items can be grouped into categories and catalogs.
@@ -102,3 +113,34 @@ A catalog is defined as a list of items that a company showcases online. the cat
 A category is a container for other categories or items. Category in the catalog can have sub-categories. Categories allow building hierarchies and relationships between various items in the catalog. 
 
 Buyer can browse the products list with supported filtering and sorting by product name and price. customer can see the detail of the product on the product list and in the detail page, can see a name, description, available product in the inventory,...
+
+### 4.4 Customers Module
+This modules is responsible for managing our customers information, track the activities and their types.
+
+### 4.5 Vendor Module
+Vendors is a special category of customers that should be considered separately.the vendor allows us to handle Vendors management in your store. 
+
+Each product is assigned to a particular vendor whose details (including email address) are stored. When an order is placed an email is then sent to a vendor of each product in the order. The email includes the products, quantities, etc. The vendor ships the item to the customer on behalf of the merchant, who typically pays each of their vendors at the end of the month. 
+
+Products from multiple independent vendors appear in the common product catalog and website visitors can shop at one store even if our products are supplied by different vendors.
+
+Each vendor could be provided with an administrator panel access to manage their products, review sales reports, and order details regarding their products. Vendors can't see each other's activities.
+
+### 4.6 Inventory Module
+Inventory management is a system of stock level controlling and fulfillment centers management.
+
+Inventory is often the largest item a business has in its current assets, meaning it must be accurately monitored. Inventory is counted and valued at the end of each accounting period to determine the company's profits or losses.
+Some of features in this module are `Inventory tracking`, `Stock level controlling`, `Fulfillment center management`, `Preoder and backorder functions`
+
+### 4.7 Order Module
+
+The Orders Module main purpose is to store order details and manage orders created by users on client side. This module is not designed to be a full order processing system like ERP but serves as storage for customer orders details and can be synchronized with different external processing systems.
+Some of this module responsibilities are `Saving orders`, `Saving order drafts`, `Ability to view and manage fulfillment, packages`, `Change discounts`
+
+### 4.8 Payment Module
+The payment module is responsible for payment process of our customer with different payment process and managing and tracking our payment history
+
+### 4.9 Shipping Module
+The Shipping Module provides the ability to extend shipping provider list with custom providers and also provides an interface and API for managing these shipping providers.
+
+Some of shipping module capabilities are `Register shipping methods`, `Edit shipping method`, `Shipment details`, `Shipping settings`  
