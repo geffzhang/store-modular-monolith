@@ -155,7 +155,7 @@ The first thing we started with was domain exploration with the help of Big Pict
 
 The EventStorming session led us to numerous discoveries, modeled with the sticky notes.
 
-Event storming consist of 3 main phase:
+Event storming consist of 3 main phases:
 - Big Picture EventStorming
 - Example Mapping
 - Design Level EventStorming
@@ -167,12 +167,11 @@ I will put some part of event storming for this project at [Miro](https://miro.c
 ## 6. Architecture
 
 ### 6.1 Project Structure
-At the very beginning, not to overcomplicated the project, we decided to assign each bounded context to a separate module, which means that the system is a modular monolith. There are no obstacles, though, to put contexts into .net core modules or finally if we need scaling a module convert that module into microservices.
+At the very beginning, not to overcomplicated the project, we decided to assign each bounded context to a separate module, which means that the system is a modular monolith. modules should be domain oriented and we can use `domain centric` architecture on the level each module. There are no obstacles, though, to put contexts into .net core modules or finally if we need scaling a module convert that module into microservices.
 
 Bounded contexts should (amongst others) introduce autonomy in the sense of architecture. Thus, each module encapsulating the context has its own local architecture aligned to problem complexity. In the case of a context, where we identified true business logic (such as `order`) we introduced a domain model that is a simplified (for the purpose of the project) abstraction of the reality and utilized hexagonal architecture. In the case of a context, that during Event Storming turned out to lack any complex domain logic, we applied `CRUD-like architecture` or `Data Centric` architecture.
 
 ![hexagonal architecture](assets/images/DomainDrivenHexagon.png)
-
 *More info about hexagonal and its components is available in [https://github.com/Sairyss/domain-driven-hexagon](https://github.com/Sairyss/domain-driven-hexagon) repository.*
 
 If we are talking about hexagonal architecture, it lets us separate domain and application logic from frameworks (and infrastructure). What do we gain with this approach? Firstly, we can unit test most important part of the application - business logic - usually without the need to stub any dependency. Secondly, we create ourselves an opportunity to adjust infrastructure layer without the worry of breaking the core functionality. In the infrastructure layer we intensively use .net core framework as probably the most mature and powerful application framework.
