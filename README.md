@@ -167,16 +167,45 @@ I will put some part of event storming for this project at [Miro](https://miro.c
 ## 6. Architecture
 
 ### 6.1 Project Structure
-At the very beginning, not to overcomplicated the project, we decided to assign each bounded context to a separate module, which means that the system is a modular monolith. modules should be domain oriented and we can use `domain centric` architecture on the level each module. There are no obstacles, though, to put contexts into .net core modules or finally if we need scaling a module convert that module into microservices.
+At the very beginning, not to overcomplicated the project, we decided to assign each bounded context to a separate module, which means that the system is a modular monolith. As the name of `Modular Monolith architecture` suggests, the design of our architecture must be oriented towards high modularity so the system must have self-contained modules that provide the entire business functionality. This is why `domain-centric architecture` is best choice for this case.
 
-Bounded contexts should (amongst others) introduce autonomy in the sense of architecture. Thus, each module encapsulating the context has its own local architecture aligned to problem complexity. In the case of a context, where we identified true business logic (such as `order`) we introduced a domain model that is a simplified (for the purpose of the project) abstraction of the reality and utilized hexagonal architecture. In the case of a context, that during Event Storming turned out to lack any complex domain logic, we applied `CRUD-like architecture` or `Data Centric` architecture.
+In this project we use `Component-Based architecture` that is a hybrid approach between `layered architecture (hexagonal architecture)` and `feature-based architecture (vertical slice architecture)`. 
 
-![hexagonal architecture](assets/images/DomainDrivenHexagon.png)
-*More info about hexagonal and its components is available in [https://github.com/Sairyss/domain-driven-hexagon](https://github.com/Sairyss/domain-driven-hexagon) repository.*
+Instead of having a layered approach, horizontal slices, we instead split the application vertically into modular components, just like as we did with feature-based architecture.
+A component in this context is a group of related functionality that resides behind a nice and clean interface.  A "component" in this sense is a combination of the business and data access logic related to a specific thing (e.g. domain concept, bounded context, etc). I give these components a public interface and package-protected implementation details, which includes the data access code. If that new feature set C needs to access data related to A and B, it is forced to go through the public interface of components A and B (In our case our components don't have direct communication and they use message broker for their communication, read more [here](https://www.kamilgrzybek.com/design/modular-monolith-integration-styles/)). No direct access to the data access layer is allowed and "hexagonal architecture" is a secondary organization mechanism in each module.
 
-If we are talking about hexagonal architecture, it lets us separate domain and application logic from frameworks (and infrastructure). What do we gain with this approach? Firstly, we can unit test most important part of the application - business logic - usually without the need to stub any dependency. Secondly, we create ourselves an opportunity to adjust infrastructure layer without the worry of breaking the core functionality. In the infrastructure layer we intensively use .net core framework as probably the most mature and powerful application framework.
+A couple of notes to notice here:
+- The controller is part of the component. Though we can split controllers from component related code to separate the handling of HTTP requests from the component itself. By the way, not every component needs a controller as an Email service.
+- Components can talk to each other through their interface unlike in feature-based architecture where service classes are hidden, and the only way to communicate is through the controller.
 
-As we already mentioned, the architecture was driven by Event Storming sessions. Apart from identifying contexts and their complexity, we could also make a decision that we separate read and write models (CQRS), in this project we cover all parts of our application with CQRS.
+for more information you can use these links --> [Reference 1](https://medium.com/omarelgabrys-blog/component-based-architecture-3c3c23c7e348), [Reference 2](http://www.codingthearchitecture.com/2015/03/08/package_by_component_and_architecturally_aligned_testing.html)
+
+![package by component](assets/images/package-by-component.png)
+
+If we see above picture correctly we can realize that whole our high level system architecture (component-based architecture) including `API` and `Modules` is like another hexagonal with these parts:
+- Our controllers in API level are like a `primary adapter` and our modules `public api` are like a `primary port` 
+- Also in top level architecture we have some secondary ports and adapters for communicate with message broker, database and other modules.
+
+#### High Level Architecture API
+API is entry point our system and could be implement different adapters like Rest/GraphQL/Soap. the main responsibility api is route the request to one of our modules. this API level act as a API Gateway in microservice but instead of network call it call our modules public api locally as a in-memory call.
+
+#### High Level Component Module
+Each module should be treated as a separate application. In other words, it’s a subsystem of our system. Thanks to this, it will have autonomy. It will be loosely or even not coupled to other modules (subsystems).
+
+Since modules should be domain oriented we can use `domain centric` architecture on the level each module. 
+
+### 6.2 Modules Structure
+Inner each modules we used hexagonal architecture but we can use also [vertical slice architecture](https://jimmybogard.com/vertical-slice-architecture/) also. for learn more hexagonal architecture please follow these links [Reference 1](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/), [Reference 2](https://github.com/Sairyss/domain-driven-hexagon).
+
+Our hexagonal architecture in each module consists of 4 main parts:
+- **Api** - this project contains all configurations needed for each module and all needed dependency for each modules that will merge as part of our main API gateway.
+- **Application** - the application logic sub-module which is responsible for requests processing: use cases, domain events, integration events and its contracts, internal commands.
+- **Domain** - Domain Model in Domain-Driven Design terms implements the applicable Bounded Context
+- **Infrastructure** - infrastructural code responsible for module initialization, background processing, data access, communication with Events Bus and other external components or systems
+
+![Solution](assets/images/solution.png)
+
+### 6.3 Modules Communications
 
 ## 7. How To Run
 
