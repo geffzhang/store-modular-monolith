@@ -39,6 +39,10 @@ Thanks a bunch for supporting me!
 - [5. Event Storming](#5-event-storming)
 - [6. Architecture](#6-architecture)
   - [6.1. Project Structure](#61-project-structure)
+  - [6.2 Modules Structure](#62-module-structure)
+  - [6.3 API Gateway Configuration](#63-api-gateway-configuration)
+  - [6.4 Initializing Modules](#64-initializing-modules)
+  - [6.5 Communications Between Bounded Contexts Or Modules](#65-communications-between-bounded-contexts-or-modules)
 - [7. How to Run](#7-how-to-run)
 - [8. Contribution](#8-contribution)
 - [9. License](#9-license)
@@ -171,7 +175,7 @@ At the very beginning, not to overcomplicated the project, we decided to assign 
 
 In this project we use `Component-Based architecture` that is a hybrid approach between `layered architecture (hexagonal architecture)` and `feature-based architecture (vertical slice architecture)`. 
 
-Instead of having a layered approach, horizontal slices, we instead split the application vertically into modular components, just like as we did with feature-based architecture.
+Instead of having a layered approach, horizontal slices, we instead split the application vertically into modular components, just like feature-based architecture.
 A component in this context is a group of related functionality that resides behind a nice and clean interface.  A "component" in this sense is a combination of the business and data access logic related to a specific thing (e.g. domain concept, bounded context, etc). I give these components a public interface and package-protected implementation details, which includes the data access code. If that new feature set C needs to access data related to A and B, it is forced to go through the public interface of components A and B (In our case our components don't have direct communication and they use message broker for their communication, read more [here](https://www.kamilgrzybek.com/design/modular-monolith-integration-styles/)). No direct access to the data access layer is allowed and "hexagonal architecture" is a secondary organization mechanism in each module.
 
 A couple of notes to notice here:
@@ -180,32 +184,210 @@ A couple of notes to notice here:
 
 for more information you can use these links --> [Reference 1](https://medium.com/omarelgabrys-blog/component-based-architecture-3c3c23c7e348), [Reference 2](http://www.codingthearchitecture.com/2015/03/08/package_by_component_and_architecturally_aligned_testing.html)
 
+Let’s see how such architecture can look like from high-level view:
+
 ![package by component](assets/images/package-by-component.png)
 
-If we see above picture correctly we can realize that whole our high level system architecture (component-based architecture) including `API` and `Modules` is like another hexagonal with these parts:
+Looking at a high-level view, we can realize that our high level system architecture (component-based architecture) including `API` and `Modules` has some similarity to a hexagonal:
 - Our controllers in API level are like a `primary adapter` and our modules `public api` are like a `primary port` 
-- Also in top level architecture we have some secondary ports and adapters for communicate with message broker, database and other modules.
+- we have some secondary ports and adapters for communicate with message broker, database and other modules.
+
+Let’s try to describe all the elements of our high level architecture view.
 
 #### High Level Architecture API
-API is entry point our system and could be implement different adapters like Rest/GraphQL/Soap. the main responsibility api is route the request to one of our modules. this API level act as a API Gateway in microservice but instead of network call it call our modules public api locally as a in-memory call.
+API is entry point our system and could be implement different adapters like Rest/GraphQL/Soap. the main responsibility api is route the request to one of our modules. this API level act as a API Gateway in microservice but instead of network call it call our modules public api locally as a in-memory call. This API as a `Module API Adapter` will initialize our modules configuration with module `IModule` port. also will share some infrastructure between all modules as a root composition dependency container. all modules dependencies will register on this root dependency container.
 
 #### High Level Component Module
 Each module should be treated as a separate application. In other words, it’s a subsystem of our system. Thanks to this, it will have autonomy. It will be loosely or even not coupled to other modules (subsystems).
 
-Since modules should be domain oriented we can use `domain centric` architecture on the level each module. 
+Since modules should be domain oriented we can use `domain centric` architecture on the level each module. Modules communicate each other through their public interface and asynchronously using In-Memory message broker, direct method calls are not allowed. for read more about the reason refer to [this article](https://www.kamilgrzybek.com/design/modular-monolith-integration-styles/).
+
+#### Modules Init Port
+`Module init port` or [IModule](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Modules/IModule.cs) is responsible for configuration each modules and with get required configuration from API as primary adapter and will initialize the module and all its dependencies to composition root dependency container which is in api gateway and all this modules setup and decencies will part of our root container. we could also create separate dependency container for each module but here I prefer only one composition root in API Gateway level and all modules dependencies will child of this composition root.
 
 ### 6.2 Modules Structure
 Inner each modules we used hexagonal architecture but we can use also [vertical slice architecture](https://jimmybogard.com/vertical-slice-architecture/) also. for learn more hexagonal architecture please follow these links [Reference 1](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/), [Reference 2](https://github.com/Sairyss/domain-driven-hexagon).
 
 Our hexagonal architecture in each module consists of 4 main parts:
-- **Api** - this project contains all configurations needed for each module and all needed dependency for each modules that will merge as part of our main API gateway.
-- **Application** - the application logic sub-module which is responsible for requests processing: use cases, domain events, integration events and its contracts, internal commands.
+- **Api** - this project that contain our module init port or [IModule](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Modules/IModule.cs), gets configurations from API and will register all module dependencies on composition root container. 
+- **Application** - Here you should find the implementation of use cases related to the module. the application is responsible for requests processing. Application contains use cases, domain events, integration events and its contracts, internal commands.
 - **Domain** - Domain Model in Domain-Driven Design terms implements the applicable Bounded Context
-- **Infrastructure** - infrastructural code responsible for module initialization, background processing, data access, communication with Events Bus and other external components or systems
+- **Infrastructure** - This is where the implementation of secondary adapters should be. Secondary adapters are responsible for communication with the external dependencies.
+infrastructural code responsible for module initialization, background processing, data access, communication with Events Bus and other external components or systems
 
-![Solution](assets/images/solution.png)
+### 6.3 API Gateway Configuration
+API Gateway project is bootstraper of our modular monolith application and it is start point of our application. This project is our composition root for all dependency injection. our modules don't have their own composition root and all modules register their dependencies in API composition root dependency container. all modules dependencies and configuration will pass from API as primary adapter to modules port `IModule` as primary port. 
 
-### 6.3 Modules Communications
+All shared dependencies and building blocks between all modules should register in API Gateway because this dependencies will inject in our composition root dependency container and all modules can access to these dependencies easily. bellow code is a sample of registering some shared dependencies between all modules. 
+
+``` csharp
+//API - Startup.cs
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddWebApi(Configuration);
+    services.AddCore(Configuration, Assemblies);
+    services.AddOTelIntegration(Configuration);
+    services.AddHangfireScheduler(Configuration, "hangfire");
+    services.AddSwagger(typeof(ApiRoot).Assembly);
+    services.AddCustomValidators(Assemblies.ToArray());
+    services.AddCors(Cors);
+    services.AddHealthCheck(Configuration, AppOptions.ApiAddress);
+    services.AddVersioning();
+    services.AddFluentValidation(x => x.RegisterValidatorsFromAssemblies(Assemblies));
+    services.AddCaching(Configuration);
+    services.AddInMemoryMessaging(Configuration, "messaging");
+    services.AddCqrs(Assemblies.ToArray());
+    services.AddFeatureManagement();
+    services.AddJwtAuthentication(Configuration, Modules);
+
+    // configure modules dependencies
+    foreach (var module in Modules)
+    {
+        module.ConfigureServices(services);
+    }
+}
+```
+
+### 6.4 Initializing Modules 
+Our inner components or modules will initialize by public port of each module which is [IModule](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Modules/IModule.cs) our API Gateway startup will initialize each of our modules separately with calling 3 methods:
+``` csharp
+void Init(IConfiguration configuration);
+void ConfigureServices(IServiceCollection services);
+void Configure(IApplicationBuilder app, IWebHostEnvironment environment);
+```
+
+For init configuration for all modules we should call `Init` method of our `IModule` port of each component or module.
+
+``` csharp
+//API - Startup.cs
+
+public Startup(IConfiguration configuration)
+{
+    Configuration = configuration;
+    Cors = Configuration.GetSection("CORS").Get<Cors>();
+    AppOptions = Configuration.GetSection("AppOptions").Get<AppOptions>();
+
+    Assemblies = ModuleLoader.LoadAssemblies(configuration);
+    Modules = ModuleLoader.LoadModules(Assemblies);
+    // init modules configurations
+    Modules.ToList().ForEach(x => x.Init(Configuration));
+}
+```
+For setup dependency injection of our module on composition root container we should use `ConfigureServices` method on `IModule` port of our module.
+
+``` csharp
+//API - Startup.cs
+
+public Startup(IConfiguration configuration)
+{
+    Configuration = configuration;
+    Cors = Configuration.GetSection("CORS").Get<Cors>();
+    AppOptions = Configuration.GetSection("AppOptions").Get<AppOptions>();
+
+    Assemblies = ModuleLoader.LoadAssemblies(configuration);
+    Modules = ModuleLoader.LoadModules(Assemblies);
+    // init modules configurations
+    Modules.ToList().ForEach(x => x.Init(Configuration));
+}
+```
+
+### 6.5 Communications Between Bounded Contexts Or Modules
+
+Communication between bounded contexts or modules are asynchronous via message broker. Bounded contexts don't share data, it's forbidden to create a transaction which spans more than one bounded context.[read more](https://www.kamilgrzybek.com/design/modular-monolith-integration-styles/)
+
+Using message bus reduces coupling of bounded contexts through data replication across contexts which results to higher bounded contexts independence. Event publishing/subscribing is used in this project with some infrastructural code for handling this message passing and event driven architecture. The example of implementation:
+
+``` csharp
+public class RegisterNewUserCommandHandler : ICommandHandler<RegisterNewUserCommand>,
+    IRetryableRequest<RegisterNewUserCommand, Unit>
+{
+    private readonly IUserRepository _userRepository;
+    private readonly ILogger<RegisterNewUserCommandHandler> _logger;
+    private readonly ICommandProcessor _commandProcessor;
+    private readonly ISqlDbContext _dbContext;
+
+    public RegisterNewUserCommandHandler(IUserRepository userRepository,
+        ILogger<RegisterNewUserCommandHandler> logger,
+        ICommandProcessor commandProcessor,
+        ISqlDbContext dbContext)
+    {
+        _userRepository = userRepository;
+        _logger = logger;
+        _commandProcessor = commandProcessor;
+        _dbContext = dbContext;
+    }
+
+    public async Task<Unit> HandleAsync(RegisterNewUserCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        Guard.Against.Null(command, nameof(RegisterNewUserCommand));
+        User.CheckEmailValidity(command.Email);
+        User.CheckEmailValidity(command.Email);
+        User.CheckNameValidity(command.Name);
+
+        var user = await _userRepository.FindByEmailAsync(command.Email);
+        if (user is { })
+        {
+            _logger.LogError($"Email '{command.Email}' already in used");
+            throw new EmailAlreadyInUsedException(command.Email);
+        }
+
+        user = await _userRepository.FindByNameAsync(command.Name);
+        if (user is { })
+        {
+            _logger.LogError($"UserName '{command.Name}' already in used");
+            throw new UserNameAlreadyInUseException(command.Name);
+        }
+
+        user = User.Of(command.Id,
+            command.Email,
+            command.FirstName,
+            command.LastName,
+            command.Name,
+            command.UserName,
+            command.PhoneNumber,
+            command.Password,
+            command.UserType,
+            command.IsAdministrator,
+            command.IsActive,
+            command.LockoutEnabled,
+            command.EmailConfirmed,
+            command.PhotoUrl,
+            command.Status);
+
+        user.AssignPermission(command.Permissions?.Select(x => Permission.Of(x, "")).ToArray());
+        user.AssignRole(command.Roles?.Select(x => Role.Of(x, x)).ToArray());
+
+        await _commandProcessor.HandleTransactionAsync(_dbContext, user.Events?.ToList(), async () =>
+        {
+            await _userRepository.AddAsync(user);
+            _logger.LogInformation($"Created an account for the user with ID: '{user.Id}'.");
+        });
+
+        var domainEvents = user.Events.ToArray();
+        await _commandProcessor.PublishDomainEventAsync(domainEvents); 
+        
+        // Publish some integration event to message broker to consume by the subscriber modules
+        await _commandProcessor.PublishMessageAsync(new NewUserRegisteredIntegrationEvent(user.Id.Id, user.UserName, user.Email,
+         user.FirstName, user.LastName, user.Name));
+
+        return Unit.Result;
+    }
+}
+```
+The listener for `NewUserRegisteredIntegrationEvent` integration event in other module:
+
+``` csharp
+public class NewUserRegisteredIntegrationEventHandler : IIntegrationEventHandler<NewUserRegisteredIntegrationEvent>
+{
+    public Task HandleAsync(NewUserRegisteredIntegrationEvent @event, IMessageContext context,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+}
+```
 
 ## 7. How To Run
 
