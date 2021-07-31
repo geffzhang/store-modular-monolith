@@ -72,7 +72,7 @@ High-level plan is represented in the table
 | ------- | ------ |
 | Building Blocks | In-Progress 👷‍♂️|
 | API Module | In-Progress 👷‍♂️ |
-| Identity Module | Under Development 👷‍♂️ |
+| Identity Module | In-Progress 👷‍♂️ |
 | Order Module | Not Started 🚩 |
 | Customer Module | Not Started 🚩 |
 | Catalog Module | Not Started 🚩 |
