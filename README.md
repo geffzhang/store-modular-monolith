@@ -43,6 +43,14 @@ Thanks a bunch for supporting me!
   - [6.3 API Gateway Configuration](#63-api-gateway-configuration)
   - [6.4 Initializing Modules](#64-initializing-modules)
   - [6.5 Communications Between Bounded Contexts Or Modules](#65-communications-between-bounded-contexts-or-modules)
+  - [6.6 CQRS](#6.6-cqrs)
+    - [6.6.1 CQRS Command](#661-cqrs-command)
+    - [6.6.2 CQRS Query](#662-cqrs-query)
+    - [6.6.3 Results From Command Handlers](#663-results-from-command-handlers)
+  - [6.7 Rich Domain Model](#67-rich-domain-model)
+  - [6.8 Domain Events](#68-domain-events)
+  - [6.9 Integration Events](#69-integration-events)
+  - [6.10 Public Events - Domain Events Notifications](#610-public-events---domain-events-notifications)
 - [7. How to Run](#7-how-to-run)
 - [8. Contribution](#8-contribution)
 - [9. License](#9-license)
@@ -298,9 +306,102 @@ Communication between bounded contexts or modules are asynchronous via message b
 
 Using message bus reduces coupling of bounded contexts through data replication across contexts which results to higher bounded contexts independence. Event publishing/subscribing is used in this project with some infrastructural code for handling this message passing and event driven architecture.
 
-To publish a message to message broker we can use our [ICommandProcessor](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/ICommandProcessor.cs) or [IPublisher](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/Transport/IPublisher.cs) and then using `PublishMessageAsync<TMessage>(TMessage messgae);` method to publish message on message broker. On the other side subscriber or listener module can subscribe on published message with a handler that implement `IMessageHandler<TMessage>` interface or `IIntegrationEventHandler<TMessage>`.
+Our message should implement [IMessage](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/IMessage.cs) and our handlers should implement [IMessageHandler<TMessage>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/IMessageHandler.cs) interface to participate in messaging mechanism.
 
-The example of implementation:
+To publish a message to message broker we can use our [ICommandProcessor](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/ICommandProcessor.cs) or [IPublisher](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/Transport/IPublisher.cs) and then using `PublishMessageAsync<TMessage>(TMessage messgae);` method to publish message on message broker. On the other side subscriber or listener module can subscribe on published message with a handler that implement [IMessageHandler<TMessage>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/IMessageHandler.cs) interface .
+
+To publishing message to message broker we can use bellow code:
+
+``` csharp
+
+public class TestMessage : IMessage
+{
+    public string Data { get; init;}
+}
+
+// publishing message to message broker
+CommandProcessor.PublishMessageAsync(new Test() { Data="test" });
+
+```
+The listener for `TestMessage` message in other modules:
+
+``` csharp
+public class TestMessageHandler : IMessageHandler<TestMessage>
+{
+    public Task HandleAsync(TestMessage message, IMessageContext context,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+}
+```
+
+### 6.6 CQRS
+
+CQRS principle gives the flexibility in optimizing model for read and write operations. The simple version of CQRS is implemented in this application. On write operations, full logic is executed via aggregate (write model). On read operations, Dto objects (read model) are created via queries on repository level or directly on database context like ef core dbcontext. 
+
+
+#### 6.6.1 CQRS Command
+
+Our command should inherits from [ICommand<TResult>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Commands/ICommand.cs) if our command will return a value and [ICommand](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Commands/ICommand.cs) if our command doesn't have a value. returning value from command is a trade-off in next section I will explain this case. for handling command our handler should implement [ICommandHandler<in TCommand, TResult>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Commands/CommandHandler.cs) or [ICommandHandler<in TCommand>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Commands/CommandHandler.cs).
+
+For sending a command we can use `SendCommandAsync<T, TResult>(T command)` method of [ICommandProcessor](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/ICommandProcessor.cs) or we can use `Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)` method of our [IMediator](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/IMediator.cs).
+
+Example of a command handler:
+
+command definition:
+
+``` csharp
+public class RegisterNewUserCommand : ICommand
+{
+    public RegisterNewUserCommand(string email, string firstName, string lastName,
+        string name, string userName, string phoneNumber,string password,
+        IReadOnlyList<string> permissions, UserType userType, bool isAdmin = false, bool isActive = true,
+        IReadOnlyList<string>? roles = null, bool locked = false, bool emailConfirmed = false,
+        string? photoUrl = null, string? status = null)
+    {
+        UserName = userName;
+        IsActive = true;
+        Email = email.ToLowerInvariant();
+        FirstName = firstName;
+        LastName = lastName;
+        Name = name.Trim();
+        UserType = userType;
+        Password = password;
+        PhoneNumber = phoneNumber;
+        LockoutEnabled = locked;
+        Roles = roles;
+        Permissions = permissions;
+        EmailConfirmed = emailConfirmed;
+        PhotoUrl = photoUrl;
+        Status = status;
+        IsAdministrator = isAdmin;
+        IsActive = isActive;
+    }
+
+    public string UserName { get; }
+    public bool EmailConfirmed { get; }
+    public string Email { get; }
+    public string FirstName { get; }
+    public string LastName { get; }
+    public string PhoneNumber { get; }
+    public string Name { get; }
+    public bool IsAdministrator { get; }
+    public string? PhotoUrl { get; }
+    public UserType UserType { get; }
+    public string? Status { get; }
+    public string Password { get; }
+    public bool LockoutEnabled { get; }
+    public bool IsActive { get; }
+    public IEnumerable<string>? Roles { get; }
+    public IEnumerable<string>? Permissions { get; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid CorrelationId { get; set; }
+    public DateTime OccurredOn { get; set; } = DateTime.Now;
+}
+```
+
+Our command handler definition:
 
 ``` csharp
 public class RegisterNewUserCommandHandler : ICommandHandler<RegisterNewUserCommand>,
@@ -380,9 +481,422 @@ public class RegisterNewUserCommandHandler : ICommandHandler<RegisterNewUserComm
     }
 }
 ```
+
+Now for sending our command we could bellow code:
+
+``` csharp
+await commandProcessor.SendCommandAsync(registerNewUserCommand);
+
+or 
+
+await mediator.Send(registerNewUserCommand);
+```
+
+#### 6.6.2 CQRS Query
+
+Our query should inherits from [IQuery<out TResult>](src/BuildingBlocks/BuildingBlocks/uildingBlocks.Cqrs/Queries/IQuery.cs) and `TResult` is our query output which is a `Dto` object actually. for handling Query our handler should implement [IQueryHandler<in TCommand, TResult>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Commands/CommandHandler.cs) or [IQueryHandler<in TQuery, TResponse>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Queries/QueryHandler.cs).
+
+For sending a query we can use `Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)` method of our [IMediator](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/IMediator.cs).
+
+Example of query implementation with constructing Dto object inside repository:
+
+Our query definition:
+
+``` csharp
+public class GetUserByIdQuery : IQuery<UserDto>
+{
+    public GetUserByIdQuery(Guid id)
+    {
+        Id = id;
+    }
+
+    public Guid Id { get; }
+}
+```
+
+Our query handler definition:
+
+``` csharp
+public class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, UserDto>
+{
+    private readonly IUserRepository _userRepository;
+    private readonly IMapper _mapper;
+
+    public GetUserByIdQueryHandler(IUserRepository userRepository, IMapper mapper)
+    {
+        _userRepository = userRepository;
+        _mapper = mapper;
+    }
+
+    public async Task<UserDto> HandleAsync(GetUserByIdQuery query, CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.FindByIdAsync(query.Id.ToString());
+
+        return _mapper.Map<UserDto>(user);
+    }
+}
+```
+
+Now for sending our query we could bellow code:
+
+``` csharp
+await mediator.Send(getUserByIdQuery);
+```
+
+#### 6.6.3 Results From Command Handlers
+The idea from CQRS, do not return anything from command processing. But in some cases, we need to get generated identifiers of new created resources. So as trade-off, command handlers can return generated identifiers after processing if it's needed.
+
+
+### 6.7 Rich Domain Model
+Rich domain model solution is used in this project. Domain model encapsulates internal structure and logic.
+
+If our domain model is a Aggregate it should inherits from [AggregateRoot](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/Types/AggregateRoot.cs) and If it is not a aggregate it should inherits from [EntityBase](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/Types/EntityBase.cs) and our value objects should inherits from [ValueObject](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/Types/ValueObject.cs).
+
+An Implementation of a rich domain model:
+
+``` csharp
+public class User : AggregateRoot<Guid, UserId>
+{
+    // Using a private collection field, better for DDD Aggregate's encapsulation
+    private readonly List<Role> _roles = new();
+    private readonly List<RefreshToken> _refreshTokens = new();
+    private readonly List<Permission> _permissions = new();
+    public string UserName { get; private set; }
+    public bool EmailConfirmed { get; private set; }
+    public string Email { get; private set; }
+    public string FirstName { get; private set; }
+    public string LastName { get; private set; }
+    public string Name { get; private set; }
+    public bool IsAdministrator { get; private set; }
+    public string? PhotoUrl { get; private set; }
+    public UserType UserType { get; private set; }
+    public string? Status { get; private set; }
+    public string Password { get; private set; }
+    public string PhoneNumber { get; private set; }
+    public bool LockoutEnabled { get; private set; }
+    public bool IsActive { get; private set; }
+    public bool PasswordExpired { get; private set; }
+    public DateTime? LastPasswordChangedDate { get; private set; }
+    public DateTime CreatedDate { get; private set; }
+    public DateTime? ModifiedDate { get; private set; }
+    public string? CreatedBy { get; private set; }
+    public string? ModifiedBy { get; private set; }
+    public IReadOnlyList<Role> Roles => _roles.AsReadOnly();
+    public IReadOnlyList<Permission> Permissions => _permissions.AsReadOnly();
+    public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
+    private User(UserId id,
+        string email,
+        string firstName,
+        string lastName,
+        string name,
+        string userName,
+        string phoneNumber,
+        string password,
+        UserType userType,
+        bool isAdmin = false,
+        bool isActive = true,
+        bool locked = false,
+        bool emailConfirmed = false,
+        string? photoUrl = null,
+        string? status = null,
+        string? createdBy = null,
+        DateTime? createdDate = null,
+        string? modifiedBy = null,
+        DateTime? modifiedDate = null)
+    {
+        CheckEmailValidity(email);
+        CheckNameValidity(name);
+
+        UserName = userName;
+        PhoneNumber = phoneNumber;
+        IsActive = true;
+        Id = id;
+        Email = email.ToLowerInvariant();
+        FirstName = firstName;
+        LastName = lastName;
+        Name = name.Trim();
+        UserType = userType;
+        Password = password;
+        LockoutEnabled = locked;
+        EmailConfirmed = emailConfirmed;
+        PhotoUrl = photoUrl;
+        Status = status;
+        IsAdministrator = isAdmin;
+        IsActive = isActive;
+        CreatedDate = createdDate ?? DateTime.Now;
+        CreatedBy = createdBy;
+        ModifiedBy = modifiedBy;
+        ModifiedDate = modifiedDate;
+    }
+    
+    public static User Of(UserId id,
+        string email,
+        string firstName,
+        string lastName,
+        string name,
+        string userName,
+        string phoneNumber,
+        string password,
+        UserType userType,
+        bool isAdmin = false,
+        bool isActive = true,
+        bool locked = false,
+        bool emailConfirmed = false,
+        string? photoUrl = null,
+        string? status = null,
+        string? createdBy = null,
+        DateTime? createdDate = null,
+        string? modifiedBy = null,
+        DateTime? modifiedDate = null)
+    {
+        var user = new User(id,
+            email,
+            firstName,
+            lastName,
+            name,
+            userName,
+            phoneNumber,
+            password,
+            userType,
+            isAdmin,
+            isActive,
+            locked,
+            emailConfirmed,
+            photoUrl,
+            status,
+            createdBy,
+            createdDate,
+            modifiedBy,
+            modifiedDate);
+
+        user.AddDomainEvent(new NewUserRegisteredDomainEvent(user));
+        
+        return user;
+    }
+
+    #region Domain Operations
+    public void AssignRole(params Role[]? roles)
+    {
+        if (roles is null)
+            throw new Exception("Roles can't be null.");
+
+        foreach (var role in roles)
+        {
+            var exists = _roles.Contains(role);
+            if (!exists) _roles.Add(role);
+        }
+    }
+    public void AssignRefreshToken(params RefreshToken[]? refreshTokens)
+    {
+        if (refreshTokens is null)
+            throw new Exception("RefreshTokens can't be null.");
+
+        foreach (var refreshToken in refreshTokens)
+        {
+            var exists = _refreshTokens.Contains(refreshToken);
+            if (!exists) _refreshTokens.Add(refreshToken);
+        }
+    }
+
+    public void AssignPermission(params Permission[]? permissions)
+    {
+        if (permissions is null)
+            throw new Exception("Permissions can't be null.");
+
+        foreach (var permission in permissions)
+        {
+            var exists = _permissions.Contains(permission);
+            if (!exists) _permissions.Add(permission);
+        }
+    }
+
+    public virtual void Patch(User target)
+    {
+    }
+
+    public static void CheckEmailValidity(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new InvalidEmailException(email);
+
+        if (!RegexConstants.Email.IsMatch(email))
+            throw new InvalidEmailException(email);
+    }
+    public bool HasValidRefreshToken(string refreshToken)
+    {
+        return _refreshTokens.Any(rt => rt.Token == refreshToken && rt.IsActive);
+    }
+
+    public void AddRefreshToken(RefreshToken refreshToken)
+    {
+        _refreshTokens.Add(refreshToken);
+    }
+
+    public void RemoveRefreshToken(string refreshToken)
+    {
+        _refreshTokens.Remove(_refreshTokens.First(t => t.Token == refreshToken));
+    }
+    #endregion
+
+    #region Domain Invariants
+
+    public static void CheckNameValidity(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new InvalidNameException(name);
+    }
+
+    #endregion
+}
+```
+
+## 6.8 Domain Events
+A domain event is a side effect of executing a command or something that happened in particular domain,We create Domain Events to notify other parts of the same domain that something interesting happened and these other parts potentially can react to. Domain Event is usually immutable data-container class named in the past tense.
+
+Our domain events should inherits from [IDomainEvent](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/DomainEvents/IDomainEvent.cs) and our domain event handler should implement [IDomainEventHandler<in TDomainEvent>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/DomainEvents/DomainEventHandler.cs)
+
+Example of a domain event:
+
+``` csharp
+// NewUserRegisteredDomainEvent.cs
+
+public class NewUserRegisteredDomainEvent : IDomainEvent
+{
+    public NewUserRegisteredDomainEvent(User user)
+    {
+        User = user;
+    }
+
+    public User User { get; set;}
+}
+
+
+// NewUserRegisteredDomainEventHandler.cs
+public class NewUserRegisteredDomainEventHandler: IDomainEventHandler<NewUserRegisteredDomainEvent>
+{
+    public Task HandleAsync(NewUserRegisteredDomainEvent domainEvent)
+    {
+        return Task.CompletedTask;
+    }
+}
+```
+
+## 6.9 Integration Events
+In ddd when we want to communicate with external boundaries, we should use integration event. This message or integration event should contain only required data, and it should be as thin and small as possible. we should publish a message to our messaging system (message broker) as a publisher and all subscribers in other modules or services can subscribe on this integration event and perform their desire operations.
+
+Our integration event should implement [IIntegrationEvent](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/IntegrationEvents/IIntegrationEvent.cs) and all of our subscriber should implement [IIntegrationEventHandler<in TMessage>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/IntegrationEvents/IIntegrationEventHandler.cs).
+
+
+``` csharp
+
+// NewUserRegisteredIntegrationEvent.cs  ---> our integration event
+
+public class NewUserRegisteredIntegrationEvent : IIntegrationEvent
+{
+    public Guid UserId { get; }
+    public string Login { get; }
+    public string Email { get; }
+    public string FirstName { get; }
+    public string LastName { get; }
+    public string Name { get; }
+
+    public NewUserRegisteredIntegrationEvent(Guid userId, string login, string email, string firstName,
+        string lastName, string name)
+    {
+        UserId = userId;
+        Login = login;
+        Email = email;
+        FirstName = firstName;
+        LastName = lastName;
+        Name = name;
+    }
+}
+
+// RegisterNewUserCommandHandler.cs  ---> to publishing our integration event
+
+public class RegisterNewUserCommandHandler : ICommandHandler<RegisterNewUserCommand>,
+    IRetryableRequest<RegisterNewUserCommand, Unit>
+{
+    private readonly IUserRepository _userRepository;
+    private readonly ILogger<RegisterNewUserCommandHandler> _logger;
+    private readonly ICommandProcessor _commandProcessor;
+    private readonly ISqlDbContext _dbContext;
+
+    public RegisterNewUserCommandHandler(IUserRepository userRepository,
+        ILogger<RegisterNewUserCommandHandler> logger,
+        ICommandProcessor commandProcessor,
+        ISqlDbContext dbContext)
+    {
+        _userRepository = userRepository;
+        _logger = logger;
+        _commandProcessor = commandProcessor;
+        _dbContext = dbContext;
+    }
+
+    public async Task<Unit> HandleAsync(RegisterNewUserCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        Guard.Against.Null(command, nameof(RegisterNewUserCommand));
+        User.CheckEmailValidity(command.Email);
+        User.CheckEmailValidity(command.Email);
+        User.CheckNameValidity(command.Name);
+
+        var user = await _userRepository.FindByEmailAsync(command.Email);
+        if (user is { })
+        {
+            _logger.LogError($"Email '{command.Email}' already in used");
+            throw new EmailAlreadyInUsedException(command.Email);
+        }
+
+        user = await _userRepository.FindByNameAsync(command.Name);
+        if (user is { })
+        {
+            _logger.LogError($"UserName '{command.Name}' already in used");
+            throw new UserNameAlreadyInUseException(command.Name);
+        }
+
+        user = User.Of(command.Id,
+            command.Email,
+            command.FirstName,
+            command.LastName,
+            command.Name,
+            command.UserName,
+            command.PhoneNumber,
+            command.Password,
+            command.UserType,
+            command.IsAdministrator,
+            command.IsActive,
+            command.LockoutEnabled,
+            command.EmailConfirmed,
+            command.PhotoUrl,
+            command.Status);
+
+        user.AssignPermission(command.Permissions?.Select(x => Permission.Of(x, "")).ToArray());
+        user.AssignRole(command.Roles?.Select(x => Role.Of(x, x)).ToArray());
+
+        await _commandProcessor.HandleTransactionAsync(_dbContext, user.Events?.ToList(), async () =>
+        {
+            await _userRepository.AddAsync(user);
+            _logger.LogInformation($"Created an account for the user with ID: '{user.Id}'.");
+        });
+
+        var domainEvents = user.Events.ToArray();
+        await _commandProcessor.PublishDomainEventAsync(domainEvents); 
+        
+        // Publish some integration event to message broker to consume by the subscriber modules
+        await _commandProcessor.PublishMessageAsync(new NewUserRegisteredIntegrationEvent(user.Id.Id, user.UserName, user.Email,
+         user.FirstName, user.LastName, user.Name));
+
+        return Unit.Result;
+    }
+}
+```
+
 The listener for `NewUserRegisteredIntegrationEvent` integration event in other module:
 
 ``` csharp
+// NewUserRegisteredIntegrationEventHandler.cs ---> our integration event subscriber
+
 public class NewUserRegisteredIntegrationEventHandler : IIntegrationEventHandler<NewUserRegisteredIntegrationEvent>
 {
     public Task HandleAsync(NewUserRegisteredIntegrationEvent @event, IMessageContext context,
@@ -391,18 +905,94 @@ public class NewUserRegisteredIntegrationEventHandler : IIntegrationEventHandler
         return Task.CompletedTask;
     }
 }
+```
 
-Or
+## 6.10 Public Events - Domain Events Notifications
 
-public class NewUserRegisteredIntegrationEventHandler : IMessageHandler<NewUserRegisteredIntegrationEvent>
+it is notification that domain event was published. If I want to inform my application that domain event was published I create notification class for it and as many handlers for this notification as I want. I always publish my notifications after transaction is committed. 
+
+The complete process of executing a command handler looks like this:
+
+1. Command Handler defines transaction boundary, Transaction is started when Command Handler is invoked and committed at the end
+2. Get aggregate(s).
+3. Invoke aggregate method.
+4. Add domain events to Events collections in our domain (aggregate).
+5. Publish domain events and handle them in end of our handler before committing transaction.
+6. Save domain event notification (public event) in outbox
+7. Save changes to DB and commit transaction.
+8. Read public event from outbox and publish domain events notifications and handle them.
+ 
+What happened when we want to execute something **outside this transaction**, like publishing a message to a message broker or calling a third-party service or sending email?
+
+Because we have no control over external systems we can save our domain event notification on the same transaction as our command handler with an outbox pattern and after committing transaction we will pick our notification events from outbox in a background service and try to publish this notification event and execute their handler. If these notification events execute successfully, they are marked as proceed, else they retry again until they can execute successfully.
+
+How do I know that particular domain event was published? 
+
+Our public event should implement [IDomainEventNotification<TDomainEventType>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/DomainEventNotifications/IDomainEventNotification.cs) and their handlers should implement [IDomainEventNotificationHandler<in TDomainEventNotification>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/DomainEventNotifications/IDomainEventNotificationHandler.cs).
+
+For ensuring our `NewUserRegisteredDomainEvent` is published we create a `NewUserRegisteredNotification` event when the command handler publishes our domain events at the end of our command handler, all domain event notifications related to our domain events will save in the outbox, and the transaction will commit in end of handler. then our notification event publishes from outbox separately in a background service and all notification handlers will handle. Now in all our domain event notification handlers, we can do everything we need to execute out of our command handler transaction like publish a message to the broker or sending an email with a third party service. Here we can change of retry because of using the outbox pattern.
+
+Here is a sample of this process:
+
+``` csharp
+// NewUserRegisteredNotification.cs
+
+public class NewUserRegisteredNotification : DomainNotificationEventBase<NewUserRegisteredDomainEvent>
 {
-    public Task HandleAsync(NewUserRegisteredIntegrationEvent @event, IMessageContext context,
-        CancellationToken cancellationToken = default)
+    public NewUserRegisteredNotification(NewUserRegisteredDomainEvent domainEvent, Guid id, Guid correlationId) : base(domainEvent, id,
+        correlationId)
     {
-        return Task.CompletedTask;
+    }
+}
+
+
+// NewUserRegisteredPublishEventHandler.cs
+
+public class NewUserRegisteredPublishEventHandler : IDomainEventNotificationHandler<NewUserRegisteredNotification>
+{
+    private readonly ICommandProcessor _commandProcessor;
+    private readonly IUserDomainEventsToIntegrationEventsMapper _userDomainToIntegrationEventMapper;
+    
+    public NewUserRegisteredPublishEventHandler(ICommandProcessor commandProcessor,
+        IUserDomainEventsToIntegrationEventsMapper userDomainToIntegrationEventMapper)
+    {
+        _commandProcessor = commandProcessor;
+        _userDomainToIntegrationEventMapper = userDomainToIntegrationEventMapper;
+    }
+
+    public async Task HandleAsync(NewUserRegisteredNotification notification)
+    {
+        var integrationEvents = _userDomainToIntegrationEventMapper.Map(notification.DomainEvent).ToArray();
+        foreach (var integrationEvent in integrationEvents)
+        {
+            await _commandProcessor.PublishMessageAsync(integrationEvent);
+        }
+    }
+}
+
+// NewUserRegisteredSendEmailConfirmationHandler.cs
+
+public class NewUserRegisteredSendEmailConfirmationHandler : IDomainEventNotificationHandler<NewUserRegisteredNotification>
+{
+    private readonly IMessagesScheduler _messagesScheduler;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public NewUserRegisteredSendEmailConfirmationHandler(IMessagesScheduler messagesScheduler,
+        IHttpContextAccessor httpContextAccessor)
+    {
+        _messagesScheduler = messagesScheduler;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public async Task HandleAsync(NewUserRegisteredNotification @event)
+    {
+        await _messagesScheduler.Enqueue(new SendVerificationEmailCommand(@event.DomainEvent.User.Id.Id.ToString(),
+            _httpContextAccessor.HttpContext?.Request.Scheme,
+            _httpContextAccessor.HttpContext?.Request.Host.Value));
     }
 }
 ```
+For more information see these articles [Reference 1](http://www.kamilgrzybek.com/design/how-to-publish-and-handle-domain-events/),[Reference 2](http://www.kamilgrzybek.com/design/handling-domain-events-missing-part/).
 
 ## 7. How To Run
 

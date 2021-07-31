@@ -184,6 +184,16 @@
 <li><a href="#63-api-gateway-configuration">6.3 API Gateway Configuration</a></li>
 <li><a href="#64-initializing-modules">6.4 Initializing Modules</a></li>
 <li><a href="#65-communications-between-bounded-contexts-or-modules">6.5 Communications Between Bounded Contexts Or Modules</a></li>
+<li><a href="#6.6-cqrs">6.6 CQRS</a><ul>
+<li><a href="#661-cqrs-command">6.6.1 CQRS Command</a></li>
+<li><a href="#662-cqrs-query">6.6.2 CQRS Query</a></li>
+<li><a href="#663-results-from-command-handlers">6.6.3 Results From Command Handlers</a></li>
+</ul>
+</li>
+<li><a href="#67-rich-domain-model">6.7 Rich Domain Model</a></li>
+<li><a href="#68-domain-events">6.8 Domain Events</a></li>
+<li><a href="#69-integration-events">6.9 Integration Events</a></li>
+<li><a href="#610-public-events---domain-events-notifications">6.10 Public Events - Domain Events Notifications</a></li>
 </ul>
 </li>
 <li><a href="#7-how-to-run">7. How to Run</a></li>
@@ -430,8 +440,84 @@ infrastructural code responsible for module initialization, background processin
 <h3 id="65-communications-between-bounded-contexts-or-modules">6.5 Communications Between Bounded Contexts Or Modules</h3>
 <p>Communication between bounded contexts or modules are asynchronous via message broker. Bounded contexts don&apos;t share data, it&apos;s forbidden to create a transaction which spans more than one bounded context.<a href="https://www.kamilgrzybek.com/design/modular-monolith-integration-styles/" target="_blank">read more</a></p>
 <p>Using message bus reduces coupling of bounded contexts through data replication across contexts which results to higher bounded contexts independence. Event publishing/subscribing is used in this project with some infrastructural code for handling this message passing and event driven architecture.</p>
-<p>To publish a message to message broker we can use our <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/ICommandProcessor.cs">ICommandProcessor</a> or <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/Transport/IPublisher.cs">IPublisher</a> and then using <code>PublishMessageAsync&lt;TMessage&gt;(TMessage messgae);</code> method to publish message on message broker. On the other side subscriber or listener module can subscribe on published message with a handler that implement <code>IMessageHandler&lt;TMessage&gt;</code> interface or <code>IIntegrationEventHandler&lt;TMessage&gt;</code>.</p>
-<p>The example of implementation:</p>
+<p>Our message should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/IMessage.cs">IMessage</a> and our handlers should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/IMessageHandler.cs">IMessageHandler<tmessage></tmessage></a> interface to participate in messaging mechanism.</p>
+<p>To publish a message to message broker we can use our <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/ICommandProcessor.cs">ICommandProcessor</a> or <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/Transport/IPublisher.cs">IPublisher</a> and then using <code>PublishMessageAsync&lt;TMessage&gt;(TMessage messgae);</code> method to publish message on message broker. On the other side subscriber or listener module can subscribe on published message with a handler that implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/IMessageHandler.cs">IMessageHandler<tmessage></tmessage></a> interface .</p>
+<p>To publishing message to message broker we can use bellow code:</p>
+<pre><code class="lang-csharp">
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TestMessage</span> : <span class="hljs-title">IMessage</span>
+{
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> Data { <span class="hljs-keyword">get</span>; init;}
+}
+
+<span class="hljs-comment">// publishing message to message broker</span>
+CommandProcessor.PublishMessageAsync(<span class="hljs-keyword">new</span> Test() { Data=<span class="hljs-string">&quot;test&quot;</span> });
+</code></pre>
+<p>The listener for <code>TestMessage</code> message in other modules:</p>
+<pre><code class="lang-csharp">public class TestMessageHandler : IMessageHandler&lt;TestMessage&gt;
+{
+    public Task HandleAsync(TestMessage message, IMessageContext context,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+}
+</code></pre>
+<h3 id="66-cqrs">6.6 CQRS</h3>
+<p>CQRS principle gives the flexibility in optimizing model for read and write operations. The simple version of CQRS is implemented in this application. On write operations, full logic is executed via aggregate (write model). On read operations, Dto objects (read model) are created via queries on repository level or directly on database context like ef core dbcontext. </p>
+<h4 id="661-cqrs-command">6.6.1 CQRS Command</h4>
+<p>Our command should inherits from <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Commands/ICommand.cs">ICommand<tresult></tresult></a> if our command will return a value and <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Commands/ICommand.cs">ICommand</a> if our command doesn&apos;t have a value. returning value from command is a trade-off in next section I will explain this case. for handling command our handler should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Commands/CommandHandler.cs">ICommandHandler<in tcommand,="" tresult=""></in></a> or <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Commands/CommandHandler.cs">ICommandHandler<in tcommand=""></in></a>.</p>
+<p>For sending a command we can use <code>SendCommandAsync&lt;T, TResult&gt;(T command)</code> method of <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/ICommandProcessor.cs">ICommandProcessor</a> or we can use <code>Send&lt;TResponse&gt;(IRequest&lt;TResponse&gt; request, CancellationToken cancellationToken = default)</code> method of our <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/IMediator.cs">IMediator</a>.</p>
+<p>Example of a command handler:</p>
+<p>command definition:</p>
+<pre><code class="lang-csharp"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">RegisterNewUserCommand</span> : <span class="hljs-title">ICommand</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">RegisterNewUserCommand</span>(<span class="hljs-params"><span class="hljs-keyword">string</span> email, <span class="hljs-keyword">string</span> firstName, <span class="hljs-keyword">string</span> lastName,
+        <span class="hljs-keyword">string</span> name, <span class="hljs-keyword">string</span> userName, <span class="hljs-keyword">string</span> phoneNumber,<span class="hljs-keyword">string</span> password,
+        IReadOnlyList&lt;<span class="hljs-keyword">string</span>&gt; permissions, UserType userType, <span class="hljs-keyword">bool</span> isAdmin = <span class="hljs-keyword">false</span>, <span class="hljs-keyword">bool</span> isActive = <span class="hljs-keyword">true</span>,
+        IReadOnlyList&lt;<span class="hljs-keyword">string</span>&gt;? roles = <span class="hljs-keyword">null</span>, <span class="hljs-keyword">bool</span> locked = <span class="hljs-keyword">false</span>, <span class="hljs-keyword">bool</span> emailConfirmed = <span class="hljs-keyword">false</span>,
+        <span class="hljs-keyword">string</span>? photoUrl = <span class="hljs-keyword">null</span>, <span class="hljs-keyword">string</span>? status = <span class="hljs-keyword">null</span></span>)
+    </span>{
+        UserName = userName;
+        IsActive = <span class="hljs-keyword">true</span>;
+        Email = email.ToLowerInvariant();
+        FirstName = firstName;
+        LastName = lastName;
+        Name = name.Trim();
+        UserType = userType;
+        Password = password;
+        PhoneNumber = phoneNumber;
+        LockoutEnabled = locked;
+        Roles = roles;
+        Permissions = permissions;
+        EmailConfirmed = emailConfirmed;
+        PhotoUrl = photoUrl;
+        Status = status;
+        IsAdministrator = isAdmin;
+        IsActive = isActive;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> UserName { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">bool</span> EmailConfirmed { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> Email { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> FirstName { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> LastName { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> PhoneNumber { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> Name { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">bool</span> IsAdministrator { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span>? PhotoUrl { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> UserType UserType { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span>? Status { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> Password { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">bool</span> LockoutEnabled { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">bool</span> IsActive { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> IEnumerable&lt;<span class="hljs-keyword">string</span>&gt;? Roles { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> IEnumerable&lt;<span class="hljs-keyword">string</span>&gt;? Permissions { <span class="hljs-keyword">get</span>; }
+    <span class="hljs-keyword">public</span> Guid Id { <span class="hljs-keyword">get</span>; <span class="hljs-keyword">set</span>; } = Guid.NewGuid();
+    <span class="hljs-keyword">public</span> Guid CorrelationId { <span class="hljs-keyword">get</span>; <span class="hljs-keyword">set</span>; }
+    <span class="hljs-keyword">public</span> DateTime OccurredOn { <span class="hljs-keyword">get</span>; <span class="hljs-keyword">set</span>; } = DateTime.Now;
+}
+</code></pre>
+<p>Our command handler definition:</p>
 <pre><code class="lang-csharp">public class RegisterNewUserCommandHandler : ICommandHandler&lt;RegisterNewUserCommand&gt;,
     IRetryableRequest&lt;RegisterNewUserCommand, Unit&gt;
 {
@@ -509,19 +595,387 @@ infrastructural code responsible for module initialization, background processin
     }
 }
 </code></pre>
-<p>The listener for <code>NewUserRegisteredIntegrationEvent</code> integration event in other module:</p>
-<pre><code class="lang-csharp">public class NewUserRegisteredIntegrationEventHandler : IIntegrationEventHandler&lt;NewUserRegisteredIntegrationEvent&gt;
+<p>Now for sending our command we could bellow code:</p>
+<pre><code class="lang-csharp"><span class="hljs-keyword">await</span> commandProcessor.SendCommandAsync(registerNewUserCommand);
+
+or 
+
+<span class="hljs-keyword">await</span> mediator.Send(registerNewUserCommand);
+</code></pre>
+<h4 id="662-cqrs-query">6.6.2 CQRS Query</h4>
+<p>Our query should inherits from <a href="src/BuildingBlocks/BuildingBlocks/uildingBlocks.Cqrs/Queries/IQuery.cs">IQuery<out tresult=""></out></a> and <code>TResult</code> is our query output which is a <code>Dto</code> object actually. for handling Query our handler should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Commands/CommandHandler.cs">IQueryHandler<in tcommand,="" tresult=""></in></a> or <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/Queries/QueryHandler.cs">IQueryHandler<in tquery,="" tresponse=""></in></a>.</p>
+<p>For sending a query we can use <code>Send&lt;TResponse&gt;(IRequest&lt;TResponse&gt; request, CancellationToken cancellationToken = default)</code> method of our <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Cqrs/IMediator.cs">IMediator</a>.</p>
+<p>Example of query implementation with constructing Dto object inside repository:</p>
+<p>Our query definition:</p>
+<pre><code class="lang-csharp">public class GetUserByIdQuery : IQuery&lt;UserDto&gt;
 {
-    public Task HandleAsync(NewUserRegisteredIntegrationEvent @event, IMessageContext context,
-        CancellationToken cancellationToken = default)
+    public GetUserByIdQuery(Guid id)
+    {
+        Id = id;
+    }
+
+    public Guid Id { get; }
+}
+</code></pre>
+<p>Our query handler definition:</p>
+<pre><code class="lang-csharp">public class GetUserByIdQueryHandler : IQueryHandler&lt;GetUserByIdQuery, UserDto&gt;
+{
+    private readonly IUserRepository _userRepository;
+    private readonly IMapper _mapper;
+
+    public GetUserByIdQueryHandler(IUserRepository userRepository, IMapper mapper)
+    {
+        _userRepository = userRepository;
+        _mapper = mapper;
+    }
+
+    public async Task&lt;UserDto&gt; HandleAsync(GetUserByIdQuery query, CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.FindByIdAsync(query.Id.ToString());
+
+        return _mapper.Map&lt;UserDto&gt;(user);
+    }
+}
+</code></pre>
+<p>Now for sending our query we could bellow code:</p>
+<pre><code class="lang-csharp"><span class="hljs-keyword">await</span> mediator.Send(getUserByIdQuery);
+</code></pre>
+<h4 id="663-results-from-command-handlers">6.6.3 Results From Command Handlers</h4>
+<p>The idea from CQRS, do not return anything from command processing. But in some cases, we need to get generated identifiers of new created resources. So as trade-off, command handlers can return generated identifiers after processing if it&apos;s needed.</p>
+<h3 id="67-rich-domain-model">6.7 Rich Domain Model</h3>
+<p>Rich domain model solution is used in this project. Domain model encapsulates internal structure and logic.</p>
+<p>If our domain model is a Aggregate it should inherits from <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/Types/AggregateRoot.cs">AggregateRoot</a> and If it is not a aggregate it should inherits from <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/Types/EntityBase.cs">EntityBase</a> and our value objects should inherits from <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/Types/ValueObject.cs">ValueObject</a>.</p>
+<p>An Implementation of a rich domain model:</p>
+<pre><code class="lang-csharp">public class User : AggregateRoot&lt;Guid, UserId&gt;
+{
+    // Using a private collection field, better for DDD Aggregate&apos;s encapsulation
+    private readonly List&lt;Role&gt; _roles = new();
+    private readonly List&lt;RefreshToken&gt; _refreshTokens = new();
+    private readonly List&lt;Permission&gt; _permissions = new();
+    public string UserName { get; private set; }
+    public bool EmailConfirmed { get; private set; }
+    public string Email { get; private set; }
+    public string FirstName { get; private set; }
+    public string LastName { get; private set; }
+    public string Name { get; private set; }
+    public bool IsAdministrator { get; private set; }
+    public string? PhotoUrl { get; private set; }
+    public UserType UserType { get; private set; }
+    public string? Status { get; private set; }
+    public string Password { get; private set; }
+    public string PhoneNumber { get; private set; }
+    public bool LockoutEnabled { get; private set; }
+    public bool IsActive { get; private set; }
+    public bool PasswordExpired { get; private set; }
+    public DateTime? LastPasswordChangedDate { get; private set; }
+    public DateTime CreatedDate { get; private set; }
+    public DateTime? ModifiedDate { get; private set; }
+    public string? CreatedBy { get; private set; }
+    public string? ModifiedBy { get; private set; }
+    public IReadOnlyList&lt;Role&gt; Roles =&gt; _roles.AsReadOnly();
+    public IReadOnlyList&lt;Permission&gt; Permissions =&gt; _permissions.AsReadOnly();
+    public IReadOnlyCollection&lt;RefreshToken&gt; RefreshTokens =&gt; _refreshTokens.AsReadOnly();
+    private User(UserId id,
+        string email,
+        string firstName,
+        string lastName,
+        string name,
+        string userName,
+        string phoneNumber,
+        string password,
+        UserType userType,
+        bool isAdmin = false,
+        bool isActive = true,
+        bool locked = false,
+        bool emailConfirmed = false,
+        string? photoUrl = null,
+        string? status = null,
+        string? createdBy = null,
+        DateTime? createdDate = null,
+        string? modifiedBy = null,
+        DateTime? modifiedDate = null)
+    {
+        CheckEmailValidity(email);
+        CheckNameValidity(name);
+
+        UserName = userName;
+        PhoneNumber = phoneNumber;
+        IsActive = true;
+        Id = id;
+        Email = email.ToLowerInvariant();
+        FirstName = firstName;
+        LastName = lastName;
+        Name = name.Trim();
+        UserType = userType;
+        Password = password;
+        LockoutEnabled = locked;
+        EmailConfirmed = emailConfirmed;
+        PhotoUrl = photoUrl;
+        Status = status;
+        IsAdministrator = isAdmin;
+        IsActive = isActive;
+        CreatedDate = createdDate ?? DateTime.Now;
+        CreatedBy = createdBy;
+        ModifiedBy = modifiedBy;
+        ModifiedDate = modifiedDate;
+    }
+
+    public static User Of(UserId id,
+        string email,
+        string firstName,
+        string lastName,
+        string name,
+        string userName,
+        string phoneNumber,
+        string password,
+        UserType userType,
+        bool isAdmin = false,
+        bool isActive = true,
+        bool locked = false,
+        bool emailConfirmed = false,
+        string? photoUrl = null,
+        string? status = null,
+        string? createdBy = null,
+        DateTime? createdDate = null,
+        string? modifiedBy = null,
+        DateTime? modifiedDate = null)
+    {
+        var user = new User(id,
+            email,
+            firstName,
+            lastName,
+            name,
+            userName,
+            phoneNumber,
+            password,
+            userType,
+            isAdmin,
+            isActive,
+            locked,
+            emailConfirmed,
+            photoUrl,
+            status,
+            createdBy,
+            createdDate,
+            modifiedBy,
+            modifiedDate);
+
+        user.AddDomainEvent(new NewUserRegisteredDomainEvent(user));
+
+        return user;
+    }
+
+    #region Domain Operations
+    public void AssignRole(params Role[]? roles)
+    {
+        if (roles is null)
+            throw new Exception(&quot;Roles can&apos;t be null.&quot;);
+
+        foreach (var role in roles)
+        {
+            var exists = _roles.Contains(role);
+            if (!exists) _roles.Add(role);
+        }
+    }
+    public void AssignRefreshToken(params RefreshToken[]? refreshTokens)
+    {
+        if (refreshTokens is null)
+            throw new Exception(&quot;RefreshTokens can&apos;t be null.&quot;);
+
+        foreach (var refreshToken in refreshTokens)
+        {
+            var exists = _refreshTokens.Contains(refreshToken);
+            if (!exists) _refreshTokens.Add(refreshToken);
+        }
+    }
+
+    public void AssignPermission(params Permission[]? permissions)
+    {
+        if (permissions is null)
+            throw new Exception(&quot;Permissions can&apos;t be null.&quot;);
+
+        foreach (var permission in permissions)
+        {
+            var exists = _permissions.Contains(permission);
+            if (!exists) _permissions.Add(permission);
+        }
+    }
+
+    public virtual void Patch(User target)
+    {
+    }
+
+    public static void CheckEmailValidity(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new InvalidEmailException(email);
+
+        if (!RegexConstants.Email.IsMatch(email))
+            throw new InvalidEmailException(email);
+    }
+    public bool HasValidRefreshToken(string refreshToken)
+    {
+        return _refreshTokens.Any(rt =&gt; rt.Token == refreshToken &amp;&amp; rt.IsActive);
+    }
+
+    public void AddRefreshToken(RefreshToken refreshToken)
+    {
+        _refreshTokens.Add(refreshToken);
+    }
+
+    public void RemoveRefreshToken(string refreshToken)
+    {
+        _refreshTokens.Remove(_refreshTokens.First(t =&gt; t.Token == refreshToken));
+    }
+    #endregion
+
+    #region Domain Invariants
+
+    public static void CheckNameValidity(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new InvalidNameException(name);
+    }
+
+    #endregion
+}
+</code></pre>
+<h2 id="68-domain-events">6.8 Domain Events</h2>
+<p>A domain event is a side effect of executing a command or something that happened in particular domain,We create Domain Events to notify other parts of the same domain that something interesting happened and these other parts potentially can react to. Domain Event is usually immutable data-container class named in the past tense.</p>
+<p>Our domain events should inherits from <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/DomainEvents/IDomainEvent.cs">IDomainEvent</a> and our domain event handler should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/DomainEvents/DomainEventHandler.cs">IDomainEventHandler<in tdomainevent=""></in></a></p>
+<p>Example of a domain event:</p>
+<pre><code class="lang-csharp">// NewUserRegisteredDomainEvent.cs
+
+public class NewUserRegisteredDomainEvent : IDomainEvent
+{
+    public NewUserRegisteredDomainEvent(User user)
+    {
+        User = user;
+    }
+
+    public User User { get; set;}
+}
+
+
+// NewUserRegisteredDomainEventHandler.cs
+public class NewUserRegisteredDomainEventHandler: IDomainEventHandler&lt;NewUserRegisteredDomainEvent&gt;
+{
+    public Task HandleAsync(NewUserRegisteredDomainEvent domainEvent)
     {
         return Task.CompletedTask;
     }
 }
+</code></pre>
+<h2 id="69-integration-events">6.9 Integration Events</h2>
+<p>In ddd when we want to communicate with external boundaries, we should use integration event. This message or integration event should contain only required data, and it should be as thin and small as possible. we should publish a message to our messaging system (message broker) as a publisher and all subscribers in other modules or services can subscribe on this integration event and perform their desire operations.</p>
+<p>Our integration event should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/IntegrationEvents/IIntegrationEvent.cs">IIntegrationEvent</a> and all of our subscriber should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/IntegrationEvents/IIntegrationEventHandler.cs">IIntegrationEventHandler<in tmessage=""></in></a>.</p>
+<pre><code class="lang-csharp">
+// NewUserRegisteredIntegrationEvent.cs  ---&gt; our integration event
 
-Or
+public class NewUserRegisteredIntegrationEvent : IIntegrationEvent
+{
+    public Guid UserId { get; }
+    public string Login { get; }
+    public string Email { get; }
+    public string FirstName { get; }
+    public string LastName { get; }
+    public string Name { get; }
 
-public class NewUserRegisteredIntegrationEventHandler : IMessageHandler&lt;NewUserRegisteredIntegrationEvent&gt;
+    public NewUserRegisteredIntegrationEvent(Guid userId, string login, string email, string firstName,
+        string lastName, string name)
+    {
+        UserId = userId;
+        Login = login;
+        Email = email;
+        FirstName = firstName;
+        LastName = lastName;
+        Name = name;
+    }
+}
+
+// RegisterNewUserCommandHandler.cs  ---&gt; to publishing our integration event
+
+public class RegisterNewUserCommandHandler : ICommandHandler&lt;RegisterNewUserCommand&gt;,
+    IRetryableRequest&lt;RegisterNewUserCommand, Unit&gt;
+{
+    private readonly IUserRepository _userRepository;
+    private readonly ILogger&lt;RegisterNewUserCommandHandler&gt; _logger;
+    private readonly ICommandProcessor _commandProcessor;
+    private readonly ISqlDbContext _dbContext;
+
+    public RegisterNewUserCommandHandler(IUserRepository userRepository,
+        ILogger&lt;RegisterNewUserCommandHandler&gt; logger,
+        ICommandProcessor commandProcessor,
+        ISqlDbContext dbContext)
+    {
+        _userRepository = userRepository;
+        _logger = logger;
+        _commandProcessor = commandProcessor;
+        _dbContext = dbContext;
+    }
+
+    public async Task&lt;Unit&gt; HandleAsync(RegisterNewUserCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        Guard.Against.Null(command, nameof(RegisterNewUserCommand));
+        User.CheckEmailValidity(command.Email);
+        User.CheckEmailValidity(command.Email);
+        User.CheckNameValidity(command.Name);
+
+        var user = await _userRepository.FindByEmailAsync(command.Email);
+        if (user is { })
+        {
+            _logger.LogError($&quot;Email &apos;{command.Email}&apos; already in used&quot;);
+            throw new EmailAlreadyInUsedException(command.Email);
+        }
+
+        user = await _userRepository.FindByNameAsync(command.Name);
+        if (user is { })
+        {
+            _logger.LogError($&quot;UserName &apos;{command.Name}&apos; already in used&quot;);
+            throw new UserNameAlreadyInUseException(command.Name);
+        }
+
+        user = User.Of(command.Id,
+            command.Email,
+            command.FirstName,
+            command.LastName,
+            command.Name,
+            command.UserName,
+            command.PhoneNumber,
+            command.Password,
+            command.UserType,
+            command.IsAdministrator,
+            command.IsActive,
+            command.LockoutEnabled,
+            command.EmailConfirmed,
+            command.PhotoUrl,
+            command.Status);
+
+        user.AssignPermission(command.Permissions?.Select(x =&gt; Permission.Of(x, &quot;&quot;)).ToArray());
+        user.AssignRole(command.Roles?.Select(x =&gt; Role.Of(x, x)).ToArray());
+
+        await _commandProcessor.HandleTransactionAsync(_dbContext, user.Events?.ToList(), async () =&gt;
+        {
+            await _userRepository.AddAsync(user);
+            _logger.LogInformation($&quot;Created an account for the user with ID: &apos;{user.Id}&apos;.&quot;);
+        });
+
+        var domainEvents = user.Events.ToArray();
+        await _commandProcessor.PublishDomainEventAsync(domainEvents); 
+
+        // Publish some integration event to message broker to consume by the subscriber modules
+        await _commandProcessor.PublishMessageAsync(new NewUserRegisteredIntegrationEvent(user.Id.Id, user.UserName, user.Email,
+         user.FirstName, user.LastName, user.Name));
+
+        return Unit.Result;
+    }
+}
+</code></pre>
+<p>The listener for <code>NewUserRegisteredIntegrationEvent</code> integration event in other module:</p>
+<pre><code class="lang-csharp">// NewUserRegisteredIntegrationEventHandler.cs ---&gt; our integration event subscriber
+
+public class NewUserRegisteredIntegrationEventHandler : IIntegrationEventHandler&lt;NewUserRegisteredIntegrationEvent&gt;
 {
     public Task HandleAsync(NewUserRegisteredIntegrationEvent @event, IMessageContext context,
         CancellationToken cancellationToken = default)
@@ -530,6 +984,83 @@ public class NewUserRegisteredIntegrationEventHandler : IMessageHandler&lt;NewUs
     }
 }
 </code></pre>
+<h2 id="610-public-events---domain-events-notifications">6.10 Public Events - Domain Events Notifications</h2>
+<p>it is notification that domain event was published. If I want to inform my application that domain event was published I create notification class for it and as many handlers for this notification as I want. I always publish my notifications after transaction is committed. </p>
+<p>The complete process of executing a command handler looks like this:</p>
+<ol>
+<li>Command Handler defines transaction boundary, Transaction is started when Command Handler is invoked and committed at the end</li>
+<li>Get aggregate(s).</li>
+<li>Invoke aggregate method.</li>
+<li>Add domain events to Events collections in our domain (aggregate).</li>
+<li>Publish domain events and handle them in end of our handler before committing transaction.</li>
+<li>Save domain event notification (public event) in outbox</li>
+<li>Save changes to DB and commit transaction.</li>
+<li>Read public event from outbox and publish domain events notifications and handle them.</li>
+</ol>
+<p>What happened when we want to execute something <strong>outside this transaction</strong>, like publishing a message to a message broker or calling a third-party service or sending email?</p>
+<p>Because we have no control over external systems we can save our domain event notification on the same transaction as our command handler with an outbox pattern and after committing transaction we will pick our notification events from outbox in a background service and try to publish this notification event and execute their handler. If these notification events execute successfully, they are marked as proceed, else they retry again until they can execute successfully.</p>
+<p>How do I know that particular domain event was published? </p>
+<p>Our public event should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/DomainEventNotifications/IDomainEventNotification.cs">IDomainEventNotification<tdomaineventtype></tdomaineventtype></a> and their handlers should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Domain/DomainEventNotifications/IDomainEventNotificationHandler.cs">IDomainEventNotificationHandler<in tdomaineventnotification=""></in></a>.</p>
+<p>For ensuring our <code>NewUserRegisteredDomainEvent</code> is published we create a <code>NewUserRegisteredNotification</code> event when the command handler publishes our domain events at the end of our command handler, all domain event notifications related to our domain events will save in the outbox, and the transaction will commit in end of handler. then our notification event publishes from outbox separately in a background service and all notification handlers will handle. Now in all our domain event notification handlers, we can do everything we need to execute out of our command handler transaction like publish a message to the broker or sending an email with a third party service. Here we can change of retry because of using the outbox pattern.</p>
+<p>Here is a sample of this process:</p>
+<pre><code class="lang-csharp">// NewUserRegisteredNotification.cs
+
+public class NewUserRegisteredNotification : DomainNotificationEventBase&lt;NewUserRegisteredDomainEvent&gt;
+{
+    public NewUserRegisteredNotification(NewUserRegisteredDomainEvent domainEvent, Guid id, Guid correlationId) : base(domainEvent, id,
+        correlationId)
+    {
+    }
+}
+
+
+// NewUserRegisteredPublishEventHandler.cs
+
+public class NewUserRegisteredPublishEventHandler : IDomainEventNotificationHandler&lt;NewUserRegisteredNotification&gt;
+{
+    private readonly ICommandProcessor _commandProcessor;
+    private readonly IUserDomainEventsToIntegrationEventsMapper _userDomainToIntegrationEventMapper;
+
+    public NewUserRegisteredPublishEventHandler(ICommandProcessor commandProcessor,
+        IUserDomainEventsToIntegrationEventsMapper userDomainToIntegrationEventMapper)
+    {
+        _commandProcessor = commandProcessor;
+        _userDomainToIntegrationEventMapper = userDomainToIntegrationEventMapper;
+    }
+
+    public async Task HandleAsync(NewUserRegisteredNotification notification)
+    {
+        var integrationEvents = _userDomainToIntegrationEventMapper.Map(notification.DomainEvent).ToArray();
+        foreach (var integrationEvent in integrationEvents)
+        {
+            await _commandProcessor.PublishMessageAsync(integrationEvent);
+        }
+    }
+}
+
+// NewUserRegisteredSendEmailConfirmationHandler.cs
+
+public class NewUserRegisteredSendEmailConfirmationHandler : IDomainEventNotificationHandler&lt;NewUserRegisteredNotification&gt;
+{
+    private readonly IMessagesScheduler _messagesScheduler;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public NewUserRegisteredSendEmailConfirmationHandler(IMessagesScheduler messagesScheduler,
+        IHttpContextAccessor httpContextAccessor)
+    {
+        _messagesScheduler = messagesScheduler;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public async Task HandleAsync(NewUserRegisteredNotification @event)
+    {
+        await _messagesScheduler.Enqueue(new SendVerificationEmailCommand(@event.DomainEvent.User.Id.Id.ToString(),
+            _httpContextAccessor.HttpContext?.Request.Scheme,
+            _httpContextAccessor.HttpContext?.Request.Host.Value));
+    }
+}
+</code></pre>
+<p>For more information see these articles <a href="http://www.kamilgrzybek.com/design/how-to-publish-and-handle-domain-events/" target="_blank">Reference 1</a>,<a href="http://www.kamilgrzybek.com/design/handling-domain-events-missing-part/" target="_blank">Reference 2</a>.</p>
 <h2 id="7-how-to-run">7. How To Run</h2>
 <h2 id="8-contribution">8. Contribution</h2>
 <p>The application is in development status. you are feel free to submit pull request or create the issue.</p>
@@ -570,7 +1101,7 @@ public class NewUserRegisteredIntegrationEventHandler : IMessageHandler&lt;NewUs
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2021-07-31T10:34:18.182Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-07-31T10:35:05.208Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2021-07-31T14:55:28.588Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-07-31T14:56:13.747Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
