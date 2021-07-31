@@ -595,7 +595,7 @@ infrastructural code responsible for module initialization, background processin
     }
 }
 </code></pre>
-<p>Now for sending our command we could bellow code:</p>
+<p>Now for sending our command we could use bellow code:</p>
 <pre><code class="lang-csharp"><span class="hljs-keyword">await</span> commandProcessor.SendCommandAsync(registerNewUserCommand);
 
 or 
@@ -637,7 +637,7 @@ or
     }
 }
 </code></pre>
-<p>Now for sending our query we could bellow code:</p>
+<p>Now for sending our query we could use bellow code:</p>
 <pre><code class="lang-csharp"><span class="hljs-keyword">await</span> mediator.Send(getUserByIdQuery);
 </code></pre>
 <h4 id="663-results-from-command-handlers">6.6.3 Results From Command Handlers</h4>
@@ -1101,7 +1101,7 @@ public class NewUserRegisteredSendEmailConfirmationHandler : IDomainEventNotific
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2021-07-31T15:00:16.581Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-07-31T15:01:02.127Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2021-07-31T15:02:24.493Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-07-31T15:03:09.392Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

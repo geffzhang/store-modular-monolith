@@ -486,7 +486,7 @@ public class RegisterNewUserCommandHandler : ICommandHandler<RegisterNewUserComm
 }
 ```
 
-Now for sending our command we could bellow code:
+Now for sending our command we could use bellow code:
 
 ``` csharp
 await commandProcessor.SendCommandAsync(registerNewUserCommand);
@@ -541,7 +541,7 @@ public class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, UserDto>
 }
 ```
 
-Now for sending our query we could bellow code:
+Now for sending our query we could use bellow code:
 
 ``` csharp
 await mediator.Send(getUserByIdQuery);
