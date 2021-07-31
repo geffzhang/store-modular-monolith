@@ -442,15 +442,12 @@ infrastructural code responsible for module initialization, background processin
 <p>Using message bus reduces coupling of bounded contexts through data replication across contexts which results to higher bounded contexts independence. Event publishing/subscribing is used in this project with some infrastructural code for handling this message passing and event driven architecture.</p>
 <p>Our message should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/IMessage.cs">IMessage</a> and our handlers should implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/IMessageHandler.cs">IMessageHandler<tmessage></tmessage></a> interface to participate in messaging mechanism.</p>
 <p>To publish a message to message broker we can use our <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/ICommandProcessor.cs">ICommandProcessor</a> or <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/Transport/IPublisher.cs">IPublisher</a> and then using <code>PublishMessageAsync&lt;TMessage&gt;(TMessage messgae);</code> method to publish message on message broker. On the other side subscriber or listener module can subscribe on published message with a handler that implement <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/IMessageHandler.cs">IMessageHandler<tmessage></tmessage></a> interface .</p>
-<p>To publishing message to message broker we can use bellow code:</p>
-<pre><code class="lang-csharp">
-<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TestMessage</span> : <span class="hljs-title">IMessage</span>
+<p>A sample of publishing and subscribing on a message:</p>
+<p>Message definition:</p>
+<pre><code class="lang-csharp"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TestMessage</span> : <span class="hljs-title">IMessage</span>
 {
     <span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> Data { <span class="hljs-keyword">get</span>; init;}
 }
-
-<span class="hljs-comment">// publishing message to message broker</span>
-CommandProcessor.PublishMessageAsync(<span class="hljs-keyword">new</span> Test() { Data=<span class="hljs-string">&quot;test&quot;</span> });
 </code></pre>
 <p>The listener for <code>TestMessage</code> message in other modules:</p>
 <pre><code class="lang-csharp">public class TestMessageHandler : IMessageHandler&lt;TestMessage&gt;
@@ -461,6 +458,9 @@ CommandProcessor.PublishMessageAsync(<span class="hljs-keyword">new</span> Test(
         return Task.CompletedTask;
     }
 }
+</code></pre>
+<p>For publishing message:</p>
+<pre><code class="lang-csharp">CommandProcessor.PublishMessageAsync(<span class="hljs-keyword">new</span> Test() { Data=<span class="hljs-string">&quot;test&quot;</span> });
 </code></pre>
 <h3 id="66-cqrs">6.6 CQRS</h3>
 <p>CQRS principle gives the flexibility in optimizing model for read and write operations. The simple version of CQRS is implemented in this application. On write operations, full logic is executed via aggregate (write model). On read operations, Dto objects (read model) are created via queries on repository level or directly on database context like ef core dbcontext. </p>
@@ -1101,7 +1101,7 @@ public class NewUserRegisteredSendEmailConfirmationHandler : IDomainEventNotific
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2021-07-31T14:55:28.588Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-07-31T14:56:13.747Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2021-07-31T15:00:16.581Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-07-31T15:01:02.127Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

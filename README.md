@@ -310,19 +310,17 @@ Our message should implement [IMessage](src/BuildingBlocks/BuildingBlocks/Buildi
 
 To publish a message to message broker we can use our [ICommandProcessor](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/ICommandProcessor.cs) or [IPublisher](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/Transport/IPublisher.cs) and then using `PublishMessageAsync<TMessage>(TMessage messgae);` method to publish message on message broker. On the other side subscriber or listener module can subscribe on published message with a handler that implement [IMessageHandler<TMessage>](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/IMessageHandler.cs) interface .
 
-To publishing message to message broker we can use bellow code:
+A sample of publishing and subscribing on a message:
+
+Message definition:
 
 ``` csharp
-
 public class TestMessage : IMessage
 {
     public string Data { get; init;}
 }
-
-// publishing message to message broker
-CommandProcessor.PublishMessageAsync(new Test() { Data="test" });
-
 ```
+
 The listener for `TestMessage` message in other modules:
 
 ``` csharp
@@ -334,6 +332,12 @@ public class TestMessageHandler : IMessageHandler<TestMessage>
         return Task.CompletedTask;
     }
 }
+```
+
+For publishing message:
+
+``` csharp
+CommandProcessor.PublishMessageAsync(new Test() { Data="test" });
 ```
 
 ### 6.6 CQRS
