@@ -296,7 +296,11 @@ public Startup(IConfiguration configuration)
 
 Communication between bounded contexts or modules are asynchronous via message broker. Bounded contexts don't share data, it's forbidden to create a transaction which spans more than one bounded context.[read more](https://www.kamilgrzybek.com/design/modular-monolith-integration-styles/)
 
-Using message bus reduces coupling of bounded contexts through data replication across contexts which results to higher bounded contexts independence. Event publishing/subscribing is used in this project with some infrastructural code for handling this message passing and event driven architecture. The example of implementation:
+Using message bus reduces coupling of bounded contexts through data replication across contexts which results to higher bounded contexts independence. Event publishing/subscribing is used in this project with some infrastructural code for handling this message passing and event driven architecture.
+
+To publish a message to message broker we can use our [ICommandProcessor](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/ICommandProcessor.cs) or [IPublisher](src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/Transport/IPublisher.cs) and then using `PublishMessageAsync<TMessage>(TMessage messgae);` method to publish message on message broker. On the other side subscriber or listener module can subscribe on published message with a handler that implement `IMessageHandler<TMessage>` interface or `IIntegrationEventHandler<TMessage>`.
+
+The example of implementation:
 
 ``` csharp
 public class RegisterNewUserCommandHandler : ICommandHandler<RegisterNewUserCommand>,
@@ -380,6 +384,17 @@ The listener for `NewUserRegisteredIntegrationEvent` integration event in other 
 
 ``` csharp
 public class NewUserRegisteredIntegrationEventHandler : IIntegrationEventHandler<NewUserRegisteredIntegrationEvent>
+{
+    public Task HandleAsync(NewUserRegisteredIntegrationEvent @event, IMessageContext context,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+}
+
+Or
+
+public class NewUserRegisteredIntegrationEventHandler : IMessageHandler<NewUserRegisteredIntegrationEvent>
 {
     public Task HandleAsync(NewUserRegisteredIntegrationEvent @event, IMessageContext context,
         CancellationToken cancellationToken = default)

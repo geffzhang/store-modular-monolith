@@ -429,7 +429,9 @@ infrastructural code responsible for module initialization, background processin
 </code></pre>
 <h3 id="65-communications-between-bounded-contexts-or-modules">6.5 Communications Between Bounded Contexts Or Modules</h3>
 <p>Communication between bounded contexts or modules are asynchronous via message broker. Bounded contexts don&apos;t share data, it&apos;s forbidden to create a transaction which spans more than one bounded context.<a href="https://www.kamilgrzybek.com/design/modular-monolith-integration-styles/" target="_blank">read more</a></p>
-<p>Using message bus reduces coupling of bounded contexts through data replication across contexts which results to higher bounded contexts independence. Event publishing/subscribing is used in this project with some infrastructural code for handling this message passing and event driven architecture. The example of implementation:</p>
+<p>Using message bus reduces coupling of bounded contexts through data replication across contexts which results to higher bounded contexts independence. Event publishing/subscribing is used in this project with some infrastructural code for handling this message passing and event driven architecture.</p>
+<p>To publish a message to message broker we can use our <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/ICommandProcessor.cs">ICommandProcessor</a> or <a href="src/BuildingBlocks/BuildingBlocks/BuildingBlocks.Core/Messaging/Transport/IPublisher.cs">IPublisher</a> and then using <code>PublishMessageAsync&lt;TMessage&gt;(TMessage messgae);</code> method to publish message on message broker. On the other side subscriber or listener module can subscribe on published message with a handler that implement <code>IMessageHandler&lt;TMessage&gt;</code> interface or <code>IIntegrationEventHandler&lt;TMessage&gt;</code>.</p>
+<p>The example of implementation:</p>
 <pre><code class="lang-csharp">public class RegisterNewUserCommandHandler : ICommandHandler&lt;RegisterNewUserCommand&gt;,
     IRetryableRequest&lt;RegisterNewUserCommand, Unit&gt;
 {
@@ -516,6 +518,17 @@ infrastructural code responsible for module initialization, background processin
         return Task.CompletedTask;
     }
 }
+
+Or
+
+public class NewUserRegisteredIntegrationEventHandler : IMessageHandler&lt;NewUserRegisteredIntegrationEvent&gt;
+{
+    public Task HandleAsync(NewUserRegisteredIntegrationEvent @event, IMessageContext context,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+}
 </code></pre>
 <h2 id="7-how-to-run">7. How To Run</h2>
 <h2 id="8-contribution">8. Contribution</h2>
@@ -557,7 +570,7 @@ infrastructural code responsible for module initialization, background processin
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2021-07-31T07:52:25.438Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-07-31T07:52:59.358Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2021-07-31T10:33:10.920Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-07-31T10:33:50.929Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
